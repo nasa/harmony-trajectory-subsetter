@@ -1,0 +1,103 @@
+/** SubsetterConfig.json Configuration file for the L1L2 subsetter **/
+{
+    /** 
+     *  coordinate names, no pattern matching for the values
+     *  shortname pattern, coordinate dataset names
+     *  e.g. ATL03 matches ATL[\\d]{2} (escaped)
+     */ 
+    "CoordinateDatasetNames":
+    {
+        "ATL[\\d]{2}": 
+        {
+            "time": ["delta_time", "delta_time_beg"],
+            "latitude": ["latitude", "reference_photon_lat", "lat_ph", "lat_mean", "reference_pt_lat", "segment_lat"],
+            "longitude": ["longitude", "reference_photon_lon", "lon_ph", "lon_mean", "reference_pt_lon", "segment_lon"]
+        } 
+    },
+
+    /**
+     * product epochs
+     */ 
+    "ProductEpochs":
+    {
+        "ATL[\\d]{2}": "2005-01-01T00:00:00.000000"
+    },
+
+    /**
+     * subsettable groups, inclusive lists for each shortname pattern
+     * if a shortname doesn't have a match, its groups are subsettable
+     */
+    "SubsettableGroups": {
+    },
+
+    /**
+     * unsettable groups
+     * if a shortname doesn't have a match, its groups are subsettable
+     */
+    "UnsubsettableGroups":
+    {
+        "ATL[\\d]{2}": [
+            "/ancillary_data/",
+            "/atlas_impulse_response/",
+            "/orbit_info/",
+            "/profile_[\\d]+/calibration/",
+            "/atlas/",
+            "/quality_assessment/"
+        ]
+    },
+
+
+    /**
+     * photon segment groups for special handling
+     */
+    "PhotonSegmentGroups":
+    {
+        "ATL03":
+        {
+            "SegmentGroup": "/gt[\\w]+/geolocation/",
+            "PhotonGroup":  "/gt[\\w]+/heights/",
+            "PhotonIndexBegin": "ph_index_beg",
+            "SegmentPhotonCount": "segment_ph_cnt",
+            "PhotonLatitude": "lat_ph",
+            "PhotonLongitude": "lon_ph"
+        },
+        "ATL08":
+        {
+            "SegmentGroup": "/gt[\\w]+/land_segments/",
+            "PhotonGroup":  "/gt[\\w]+/signal_photons/",
+            "PhotonIndexBegin": "ph_ndx_beg",
+            "SegmentPhotonCount": "n_seg_ph"
+        },
+        "ATL10":
+        {
+            "FreeboardSwathSegmentGroup": "/freeboard_swath_segment/",
+            "FreeboardBeamSegmentGroup": "/gt[\\w]+/freeboard_beam_segment/",
+            "LeadsGroup": "/gt[\\w]+/leads/",
+            "SwathFreeboardGroup": "/freeboard_swath_segment/gt[\\w]+/swath_freeboard/",
+            "BeamFreeboardGroup": "/gt[\\w]+/freeboard_beam_segment/beam_freeboard/",
+            "HeightsGroup": "/gt[\\w]+/freeboard_beam_segment/height_segments/",
+            "GeophysicalGroup": "/gt[\\w]+/freeboard_beam_segment/geophysical/",
+            "SwathIndex": "fbswath_lead_ndx_gt[\\w]+",
+            "SwathCount": "fbswath_lead_n_gt[\\w]+",
+            "SwathHeightIndex": "fbswath_ndx",
+            "SwathHeightCount": "fbswath_n",
+            "BeamIndex": "beam_lead_ndx",
+            "BeamCount": "beam_lead_n",
+            "LeadsIndex": "ssh_ndx",
+            "LeadsCount": "ssh_n",
+            "BeamFreeboardIndex": "beam_refsur_ndx",
+            "BeamFreeboardCount": "beam_refsur_n",
+            "PhotonLatitude": "latitude",
+            "PhotonLongitude": "longitude",
+            "HeightSegmentSSHFlag": "height_segment_ssh_flag"
+        }
+    },
+
+    /**
+     * output file size limit
+     */
+    "FileSizeLimit":
+    {
+        "ASCII": "2"
+    }
+}
