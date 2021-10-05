@@ -1,0 +1,4 @@
+coverage ~= 6.0
+pycodestyle ~= 2.7.0
+pylint ~= 2.11.1
+unittest-xml-reporting ~= 3.0.4
