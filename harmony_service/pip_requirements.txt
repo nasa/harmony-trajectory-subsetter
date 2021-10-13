@@ -1,0 +1,3 @@
+# Open source packages available from PyPI:
+harmony-service-lib ~= 1.0.12
+pystac ~= 0.5.3
