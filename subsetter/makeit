@@ -1,0 +1,11 @@
+/bin/h5c++ -std=c++0x \
+-I/home/hdfeos/gctp/include \
+-L/usr/lib64 \
+-I/usr/include \
+-I/usr/include/libgeotiff \
+-lgeotiff -ltiff -lGctp -g Subset.cpp \
+/usr/lib64/libboost_program_options.a \
+/usr/lib64/libboost_date_time.a \
+/usr/lib64/libboost_regex.a \
+-o subset
+
