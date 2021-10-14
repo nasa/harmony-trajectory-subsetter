@@ -14,10 +14,13 @@
 
 """
 from argparse import ArgumentParser
+from itertools import chain
+from json import dumps
+from os.path import basename, join as join_path
 from shutil import rmtree
 from sys import argv
 from tempfile import mkdtemp
-from typing import Any, List, Optional
+from typing import Any, Dict, List, Optional
 
 from harmony import BaseHarmonyAdapter, run_cli, setup_cli
 from harmony.message import Source
@@ -25,7 +28,16 @@ from harmony.util import (Config, download, generate_output_filename,
                           HarmonyException, stage)
 from pystac import Asset, Item
 
-from harmony_service.utilities import get_file_mimetype
+from harmony_service.utilities import (execute_command, get_file_mimetype,
+                                       is_bbox_spatial_subset,
+                                       is_harmony_subset,
+                                       is_polygon_spatial_subset,
+                                       is_temporal_subset)
+
+
+# DAS-1263: Updated path to binary to correct value
+SUBSETTER_BINARY_PATH = '/path/to/binary/in/container'
+SUBSETTER_CONFIG = 'harmony_service/subsetter_config.json'
 
 
 class HarmonyAdapter(BaseHarmonyAdapter):
@@ -59,22 +71,19 @@ class HarmonyAdapter(BaseHarmonyAdapter):
                          for stac_asset in item.assets.values()
                          if 'data' in (stac_asset.roles or []))
 
-            input_filename = download(asset.href,
-                                      working_directory,
-                                      logger=self.logger,
-                                      access_token=self.message.accessToken,
-                                      cfg=self.config)
+            binary_parameters = self.parse_binary_parameters(working_directory,
+                                                             asset, source)
 
-            # DAS-1262 - Parse request parameters from the Harmony message here
+            # DAS-1263 - Uncomment the following line. It will need extensive
+            # local testing once the Docker image is being built to contain the
+            # subsetter binary.
+            # self.transform(binary_parameters)
 
-            output_file_path = self.transform(input_filename)
-
-            # DAS-1262 - include requested variable, etc, when naming file
-            staged_file_name = generate_output_filename(asset.href)
+            staged_file_name = basename(binary_parameters['--outfile'])
 
             # stage the output results
-            mime, _ = get_file_mimetype(output_file_path)
-            url = stage(output_file_path, staged_file_name, mime,
+            mime, _ = get_file_mimetype(binary_parameters['--outfile'])
+            url = stage(binary_parameters['--outfile'], staged_file_name, mime,
                         location=self.message.stagingLocation,
                         logger=self.logger)
 
@@ -90,16 +99,33 @@ class HarmonyAdapter(BaseHarmonyAdapter):
             # Clean up any intermediate resources:
             rmtree(working_directory)
 
-    def transform(self, input_file_path: str) -> str:
-        """ DAS-1263 - This class method will contain a call to the trajectory
-            subsetter.
+    def transform(self, binary_parameters: Dict[str, str]) -> None:
+        """ This class method takes the parsed arguments to be sent to the
+            L2 segmented Trajectory Subsetter binary and constructs a command
+            to execute the specified transformation. This command takes the
+            form of a string, which is a space-delimited concatenation of the
+            list of parameters:
+
+            ```Python
+            binary_command = ['path/to/binary', '--filename', 'input.h5']
+            execute_command('path/to/binary --filename input.h5', self.logger)
+            ```
+
+            If the binary returns a non-zero exit status, this will cause a
+            `CustomError` to be raised, which in turn will raise a
+            `HarmonyException`.
 
         """
-        return input_file_path
+        binary_command = [SUBSETTER_BINARY_PATH]
+        binary_command.extend(chain(*(binary_parameters.items())))
+        execute_command(' '.join(binary_command), self.logger)
 
     def validate_message(self):
-        """ Check the service was triggered by a valid message.
-            DAS-1262 - add validation for specific options, if needed.
+        """ Check the service was triggered by a valid message. This includes
+            standard Harmony validation for the number of granules specified,
+            as well as validation rules from the on-premises invocation.
+            Currently that is limited to ensuring temporal subsetting
+            specifies both a start and end time.
 
         """
         has_granules = (hasattr(self.message, 'granules') and
@@ -115,6 +141,106 @@ class HarmonyAdapter(BaseHarmonyAdapter):
             raise Exception('No granules specified for trajectory subsetting.')
         elif self.message.isSynchronous and len(self.message.granules) > 1:
             raise Exception('Synchronous requests accept only one granule.')
+
+        if (
+                is_temporal_subset(self.message) and
+                (self.message.temporal.start is None
+                 or self.message.temporal.end is None)
+        ):
+            raise Exception('Invalid temporal range, both start and end '
+                            'required.')
+
+        if (
+                is_polygon_spatial_subset(self.message) and
+                self.message.subset.shape.type != 'application/geo+json'
+        ):
+            raise Exception('Invalid shape file format. Must be GeoJSON.')
+
+    def parse_binary_parameters(self, working_directory: str,
+                                input_asset: Asset,
+                                source: Source) -> Dict[str, str]:
+        """ Retrieve parameters for the Trajectory Subsetter binary from the
+            Harmony message. These will be stored in a dictionary, that
+            formats the key as the binary parameter flag, e.g.:
+
+            ```
+            binary_parameters = {'--end': 'YYYY-MM-DDTHH:mm:ss'
+                                 '--filename': '/path/to/local/file.nc',
+                                 '--start': 'YYYY-MM-DDTHH:mm:ss'}
+            ```
+
+            Parameters that will always be included:
+
+            * `--configfile` - the path to the subsetter configuration JSON
+              file, as hosted in the Docker image. This value is hard-coded at
+              the top of this module.
+            * `--filename` - the local file path of the downloaded granule to
+              be transformed.
+            * `--outfile` - the local file path of the transformed output.
+
+            Optional parameters:
+
+            * `--includedataset` - A comma separated list of variables, if the
+              request specifies a subset of variables to include in the output.
+              Otherwise, all variables will be returned.
+            * `--start` - The start time of a temporal range, in ISO-8601
+              format. This can be a date or a datetime.
+            * `--end` - The end time of a temporal range, in ISO-8601 format.
+              This can be a date or a datetime. `--start` and `--end` must
+              either both be provided, or both be omitted from a request.
+            * `--bbox` - A bounding box of format "[W,S,E,N]".
+            * `--boundingshape` - A local file path for a shape file to be used
+              for polygon spatial subsetting.
+
+            Other binary parameters currently not used:
+
+            * `--crs` - Specifies a coordinate system to project the output,
+              including EPSG codes.
+            * `--reformat` - Specifies the output format, such a "GeoTIFF". A
+              future feature.
+            * `--subsettype` - Can be "ICESAT", "SMAP" or "GLAS". Omitted as
+              not included in the `ICESat2ToolAdapter.py`.
+
+        """
+        binary_parameters = {
+            '--configfile': SUBSETTER_CONFIG,
+            '--filename': download(input_asset.href, working_directory,
+                                   logger=self.logger,
+                                   access_token=self.message.accessToken,
+                                   cfg=self.config),
+        }
+
+        if source.variables != []:
+            variables = [variable.fullPath
+                         for variable in source.process('variables')]
+            binary_parameters['--includedataset'] = ','.join(variables)
+        else:
+            variables = None
+
+        if is_temporal_subset(self.message):
+            binary_parameters['--start'] = self.message.temporal.start
+            binary_parameters['--end'] = self.message.temporal.end
+
+        if is_bbox_spatial_subset(self.message):
+            binary_parameters['--bbox'] = dumps(self.message.subset.bbox,
+                                                separators=(',', ':'))
+
+        if is_polygon_spatial_subset(self.message):
+            binary_parameters['--boundingshape'] = download(
+                self.message.subset.shape.href, working_directory,
+                logger=self.logger, access_token=self.message.accessToken,
+                cfg=self.config
+            )
+
+        binary_parameters['--outfile'] = join_path(
+            working_directory,
+            generate_output_filename(
+                input_asset.href, variable_subset=variables,
+                is_subsetted=is_harmony_subset(self.message)
+            )
+        )
+
+        return binary_parameters
 
 
 def main(arguments: List[Any], config: Optional[Config] = None):
