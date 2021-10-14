@@ -1,4 +1,3 @@
-mkdir -p out
 /bin/h5c++ -std=c++0x \
 -I/home/hdfeos/gctp/include \
 -L/usr/lib64 \
@@ -8,5 +7,5 @@ mkdir -p out
 /usr/lib64/libboost_program_options.a \
 /usr/lib64/libboost_date_time.a \
 /usr/lib64/libboost_regex.a \
--o ../subset
+-o subset
 

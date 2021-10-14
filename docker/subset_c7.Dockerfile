@@ -5,7 +5,7 @@ FROM centos:7
 
 # Set up additional packages needed to build the libraries
 #
-WORKDIR /"home"
+WORKDIR /home
 
 # All needed libraries
 RUN yum -y install epel-release && \
@@ -31,9 +31,4 @@ RUN set -e && \
   cd hdfeos5 && ./configure && make && make install && \
   rm -f hdfeos5.tar.gz
 
-RUN mkdir subsetter
-COPY ../subsetter .
-
-
-
-
+WORKDIR /home/subsetter
