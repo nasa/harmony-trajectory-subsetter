@@ -361,7 +361,7 @@ class TestAdapter(TestCase):
         with self.subTest('Bounding box spatial subset'):
             mock_download.side_effect = download_list
             expected_parameters = {
-                '--bbox': '[10,20,30,40]',
+                '--bbox': '10,20,30,40',
                 '--configfile': SUBSETTER_CONFIG,
                 '--filename': local_input_path,
                 '--outfile': f'{self.temp_dir}/{self.subsetted_filename}'
@@ -447,7 +447,7 @@ class TestAdapter(TestCase):
         with self.subTest('Variables, bounding box, polygon and temporal'):
             mock_download.side_effect = download_list
             expected_parameters = {
-                '--bbox': '[10,20,30,40]',
+                '--bbox': '10,20,30,40',
                 '--boundingshape': local_shape_file_path,
                 '--configfile': SUBSETTER_CONFIG,
                 '--end': end_time,

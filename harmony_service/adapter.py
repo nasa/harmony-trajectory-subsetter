@@ -15,7 +15,6 @@
 """
 from argparse import ArgumentParser
 from itertools import chain
-from json import dumps
 from os.path import basename, join as join_path
 from shutil import rmtree
 from sys import argv
@@ -222,8 +221,8 @@ class HarmonyAdapter(BaseHarmonyAdapter):
             binary_parameters['--end'] = self.message.temporal.end
 
         if is_bbox_spatial_subset(self.message):
-            binary_parameters['--bbox'] = dumps(self.message.subset.bbox,
-                                                separators=(',', ':'))
+            binary_parameters['--bbox'] = ','.join(str(extent) for extent
+                                                   in self.message.subset.bbox)
 
         if is_polygon_spatial_subset(self.message):
             binary_parameters['--boundingshape'] = download(
