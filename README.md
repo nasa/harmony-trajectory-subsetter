@@ -15,8 +15,9 @@ feature work should be added via pull request (PR) with a target branch of
 ### Repository contents:
 
 This repository contains a number of subdirectories:
+( See https://wiki.earthdata.nasa.gov/x/CwdoDQ )
 
-* `scripts` - A directory containing scripts used to build docker images and tests.
+* `bin` - A directory containing scripts used to build docker images and tests.
 * `subsetter` - A directory containing  C++ code to build subset binary file (DAS-1252).
 * `docker` - A directory containing Dockerfiles for creation images for Harmony service and test.
 * `harmony_service` - A directory containing the Python code to invoke the
