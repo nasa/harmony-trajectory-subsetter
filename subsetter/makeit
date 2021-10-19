@@ -7,5 +7,5 @@
 /usr/lib64/libboost_program_options.a \
 /usr/lib64/libboost_date_time.a \
 /usr/lib64/libboost_regex.a \
--o subset
+-o /home/subset
 

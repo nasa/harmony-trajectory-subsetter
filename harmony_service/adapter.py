@@ -35,7 +35,7 @@ from harmony_service.utilities import (execute_command, get_file_mimetype,
 
 
 # DAS-1263: Updated path to binary to correct value
-SUBSETTER_BINARY_PATH = '/path/to/binary/in/container'
+SUBSETTER_BINARY_PATH = 'subset'
 SUBSETTER_CONFIG = 'harmony_service/subsetter_config.json'
 
 

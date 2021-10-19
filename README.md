@@ -16,12 +16,12 @@ feature work should be added via pull request (PR) with a target branch of
 
 This repository contains a number of subdirectories:
 
-* `bin` - To be added, DAS-1259.
-* `DataAccess` - To be added, DAS-1252.
-* `docker` - To be added, DAS-1259.
+* `scripts` - A directory containing scripts used to build docker images and tests.
+* `subsetter` - A directory containing  C++ code to build subset binary file (DAS-1252).
+* `docker` - A directory containing Dockerfiles for creation images for Harmony service and test.
 * `harmony_service` - A directory containing the Python code to invoke the
   Trajectory Subsetter within a Harmony service.
-* `tests` - Python unit tests for the Harmony service functionality.
+* `tests` - A directory containing Python unit tests for the Harmony service functionality.
 
 ### Harmony service conda environment:
 
