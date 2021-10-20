@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# Compress directory "subsetter"
+
+tar -czf trajectorysubsetter.tar.gz ./subsetter
+
+echo "Prepared: trajectorysubsetter.tar.gz"
