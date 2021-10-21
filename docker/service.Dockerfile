@@ -4,7 +4,7 @@
 # spatial and temporal subsetting.
 #
 # This image builds binary file "subset" from C++ code situated in the subsetter
-# directory, instantiates a conda environment, with required pacakges, before
+# directory, instantiates a conda environment, with required packages, before
 # installing additional dependencies via Pip. The service code is then copied
 # into the Docker image, before environment variables are set to activate the
 # created conda environment.
