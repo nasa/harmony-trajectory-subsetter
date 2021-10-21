@@ -28,14 +28,14 @@ ENV MINICONDA="https://repo.anaconda.com/miniconda/Miniconda3-py39_4.10.3-Linux-
 RUN set -e && \
   curl -sfSL ${HDFEOS_URL} > hdfeos.tar.gz && \
   mkdir hdfeos && tar xzvf hdfeos.tar.gz -C hdfeos --strip-components 1 && \
-  cd hdfeos && ./configure && make && make install
-RUN rm -f hdfeos.tar.gz
+  cd hdfeos && ./configure && make && make install && cd .. && \
+  rm -f hdfeos.tar.gz
 
 RUN set -e && \
   curl -sfSL ${HDFEOS5_URL} > hdfeos5.tar.gz && \
   mkdir hdfeos5 && tar xzvf hdfeos5.tar.gz -C hdfeos5 --strip-components 1 && \
-  cd hdfeos5 && ./configure && make && make install
-RUN rm -f hdfeos5.tar.gz
+  cd hdfeos5 && ./configure && make && make install && cd .. && \
+  rm -f hdfeos5.tar.gz
 
 RUN set -e && \
   curl -sfSL ${MINICONDA} > miniconda.sh && \
@@ -79,4 +79,4 @@ ENV _CE_CONDA='' \
     SHLVL=1
 
 # Configure a container to be executable via the `docker run` command.
-ENTRYPOINT service: ["python", "harmony_service/adapter.py"]
+#ENTRYPOINT service: ["python", "harmony_service/adapter.py"]
