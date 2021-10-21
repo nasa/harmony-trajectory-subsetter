@@ -79,4 +79,4 @@ ENV _CE_CONDA='' \
     SHLVL=1
 
 # Configure a container to be executable via the `docker run` command.
-#ENTRYPOINT service: ["python", "harmony_service/adapter.py"]
+ENTRYPOINT service: ["python", "harmony_service/adapter.py"]
