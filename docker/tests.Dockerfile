@@ -11,10 +11,11 @@ ENV PYTHONDONTWRITEBYTECODE=1
 
 WORKDIR /home
 
-COPY tests tests
 # Install additional Pip requirements (for testing)
-COPY tests/pip_test_requirements.txt tests/pip_test_requirements.txt
-RUN conda run --name trajectorysubsetter pip install --no-input -r tests/pip_test_requirements.txt
+COPY tests/pip_test_requirements.txt pip_test_requirements.txt
 
+RUN conda run --name trajectorysubsetter pip install --no-input -r pip_test_requirements.txt
+
+COPY tests tests
 # Configure a container to be executable via the `docker run` command.
 ENTRYPOINT ["/home/tests/run_tests.sh"]

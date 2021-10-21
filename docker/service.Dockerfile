@@ -48,8 +48,6 @@ WORKDIR /home/subsetter
 RUN make
 
 WORKDIR /home
-# Bundle app source
-COPY ./harmony_service harmony_service
 RUN rm -rf ./subsetter ./hdfeos ./hdfeos5
 
 # Create Conda environment
@@ -63,7 +61,8 @@ RUN conda create -y --name trajectorysubsetter python=3.9 -q \
 COPY harmony_service/pip_requirements.txt harmony_service/pip_requirements.txt
 # Install additional Pip dependencies
 RUN conda run --name trajectorysubsetter pip install --no-input -r harmony_service/pip_requirements.txt
-
+# Bundle app source
+COPY ./harmony_service harmony_service
 # Set conda environment to trajectorysubsetter, as conda run will not stream logging.
 # Setting these environment variables is the equivalent of `conda activate`.
 ENV _CE_CONDA='' \
@@ -80,4 +79,4 @@ ENV _CE_CONDA='' \
     SHLVL=1
 
 # Configure a container to be executable via the `docker run` command.
-ENTRYPOINT service: ["python", "harmony_service/adapter.py"]
+#ENTRYPOINT service: ["python", "harmony_service/adapter.py"]
