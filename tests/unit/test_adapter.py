@@ -52,7 +52,7 @@ class TestAdapter(TestCase):
         """
         local_input_path = f'{self.temp_dir}/{self.granule["url"]}'
         mock_download.return_value = local_input_path
-        mock_get_mimetype.return_value = (self.mimetype, None)
+        mock_get_mimetype.return_value = self.mimetype
         mock_stage.return_value = 'tests/to/staged/output'
 
         message = Message({'accessToken': self.access_token,
@@ -163,7 +163,7 @@ class TestAdapter(TestCase):
 
         """
         mock_download.return_value = self.granule['url']
-        mock_get_mimetype.return_value = (self.mimetype, None)
+        mock_get_mimetype.return_value = self.mimetype
         mock_stage.return_value = 'tests/to/staged/output'
 
         start_time = '2001-02-03T04:05:06'
@@ -225,7 +225,7 @@ class TestAdapter(TestCase):
 
         """
         mock_download.return_value = self.granule['url']
-        mock_get_mimetype.return_value = (self.mimetype, None)
+        mock_get_mimetype.return_value = self.mimetype
         mock_stage.return_value = 'tests/to/staged/output'
 
         with self.subTest('Non GeoJSON shape file'):

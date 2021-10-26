@@ -81,7 +81,7 @@ class HarmonyAdapter(BaseHarmonyAdapter):
             staged_file_name = basename(binary_parameters['--outfile'])
 
             # stage the output results
-            mime, _ = get_file_mimetype(binary_parameters['--outfile'])
+            mime = get_file_mimetype(binary_parameters['--outfile'])
             url = stage(binary_parameters['--outfile'], staged_file_name, mime,
                         location=self.message.stagingLocation,
                         logger=self.logger)
