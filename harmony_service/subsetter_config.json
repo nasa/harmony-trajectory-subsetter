@@ -1,0 +1,316 @@
+{
+    "ShortNamePath": [
+        "/short_name/",
+        "/METADATA/DatasetIdentification/shortName/",
+        "/METADATA/DatasetIdentification/shortName",
+        "/Metadata/DatasetIdentification/shortName/"
+    ],
+    "Missions": {
+        "ATL[\\d]{2}": "ICESAT",
+        "GEDI_L[12][AB]": "GEDI",
+        "SPL[12].+": "SMAP"
+    },
+    "CoordinateDatasetNames": {
+        "ATL[\\d]{2}": {
+            "time": [
+                "delta_time"
+            ],
+            "latitude": [
+                "latitude",
+                "reference_photon_lat",
+                "lat_ph",
+                "lat_mean",
+                "reference_pt_lat",
+                "segment_lat"
+            ],
+            "longitude": [
+                "longitude",
+                "reference_photon_lon",
+                "lon_ph",
+                "lon_mean",
+                "reference_pt_lon",
+                "segment_lon"
+            ],
+            "ignore": [
+                "cycle_number",
+                "poly_exponent_x",
+                "poly_exponent_y"
+            ]
+        },
+        "GEDI_L[12][AB]": {
+            "time": [
+                "delta_time"
+            ],
+            "latitude": [
+                "latitude_bin0",
+                "latitude_lastbin",
+                "latitude_instrument",
+                "lat_lowestreturn_a1",
+                "lat_lowestreturn_a2",
+                "lat_lowestreturn_a3",
+                "lat_lowestreturn_a4",
+                "lat_lowestreturn_a5",
+                "lat_lowestreturn_a6",
+                "lat_highestreturn_a1",
+                "lat_highestreturn_a2",
+                "lat_highestreturn_a3",
+                "lat_highestreturn_a4",
+                "lat_highestreturn_a5",
+                "lat_highestreturn_a6",
+                "lat_lowestreturn_a1",
+                "lat_lowestreturn_a2",
+                "lat_lowestreturn_a3",
+                "lat_lowestreturn_a4",
+                "lat_lowestreturn_a5",
+                "lat_lowestreturn_a6",
+                "latitude_1gfit",
+                "lat_highestreturn",
+                "lat_lowestmode",
+                "lat_lowestmode_a1",
+                "lat_lowestmode_a2",
+                "lat_lowestmode_a3",
+                "lat_lowestmode_a4",
+                "lat_lowestmode_a5",
+                "lat_lowestmode_a6"
+            ],
+            "longitude": [
+                "longitude_bin0",
+                "longitude_lastbin",
+                "longitude_instrument",
+                "lon_lowestreturn_a1",
+                "lon_lowestreturn_a2",
+                "lon_lowestreturn_a3",
+                "lon_lowestreturn_a4",
+                "lon_lowestreturn_a5",
+                "lon_lowestreturn_a6",
+                "lon_highestreturn_a1",
+                "lon_highestreturn_a2",
+                "lon_highestreturn_a3",
+                "lon_highestreturn_a4",
+                "lon_highestreturn_a5",
+                "lon_highestreturn_a6",
+                "lon_lowestreturn_a1",
+                "lon_lowestreturn_a2",
+                "lon_lowestreturn_a3",
+                "lon_lowestreturn_a4",
+                "lon_lowestreturn_a5",
+                "lon_lowestreturn_a6",
+                "longitude_1gfit",
+                "lon_highestreturn",
+                "lon_lowestmode",
+                "lon_lowestmode_a1",
+                "lon_lowestmode_a2",
+                "lon_lowestmode_a3",
+                "lon_lowestmode_a4",
+                "lon_lowestmode_a5",
+                "lon_lowestmode_a6"
+            ]
+        },
+        "SPL[12].*": {
+            "latitude": [
+                "latitude",
+                "latitude_3km",
+                "cell_lat"
+            ],
+            "longitude": [
+                "longitude",
+                "longitude_3km",
+                "cell_lon"
+            ]
+        }
+    },
+    "SuperGroups": {
+        "GEDI_L2A": {
+            "/BEAM[\\d]+/": [
+                "/BEAM[\\d]+/"
+            ]
+        },
+        "GEDI_L2B": {
+            "/BEAM[\\d]+/": [
+                "/BEAM[\\d]+/geolocation/"
+            ]
+        },
+        "GEDI_L1[AB]": {
+            "/BEAM[\\d]+/": [
+                "/BEAM[\\d]+/geolocation/"
+            ]
+        },
+        "ATL03": {
+            "/gt[\\w]+/geophys_corr/": [
+                "/gt[\\w]+/geolocation/"
+            ]
+        }
+    },
+    "SuperGroupCoordinates": {
+        "GEDI_L2A": {
+            "/BEAM[\\d]+/": [
+                "lat_lowestmode",
+                "lon_lowestmode",
+                "delta_time"
+            ]
+        },
+        "GEDI_L2B": {
+            "/BEAM[\\d]+/geolocation/": [
+                "lat_lowestmode",
+                "lon_lowestmode",
+                "delta_time"
+            ]
+        },
+        "GEDI_L1[AB]": {
+            "/BEAM[\\d]+/geolocation/": [
+                "latitude_bin0",
+                "longitude_bin0",
+                "delta_time"
+            ]
+        },
+        "ATL03": {
+            "/gt[\\w]+/geolocation/": [
+                "reference_photon_lat",
+                "reference_photon_lon",
+                "delta_time"
+            ]
+        }
+    },
+    "ProductEpochs": {
+        "ATL[\\d]{2}": "2005-01-01T00:00:00.000000",
+        "GEDI_L[12][AB]": "2018-01-01T00:00:00.000000"
+    },
+    "SubsettableGroups": {},
+    "UnsubsettableGroups": {
+        "ATL[\\d]{2}": [
+            "/ancillary_data/",
+            "/atlas_impulse_response/",
+            "/orbit_info/",
+            "/profile_[\\d]+/calibration/",
+            "/atlas/",
+            "/quality_assessment/"
+        ],
+        "GEDI_L[12][AB]": [
+            "/BEAM[\\d]+/(.*/)*ancillary/"
+        ]
+    },
+    "PhotonSegmentGroups": {
+        "ATL03": {
+            "SegmentGroup": "/gt[\\w]+/geolocation/",
+            "PhotonGroup": "/gt[\\w]+/heights/",
+            "PhotonIndexBegin": "ph_index_beg",
+            "SegmentPhotonCount": "segment_ph_cnt",
+            "PhotonLatitude": "lat_ph",
+            "PhotonLongitude": "lon_ph"
+        },
+        "ATL08": {
+            "SegmentGroup": "/gt[\\w]+/land_segments/",
+            "PhotonGroup": "/gt[\\w]+/signal_photons/",
+            "PhotonIndexBegin": "ph_ndx_beg",
+            "SegmentPhotonCount": "n_seg_ph"
+        },
+        "ATL10": {
+            "FreeboardSwathSegmentGroup": "/freeboard_swath_segment/",
+            "FreeboardBeamSegmentGroup": "/gt[\\w]+/freeboard_beam_segment/",
+            "LeadsGroup": "/gt[\\w]+/leads/",
+            "SwathFreeboardGroup": "/freeboard_swath_segment/gt[\\w]+/swath_freeboard/",
+            "BeamFreeboardGroup": "/gt[\\w]+/freeboard_beam_segment/beam_freeboard/",
+            "HeightsGroup": "/gt[\\w]+/freeboard_beam_segment/height_segments/",
+            "GeophysicalGroup": "/gt[\\w]+/freeboard_beam_segment/geophysical/",
+            "SwathIndex": "fbswath_lead_ndx_gt[\\w]+",
+            "SwathCount": "fbswath_lead_n_gt[\\w]+",
+            "SwathHeightIndex": "fbswath_ndx",
+            "SwathHeightCount": "fbswath_n",
+            "BeamIndex": "beam_lead_ndx",
+            "BeamCount": "beam_lead_n",
+            "LeadsIndex": "ssh_ndx",
+            "LeadsCount": "ssh_n",
+            "BeamFreeboardIndex": "beam_refsur_ndx",
+            "BeamFreeboardCount": "beam_refsur_n",
+            "PhotonLatitude": "latitude",
+            "PhotonLongitude": "longitude",
+            "HeightSegmentSSHFlag": "height_segment_ssh_flag"
+        },
+        "GEDI_L1[AB]": {
+            "SegmentGroup": "/BEAM[\\d]+/",
+            "PhotonDataset": "/BEAM[\\d]+/[rt]xwaveform",
+            "PhotonIndexBegin": "[rt]x_sample_start_index",
+            "SegmentPhotonCount": "[rt]x_sample_count"
+        },
+        "GEDI_L2B": {
+            "SegmentGroup": "/BEAM[\\d]+/",
+            "PhotonDataset": "/BEAM[\\d]+/pgap_theta_z",
+            "PhotonIndexBegin": "rx_sample_start_index",
+            "SegmentPhotonCount": "rx_sample_count"
+        }
+    },
+    "FileSizeLimit": {
+        "ASCII": "2"
+    },
+    "RequiredDatasets": {
+        "GEDI_L[12][AB]": {
+            "/BEAM[\\d]+$": "shot_number"
+        }
+    },
+    "RequiredDatasetsByFormat": {
+        "GeoTIFF": {
+            "/Ancillary_Data/": [
+                "/Soil_Moisture_Retrieval_Data/EASE_row_index",
+                "/Soil_Moisture_Retrieval_Data/EASE_column_index",
+                "/Soil_Moisture_Retrieval_Data/latitude",
+                "/Soil_Moisture_Retrieval_Data/longitude"
+            ],
+            "/Radar_Data/": [
+                "/Soil_Moisture_Retrieval_Data/EASE_row_index",
+                "/Soil_Moisture_Retrieval_Data/EASE_column_index",
+                "/Soil_Moisture_Retrieval_Data/latitude",
+                "/Soil_Moisture_Retrieval_Data/longitude"
+            ],
+            "/Soil_Moisture_Retrieval_Data(:?_Polar)?/": [
+                "EASE_row_index",
+                "EASE_column_index",
+                "latitude",
+                "longitude"
+            ],
+            "/Soil_Moisture_Retrieval_Data_3km/": [
+                "EASE_row_index_3km",
+                "EASE_column_index_3km",
+                "latitude_3km",
+                "longitude_3km"
+            ],
+            "DEFAULT": [
+                "cell_row",
+                "cell_column",
+                "cell_lat",
+                "cell_lon"
+            ]
+        }
+    },
+    "Resolution": {
+        "/Ancillary_Data/": {
+            "SPL2SMA": "3",
+            "SPL2SMP": "36",
+            "SPL2SMP_E": "9",
+            "SPL2SMAP": "9"
+        },
+        "/Radar_Data/": {
+            "SPL2SMA": "3",
+            "SPL2SMP": "36",
+            "SPL2SMP_E": "9",
+            "SPL2SMAP": "9"
+        },
+        "/Soil_Moisture_Retrieval_Data(:?_Polar)?/": {
+            "SPL2SMA": "3",
+            "SPL2SMP": "36",
+            "SPL2SMP_E": "9",
+            "SPL2SMAP": "9"
+        },
+        "/Soil_Moisture_Retrieval_Data_3km/": {
+            "SPL2SMAP": "3"
+        },
+        "/.*_Projection/": {
+            "SPL1CTB": "36",
+            "SPL1CTB_E": "9"
+        }
+    },
+    "Projections": {
+        "/North_Polar_Projection/": "NLAEA",
+        "/South_Polar_Projection/": "SLAEA",
+        "DEFAULT": "CEA"
+    }
+}
