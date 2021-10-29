@@ -12,6 +12,9 @@
     * Stage the output file via Harmony functionality to allow the end-user to
       retrieve their results.
 
+    Note: The paths for the Trajectory Subsetter binary and configuration file
+    are set to values specific to the Docker image.
+
 """
 from argparse import ArgumentParser
 from itertools import chain
@@ -34,9 +37,8 @@ from harmony_service.utilities import (execute_command, get_file_mimetype,
                                        is_temporal_subset)
 
 
-# DAS-1263: Updated path to binary to correct value
-SUBSETTER_BINARY_PATH = 'subset'
-SUBSETTER_CONFIG = 'harmony_service/subsetter_config.json'
+SUBSETTER_BINARY_PATH = '/home/subset'
+SUBSETTER_CONFIG = '/home/harmony_service/subsetter_config.json'
 
 
 class HarmonyAdapter(BaseHarmonyAdapter):
@@ -73,14 +75,11 @@ class HarmonyAdapter(BaseHarmonyAdapter):
             binary_parameters = self.parse_binary_parameters(working_directory,
                                                              asset, source)
 
-            # DAS-1263 - Uncomment the following line. It will need extensive
-            # local testing once the Docker image is being built to contain the
-            # subsetter binary.
-            # self.transform(binary_parameters)
+            # Invoke the Trajectory subsetter binary
+            self.transform(binary_parameters)
 
+            # Stage the output file.
             staged_file_name = basename(binary_parameters['--outfile'])
-
-            # stage the output results
             mime = get_file_mimetype(binary_parameters['--outfile'])
             url = stage(binary_parameters['--outfile'], staged_file_name, mime,
                         location=self.message.stagingLocation,

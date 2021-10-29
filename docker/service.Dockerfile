@@ -65,6 +65,8 @@ RUN conda run --name trajectorysubsetter pip install --no-input -r harmony_servi
 COPY ./harmony_service harmony_service
 # Set conda environment to trajectorysubsetter, as conda run will not stream logging.
 # Setting these environment variables is the equivalent of `conda activate`.
+# The PYTHONPATH environment variable is also included to ensure the correct
+# import paths are available to the service when invoking via the command line.
 ENV _CE_CONDA='' \
     _CE_M='' \
     CONDA_DEFAULT_ENV=trajectorysubsetter \
@@ -76,7 +78,8 @@ ENV _CE_CONDA='' \
     CONDA_ROOT=/opt/conda \
     CONDA_SHLVL=2 \
     PATH="/opt/conda/envs/trajectorysubsetter/bin:${PATH}" \
-    SHLVL=1
+    SHLVL=1 \
+    PYTHONPATH="/home"
 
 # Configure a container to be executable via the `docker run` command.
 ENTRYPOINT service: ["python", "harmony_service/adapter.py"]
