@@ -311,6 +311,7 @@
     "Projections": {
         "/North_Polar_Projection/": "NLAEA",
         "/South_Polar_Projection/": "SLAEA",
+        "/Soil_Moisture_Retrieval_Data_Polar/": "NLAEA",
         "DEFAULT": "CEA"
     }
 }
