@@ -170,10 +170,27 @@ public:
 
         short num_row_pixels = 406 * 36 / resolution; 
         short num_col_pixels = 964 * 36 / resolution;
+        
+        // recalculate row/col for polar bands
+        if (string(outfilename).find("Polar") != std::string::npos)
+        {
+            num_row_pixels = 500 * 36 / resolution;
+            num_col_pixels = 500 * 36 / resolution;
+        }
+        
         double ul_lat_meters, ul_lon_meters, lr_lat_meters, lr_lon_meters;
         ceaforint(r_major, r_minor, 0, 30.*pi/180., 0., 0.);
         ceafor(-180.*pi/180., 85.0445664*pi/180., &ul_lon_meters, &ul_lat_meters);
-        ceafor(180.*pi/180., -85.0445664*pi/180., &lr_lon_meters, &lr_lat_meters);
+        
+        // adjusting corner points for polar bands to from 0 to 90
+        if (string(outfilename).find("Polar") != std::string::npos)
+        {
+            ceafor(180.*pi/180., 0*pi/180., &lr_lon_meters, &lr_lat_meters);
+        }
+        else
+        {
+            ceafor(180.*pi/180., -85.0445664*pi/180., &lr_lon_meters, &lr_lat_meters);
+        }
         lat_pixel_size = fabs((ul_lat_meters - lr_lat_meters) / num_row_pixels);
         lon_pixel_size = fabs((ul_lon_meters - lr_lon_meters) / num_col_pixels);
 
@@ -184,6 +201,7 @@ public:
             row_min=0;
             col_min=0;
         }
+                
         double geotiepoints[24] = {0.0, 0.0, 0.0, ul_lon_meters + col_min*lon_pixel_size, ul_lat_meters - row_min*lat_pixel_size, 0.0};
         double pixelscale[3] = {lon_pixel_size, lat_pixel_size, 0.0}; 
 
@@ -616,6 +634,7 @@ public:
         for (int i=0;i<coordinate_size;i++)
         {
             if ((row_data[i] >= row_min && col_data[i] >= col_min) &&
+                (row_data[i] - row_min < num_rows && col_data[i] - col_min < num_cols) &&
                 (row_data[i] - row_min <= row_max && col_data[i] - col_min <= col_max))
             {
                 //cout << row_data[i] << "," << row_min << ", " << col_data[i] << ", " << col_min << endl;
