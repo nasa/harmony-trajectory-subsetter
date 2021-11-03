@@ -7,7 +7,7 @@ from logging import Logger
 from mimetypes import guess_type as guess_mime_type
 from os.path import splitext
 from subprocess import PIPE, Popen
-from typing import List, Optional
+from typing import Optional
 
 from harmony.message import Message
 
@@ -64,7 +64,7 @@ def get_binary_exception(exit_status: int) -> CustomError:
     return binary_exception
 
 
-def execute_command(command: List[str], logger: Logger) -> None:
+def execute_command(command: str, logger: Logger) -> None:
     """ This function invokes the L2 Segmented Trajectory Subsetter binary. It
         will continue to poll the process output until there is an exit status.
         While doing so, it will retrieve any input from STDOUT and STDERR, and
@@ -84,13 +84,12 @@ def execute_command(command: List[str], logger: Logger) -> None:
 
         while exit_status is None:
             exit_status = process.poll()
-            binary_stdout = process.stdout.readline().decode('utf-8')
-            binary_stderr = process.stderr.readline().decode('utf-8')
 
-            if binary_stdout:
-                logger.info(binary_stdout)
-            if binary_stderr:
-                logger.error(binary_stderr)
+            for stdout_line in process.stdout.readlines():
+                logger.info(stdout_line.decode('utf-8'))
+
+            for stderr_line in process.stderr.readlines():
+                logger.error(stderr_line.decode('utf-8'))
 
     if exit_status != 0:
         raise get_binary_exception(exit_status)
