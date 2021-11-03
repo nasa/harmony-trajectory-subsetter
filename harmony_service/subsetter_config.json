@@ -13,7 +13,8 @@
     "CoordinateDatasetNames": {
         "ATL[\\d]{2}": {
             "time": [
-                "delta_time"
+                "delta_time",
+                "transect_time"
             ],
             "latitude": [
                 "latitude",
@@ -21,7 +22,8 @@
                 "lat_ph",
                 "lat_mean",
                 "reference_pt_lat",
-                "segment_lat"
+                "segment_lat",
+                "transect_lat"
             ],
             "longitude": [
                 "longitude",
@@ -29,7 +31,8 @@
                 "lon_ph",
                 "lon_mean",
                 "reference_pt_lon",
-                "segment_lon"
+                "segment_lon",
+                "transect_lon"
             ],
             "ignore": [
                 "cycle_number",
