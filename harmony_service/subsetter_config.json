@@ -7,7 +7,7 @@
     ],
     "Missions": {
         "ATL[\\d]{2}": "ICESAT",
-        "GEDI_L[12][AB]": "GEDI",
+        "GEDI_L[124][AB]": "GEDI",
         "SPL[12].+": "SMAP"
     },
     "CoordinateDatasetNames": {
@@ -40,7 +40,7 @@
                 "poly_exponent_y"
             ]
         },
-        "GEDI_L[12][AB]": {
+        "GEDI_L[124][AB]": {
             "time": [
                 "delta_time"
             ],
@@ -176,7 +176,7 @@
     },
     "ProductEpochs": {
         "ATL[\\d]{2}": "2005-01-01T00:00:00.000000",
-        "GEDI_L[12][AB]": "2018-01-01T00:00:00.000000"
+        "GEDI_L[124][AB]": "2018-01-01T00:00:00.000000"
     },
     "SubsettableGroups": {},
     "UnsubsettableGroups": {
@@ -188,7 +188,7 @@
             "/atlas/",
             "/quality_assessment/"
         ],
-        "GEDI_L[12][AB]": [
+        "GEDI_L[124][AB]": [
             "/BEAM[\\d]+/(.*/)*ancillary/"
         ]
     },
@@ -246,7 +246,7 @@
         "ASCII": "2"
     },
     "RequiredDatasets": {
-        "GEDI_L[12][AB]": {
+        "GEDI_L[124][AB]": {
             "/BEAM[\\d]+$": "shot_number"
         }
     },

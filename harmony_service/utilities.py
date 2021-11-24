@@ -7,9 +7,10 @@ from logging import Logger
 from mimetypes import guess_type as guess_mime_type
 from os.path import splitext
 from subprocess import PIPE, Popen
-from typing import Optional
+from typing import List, Optional
 
-from harmony.message import Message
+from dateutil.parser import parse as parse_datetime
+from harmony.message import Message, Variable as HarmonyVariable
 
 from harmony_service.exceptions import (CustomError, InternalError,
                                         InvalidParameter, MissingParameter,
@@ -79,6 +80,8 @@ def execute_command(command: str, logger: Logger) -> None:
         information, so that check is omitted from this function.
 
     """
+    logger.info(f'Running command: {command}')
+
     with Popen(command, shell=True, stdout=PIPE, stderr=PIPE) as process:
         exit_status = process.poll()
 
@@ -119,7 +122,16 @@ def is_polygon_spatial_subset(message: Message) -> bool:
     return message.subset is not None and message.subset.shape is not None
 
 
-def is_harmony_subset(message: Message) -> bool:
+def is_variable_subset(variables: Optional[List[HarmonyVariable]]) -> bool:
+    """ Check the content of a `harmony.message.Message` instance to determine
+        if the request has asked for a variable subset.
+
+    """
+    return variables is not None and len(variables) > 0
+
+
+def is_harmony_subset(message: Message,
+                      variables: Optional[List[HarmonyVariable]]) -> bool:
     """ Check the content of a `harmony.message.Message` instance to determine
         if the request has asked for a subset operation. This includes a
         temporal, bounding box spatial or polygon spatial subset, but omits
@@ -127,4 +139,16 @@ def is_harmony_subset(message: Message) -> bool:
 
     """
     return (is_temporal_subset(message) or is_bbox_spatial_subset(message) or
-            is_polygon_spatial_subset(message))
+            is_polygon_spatial_subset(message) or
+            is_variable_subset(variables))
+
+
+def convert_harmony_datetime(harmony_datetime_str: str) -> str:
+    """ Take an input Harmony datetime, as a string, and ensure it conforms to
+        the required format of the Trajectory Subsetter binary. This function
+        assumes that both the binary arguments and Harmony datetimes for start
+        and end are in UTC. The Harmony message contains a trailing "Z", which
+        the subsetter binary regular expression does not currently handle.
+
+    """
+    return parse_datetime(harmony_datetime_str).strftime('%Y-%m-%dT%H:%M:%S')

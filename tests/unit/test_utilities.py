@@ -7,11 +7,12 @@ from harmony.message import Message
 from harmony_service.exceptions import (InternalError, InvalidParameter,
                                         MissingParameter, NoMatchingData,
                                         NoPolygonFound)
-from harmony_service.utilities import (get_binary_exception, get_file_mimetype,
+from harmony_service.utilities import (convert_harmony_datetime,
+                                       get_binary_exception, get_file_mimetype,
                                        execute_command, is_bbox_spatial_subset,
                                        is_harmony_subset,
                                        is_polygon_spatial_subset,
-                                       is_temporal_subset)
+                                       is_temporal_subset, is_variable_subset)
 
 
 class TestUtilities(TestCase):
@@ -73,15 +74,19 @@ class TestUtilities(TestCase):
 
         """
         echo_value = 'string_value'
-        test_command = [f'echo "{echo_value}"']
-        test_error_command = [f'>&2 echo "{echo_value}" && exit 1']
+        test_command = f'echo "{echo_value}"'
+        test_error_command = f'>&2 echo "{echo_value}" && exit 1'
 
         mock_logger = Mock(spec=Logger)
         mock_get_binary_exception.return_value = InvalidParameter()
 
         with self.subTest('A process runs a successful command'):
             self.assertIsNone(execute_command(test_command, mock_logger))
-            mock_logger.info.assert_called_once_with(f'{echo_value}\n')
+            self.assertEqual(mock_logger.info.call_count, 2)
+            mock_logger.info.assert_any_call(
+                'Running command: echo "string_value"'
+            )
+            mock_logger.info.assert_any_call(f'{echo_value}\n')
 
         mock_logger.reset_mock()
 
@@ -155,24 +160,44 @@ class TestUtilities(TestCase):
             message = Message(self.base_message_content)
             self.assertFalse(is_polygon_spatial_subset(message))
 
+    def test_is_variable_subset(self):
+        """ Ensure that the function can recognise a list with element, an
+            empty list, or a `None` type variable, and correctly determine if
+            a variable subset has been requested.
+
+        """
+        with self.subTest('Empty list is not a variable subset'):
+            self.assertFalse(is_variable_subset([]))
+
+        with self.subTest('None type input is not a variable subset'):
+            self.assertFalse(is_variable_subset([]))
+
+        with self.subTest('A list of variables is a variable subset'):
+            variables = [{
+                'fullPath': 'var_one', 'id': 'V123-EEDTEST', 'name': 'var_one'
+            }]
+            self.assertTrue(is_variable_subset(variables))
+
     def test_is_harmony_subset(self):
         """ Ensure that a Harmony message will be correctly recognised as
             requesting a subset operation. Harmony currently lists these as
-            spatial (bounding box or shape file) or temporal, but not variable.
+            spatial (bounding box or shape file), temporal or variable.
 
         """
+        no_variables = []
+
         with self.subTest('Temporal subset'):
             message_content = self.base_message_content.copy()
             message_content['temporal'] = {'start': '2021-02-03T04:05:06',
                                            'end': '2021-03-04T05:06:07'}
             message = Message(message_content)
-            self.assertTrue(is_harmony_subset(message))
+            self.assertTrue(is_harmony_subset(message, no_variables))
 
         with self.subTest('Bounding box spatial subset'):
             message_content = self.base_message_content.copy()
             message_content['subset'] = {'bbox': [10, 20, 30, 40]}
             message = Message(message_content)
-            self.assertTrue(is_harmony_subset(message))
+            self.assertTrue(is_harmony_subset(message, no_variables))
 
         with self.subTest('Polygon spatial subset'):
             message_content = self.base_message_content.copy()
@@ -181,7 +206,7 @@ class TestUtilities(TestCase):
                           'type': 'application/geo+json'}
             }
             message = Message(message_content)
-            self.assertTrue(is_harmony_subset(message))
+            self.assertTrue(is_harmony_subset(message, no_variables))
 
         with self.subTest('Temporal and spatial subsets'):
             message_content = self.base_message_content.copy()
@@ -193,16 +218,39 @@ class TestUtilities(TestCase):
                              'end': '2021-03-04T05:06:07'},
             })
             message = Message(message_content)
-            self.assertTrue(is_harmony_subset(message))
+            self.assertTrue(is_harmony_subset(message, no_variables))
 
         with self.subTest('No spatial or temporal subsets'):
             message = Message(self.base_message_content)
-            self.assertFalse(is_harmony_subset(message))
+            self.assertFalse(is_harmony_subset(message, no_variables))
 
-        with self.subTest('Only variable subset'):
-            message_content = self.base_message_content.copy()
-            message_content['sources'][0]['variables'] = [{
+        with self.subTest('Variable subset'):
+            message_content = Message(self.base_message_content)
+            variables = [{
                 'fullPath': 'var_one', 'id': 'V123-EEDTEST', 'name': 'var_one'
             }]
             message = Message(self.base_message_content)
-            self.assertFalse(is_harmony_subset(message))
+            self.assertTrue(is_harmony_subset(message, variables))
+
+        with self.subTest('No subset operation requested'):
+            message = Message(self.base_message_content)
+            self.assertFalse(is_harmony_subset(message, no_variables))
+
+    def test_convert_harmony_datetime(self):
+        """ Ensure a datetime string, as included in a Harmony message, can be
+            correctly converted to a format that is compatible with the
+            Trajectory Subsetter. Mainly, this means omitting a trailing "Z"
+            from the content of the Harmony message.
+
+        """
+        start_time = '2021-02-03T04:05:06'
+        end_time = '2021-03-04T05:06:07'
+        message_content = self.base_message_content.copy()
+        message_content['temporal'] = {'start': start_time, 'end': end_time}
+        message = Message(message_content)
+
+        self.assertEqual(convert_harmony_datetime(message.temporal.start),
+                         start_time)
+
+        self.assertEqual(convert_harmony_datetime(message.temporal.end),
+                         end_time)

@@ -22,6 +22,11 @@ class TestAdapter(TestCase):
     def setUpClass(cls):
         """ Fixtures that only need to be instantiated once for all tests. """
         cls.access_token = 'access'
+        cls.bounding_shape = ('\'{"type": "FeatureCollection", "features": '
+                              '[{"type": "Feature", "properties": {}, '
+                              '"geometry": {"type": "Polygon", "coordinates": '
+                              '[[[20, 15], [50, 15], [50, 40], [20, 40], '
+                              '[20, 15]]]}}]}\'')
         cls.callback = 'https://example.com'
         cls.collection = 'C1234567890-TEST'
         cls.config = config(validate=False)
@@ -29,6 +34,7 @@ class TestAdapter(TestCase):
                        'temporal': {'start': '2021-01-01T00:00:00.000Z',
                                     'end': '2021-01-01T00:00:00.000Z'},
                        'url': 'file.h5'}
+        cls.local_shape_path = 'tests/data/box.geo.json'
         cls.mimetype = 'application/x-hdf'
         cls.staging_location = 's3://example-bucket'
         cls.subsetted_filename = 'file_subsetted.h5'
@@ -244,8 +250,8 @@ class TestAdapter(TestCase):
             validation. Any non-GeoJSON shape file should raise an exception.
 
         """
-        local_shape_path = 'shape.geo.json'
-        mock_download.side_effect = [self.granule['url'], local_shape_path]
+        mock_download.side_effect = [self.granule['url'],
+                                     self.local_shape_path]
         mock_get_mimetype.return_value = self.mimetype
         mock_stage.return_value = 'tests/to/staged/output'
 
@@ -293,7 +299,7 @@ class TestAdapter(TestCase):
             expected_command = (f'{SUBSETTER_BINARY_PATH} '
                                 f'--configfile {SUBSETTER_CONFIG} '
                                 f'--filename {self.granule["url"]} '
-                                f'--boundingshape {local_shape_path} '
+                                f'--boundingshape {self.bounding_shape} '
                                 f'--outfile {expected_local_out}')
 
             mock_mkdtemp.assert_called_once()
@@ -315,7 +321,8 @@ class TestAdapter(TestCase):
 
         """
         base_source = {'collection': self.collection,
-                       'granules': [self.granule]}
+                       'granules': [self.granule],
+                       'variables': []}
 
         base_message = {'accessToken': self.access_token,
                         'callback': self.callback,
@@ -335,8 +342,7 @@ class TestAdapter(TestCase):
 
         # First result is input granule, second is a GeoJSON shape file.
         local_input_path = f'{self.temp_dir}/random_uuid.h5'
-        local_shape_file_path = f'{self.temp_dir}/shape.geo.json'
-        download_list = [local_input_path, local_shape_file_path]
+        download_list = [local_input_path, self.local_shape_path]
 
         with self.subTest('No variables, temporal, bbox or polygon'):
             mock_download.side_effect = download_list
@@ -367,7 +373,7 @@ class TestAdapter(TestCase):
                 '--configfile': SUBSETTER_CONFIG,
                 '--filename': local_input_path,
                 '--includedataset': 'var_one,/nested/var_two',
-                '--outfile': f'{self.temp_dir}/{self.granule["url"]}'
+                '--outfile': f'{self.temp_dir}/{self.subsetted_filename}'
             }
             message_content = base_message.copy()
             source_content = base_source.copy()
@@ -416,7 +422,7 @@ class TestAdapter(TestCase):
         with self.subTest('Polygon spatial subset'):
             mock_download.side_effect = download_list
             expected_parameters = {
-                '--boundingshape': local_shape_file_path,
+                '--boundingshape': self.bounding_shape,
                 '--configfile': SUBSETTER_CONFIG,
                 '--filename': local_input_path,
                 '--outfile': f'{self.temp_dir}/{self.subsetted_filename}'
@@ -478,7 +484,7 @@ class TestAdapter(TestCase):
             mock_download.side_effect = download_list
             expected_parameters = {
                 '--bbox': '10,20,30,40',
-                '--boundingshape': local_shape_file_path,
+                '--boundingshape': self.bounding_shape,
                 '--configfile': SUBSETTER_CONFIG,
                 '--end': end_time,
                 '--filename': local_input_path,

@@ -23,6 +23,7 @@ from shutil import rmtree
 from sys import argv
 from tempfile import mkdtemp
 from typing import Any, Dict, List, Optional
+import json
 
 from harmony import BaseHarmonyAdapter, run_cli, setup_cli
 from harmony.message import Source
@@ -30,7 +31,8 @@ from harmony.util import (Config, download, generate_output_filename,
                           HarmonyException, stage)
 from pystac import Asset, Item
 
-from harmony_service.utilities import (execute_command, get_file_mimetype,
+from harmony_service.utilities import (convert_harmony_datetime,
+                                       execute_command, get_file_mimetype,
                                        is_bbox_spatial_subset,
                                        is_harmony_subset,
                                        is_polygon_spatial_subset,
@@ -216,25 +218,33 @@ class HarmonyAdapter(BaseHarmonyAdapter):
             variables = None
 
         if is_temporal_subset(self.message):
-            binary_parameters['--start'] = self.message.temporal.start
-            binary_parameters['--end'] = self.message.temporal.end
+            binary_parameters['--start'] = convert_harmony_datetime(
+                self.message.temporal.start
+            )
+            binary_parameters['--end'] = convert_harmony_datetime(
+                self.message.temporal.end
+            )
 
         if is_bbox_spatial_subset(self.message):
             binary_parameters['--bbox'] = ','.join(str(extent) for extent
                                                    in self.message.subset.bbox)
 
         if is_polygon_spatial_subset(self.message):
-            binary_parameters['--boundingshape'] = download(
-                self.message.subset.shape.href, working_directory,
-                logger=self.logger, access_token=self.message.accessToken,
-                cfg=self.config
-            )
+            shape_file_path = download(self.message.subset.shape.href,
+                                       working_directory, logger=self.logger,
+                                       access_token=self.message.accessToken,
+                                       cfg=self.config)
+
+            with open(shape_file_path, 'r') as file_handler:
+                bounding_shape = json.dumps(json.load(file_handler))
+
+            binary_parameters['--boundingshape'] = f'\'{bounding_shape}\''
 
         binary_parameters['--outfile'] = join_path(
             working_directory,
             generate_output_filename(
                 input_asset.href, variable_subset=variables,
-                is_subsetted=is_harmony_subset(self.message)
+                is_subsetted=is_harmony_subset(self.message, variables)
             )
         )
 
