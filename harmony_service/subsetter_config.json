@@ -123,7 +123,7 @@
         }
     },
     "SuperGroups": {
-        "GEDI_L2A": {
+        "GEDI_L[24]A": {
             "/BEAM[\\d]+/": [
                 "/BEAM[\\d]+/"
             ]
@@ -145,7 +145,7 @@
         }
     },
     "SuperGroupCoordinates": {
-        "GEDI_L2A": {
+        "GEDI_L[24]A": {
             "/BEAM[\\d]+/": [
                 "lat_lowestmode",
                 "lon_lowestmode",
