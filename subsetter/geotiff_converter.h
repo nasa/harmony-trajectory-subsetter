@@ -225,21 +225,14 @@ public:
 
             // Corner points of laea projection, full polar grid are projection-meters,
             // equivalent to upper-center point for y and left-center point for x.
-            // Standard projection formulas are applied here for LAEA projection
-            // (see wiki pages on EASE-2 Grid or reference books) for grid_size.
             // Corner point extents = faction of grid-extent based on row-min and
             // col-min, normalized to 500 row/col size for 36K resolution, scaled by
             // actual resolution, and relative to grid center point.
-            // Corrected to EASE-2 Standard Polar Grid - has constant corner-point value.
+            // Using EASE-2 Standard Polar Grid - has constant corner-point value.
             laea=true;
-            // cout.precision(10);
-            // double e = 0.0818191908426;
-            // double qp = (1-pow(e,2)) * (1/(1-pow(e,2)) - (1/(2*e))*log((1-e)/(1+e)));
-            // double grid_size = 2 * r_major * sqrt(qp) * 0.999999999999999;
-                // gotta have a fudge factor for real longitudes in listgeo
             double grid_size = 18000000; // 18'000'000  18_000_000
-            geotiepoints[3] = grid_size * (col_min/36.0*resolution-250) / 500;  // 9'000'000 for full grid
-            geotiepoints[4] = -grid_size * (row_min/36.0*resolution-250) / 500; //-9'000'000 for full gridpy
+            geotiepoints[3] = grid_size * (col_min/36.0*resolution-250) / 500;  //-9'000'000 for full grid
+            geotiepoints[4] = -grid_size * (row_min/36.0*resolution-250) / 500; // 9'000'000 for full gridpy
             pixelscale[0] = pixelscale[1] = grid_size / (500*36.0/resolution);
             if (!crop)
             {
@@ -263,12 +256,6 @@ public:
 
         void* dataset_data = (void*)malloc(get_dataset_size(ds)*data_type_size);
         ds.read(dataset_data,ds.getDataType()); //), outspace, space);
-
-//      cout << " copying " << coordinate_size << " nums" << endl;
-//      for (int i=0;i<coordinate_size;i++)
-//          cout << "copying " <<   *(float*) (dataset_data + data_type_size*i*tifs.size())
-//              << " , " << *(float*) (dataset_data + i*data_type_size*tifs.size() + data_type_size) << ", " <<  *(float*) (dataset_data + i*data_type_size*tifs.size() + 2*data_type_size ) <<endl;
-
 
         void* output_line = (void*)malloc(data_type_size*(num_cols));
         for (int i=0;i<num_rows;i++)
