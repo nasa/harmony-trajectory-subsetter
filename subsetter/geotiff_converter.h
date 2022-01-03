@@ -164,11 +164,11 @@ public:
 
         convert(row_data, col_data, lat_data, 0);
 
-        //default LAEA projection
+        // set defaults for CEA projection
         double lon_pixel_size = 9000.5141/9.0;
         double lat_pixel_size = 9014.9864/9.0;
 
-        short num_row_pixels = 406 * 36 / resolution; 
+        short num_row_pixels = 406 * 36 / resolution;
         short num_col_pixels = 964 * 36 / resolution;
         
         // recalculate row/col for polar bands
@@ -180,17 +180,10 @@ public:
         
         double ul_lat_meters, ul_lon_meters, lr_lat_meters, lr_lon_meters;
         ceaforint(r_major, r_minor, 0, 30.*pi/180., 0., 0.);
+
         ceafor(-180.*pi/180., 85.0445664*pi/180., &ul_lon_meters, &ul_lat_meters);
-        
-        // adjusting corner points for polar bands to from 0 to 90
-        if (string(outfilename).find("Polar") != std::string::npos)
-        {
-            ceafor(180.*pi/180., 0*pi/180., &lr_lon_meters, &lr_lat_meters);
-        }
-        else
-        {
-            ceafor(180.*pi/180., -85.0445664*pi/180., &lr_lon_meters, &lr_lat_meters);
-        }
+        ceafor(180.*pi/180., -85.0445664*pi/180., &lr_lon_meters, &lr_lat_meters);
+
         lat_pixel_size = fabs((ul_lat_meters - lr_lat_meters) / num_row_pixels);
         lon_pixel_size = fabs((ul_lon_meters - lr_lon_meters) / num_col_pixels);
 
@@ -201,20 +194,22 @@ public:
             row_min=0;
             col_min=0;
         }
-                
-        double geotiepoints[24] = {0.0, 0.0, 0.0, ul_lon_meters + col_min*lon_pixel_size, ul_lat_meters - row_min*lat_pixel_size, 0.0};
-        double pixelscale[3] = {lon_pixel_size, lat_pixel_size, 0.0}; 
+        double geotiepoints[24] = {0.0, 0.0, 0.0,
+                                   ul_lon_meters + col_min*lon_pixel_size,
+                                   ul_lat_meters - row_min*lat_pixel_size, 0.0};
+        double pixelscale[3] = {lon_pixel_size, lat_pixel_size, 0.0};
 
         laea=false;
-        if (strcmp(projection, "GEO")==0)  //geographic projection for KML conversion
-        {
+        if (strcmp(projection, "GEO")==0) {
+            //geographic projection is required for KML conversion
+
             assert(crop==false);
             map<short, double> lat_resolution_ratio; //number of rows in geographic projection vs. EASE-Grid2
-            lat_resolution_ratio[36] = 586.0/406.0;  
-            lat_resolution_ratio[9] = 2382.0/1624.0;  
-            lat_resolution_ratio[3] = 7198.0/4872.0;  
-            
-            num_rows = num_rows*lat_resolution_ratio[resolution]; 
+            lat_resolution_ratio[36] = 586.0/406.0;
+            lat_resolution_ratio[9] = 2382.0/1624.0;
+            lat_resolution_ratio[3] = 7198.0/4872.0;
+
+            num_rows = num_rows*lat_resolution_ratio[resolution];
             num_cols = col_max - col_min + 1;
             //cout << "Using num rows: " << num_rows << endl;
             lat_pixel_size = fabs((ul_lat_meters - lr_lat_meters) / num_rows);
@@ -225,32 +220,30 @@ public:
             pixelscale[1]=85.0445664*2.0/num_rows;
 
         }
-        else if (strcmp(projection, "CEA")) //LAEA projection
-        {
+        else if (strcmp(projection, "CEA")) {
+            //not GEO, not CEA => LAEA projection
+
             // Corner points of laea projection, full polar grid are projection-meters,
             // equivalent to upper-center point for y and left-center point for x.
-            // Standard projection formulas are applied here for LAEA projection
-            // (see wiki pages on LAEA projection or reference books) for grid_size.
             // Corner point extents = faction of grid-extent based on row-min and
-            // col-min, normalized to 500 row/col size, and relative to grid center point.
+            // col-min, normalized to 500 row/col size for 36K resolution, scaled by
+            // actual resolution, and relative to grid center point.
+            // Using EASE-2 Standard Polar Grid - has constant corner-point value.
             laea=true;
-            cout.precision(10);
-            double e = 0.0818191908426;
-            double qp = (1-pow(e,2)) * (1/(1-pow(e,2)) - (1/(2*e))*log((1-e)/(1+e)));
-            double grid_size = 2 * r_major * sqrt(qp) * 0.999999999999999; //gotta have a fudge factor for real longitudes in listgeo
-            geotiepoints[3] = grid_size * (col_min/36.0*resolution-250) / 500; 
-            geotiepoints[4] = -grid_size * (row_min/36.0*resolution-250) / 500;
+            double grid_size = 18000000; // 18'000'000  18_000_000
+            geotiepoints[3] = grid_size * (col_min/36.0*resolution-250) / 500;  //-9'000'000 for full grid
+            geotiepoints[4] = -grid_size * (row_min/36.0*resolution-250) / 500; // 9'000'000 for full gridpy
             pixelscale[0] = pixelscale[1] = grid_size / (500*36.0/resolution);
             if (!crop)
             {
                 num_rows = num_cols = 500 * 36 / resolution;
             }
-        } 
+        }
 
         for (int i=0;i < tifs.size() ;i++)
         {
             set_tiff_keys(tifs[i], data_type_size, get_data_type(ds), num_rows, num_cols, geotiepoints, pixelscale, units);
-            set_geotiff_keys(gtifs[i], projection);        
+            set_geotiff_keys(gtifs[i], projection);
         }
 
         int** array_index_map = get_array_index_map(row_data, col_data);
@@ -260,20 +253,14 @@ public:
         delete [] lat_data;
         //DataSpace space(ds.getSpace());
         //DataSpace outspace(dimnum, dims, maxdims);
-       
+
         void* dataset_data = (void*)malloc(get_dataset_size(ds)*data_type_size);
         ds.read(dataset_data,ds.getDataType()); //), outspace, space);
-
-//      cout << " copying " << coordinate_size << " nums" << endl;
-//      for (int i=0;i<coordinate_size;i++)
-//          cout << "copying " <<   *(float*) (dataset_data + data_type_size*i*tifs.size())  
-//              << " , " << *(float*) (dataset_data + i*data_type_size*tifs.size() + data_type_size) << ", " <<  *(float*) (dataset_data + i*data_type_size*tifs.size() + 2*data_type_size ) <<endl;
-
 
         void* output_line = (void*)malloc(data_type_size*(num_cols));
         for (int i=0;i<num_rows;i++)
         {
-            for (int l=0;l<numfiles;l++) 
+            for (int l=0;l<numfiles;l++)
             {
                 for (int j=0;j<num_cols;j++)
                 {
@@ -314,9 +301,9 @@ public:
         return coordinate_size;
     }
 
-    
+
     // fill values are dependent on the size of the datatype
-    //   This fill value is used for off-earth points outside the swath 
+    //   This fill value is used for off-earth points outside the swath
     void* get_off_earth_fill_value(DataSet& ds, const char* outputformat)
     {
         size_t size = ds.getDataType().getSize();
@@ -325,22 +312,22 @@ public:
         {
             Attribute attr = ds.openAttribute("_FillValue");
             attr.read(attr.getDataType(), buf);
-        } else 
+        } else
         {
             cout << "Fill Value not found in dataset setting to 0" << endl;
             memset(buf, 0, size);
         }
-        
+
         if (strcmp(outputformat, "KML")==0) //for KML use the standard fill value
             return buf;
 
-        // For GeoTIFF files we put fillvalue - 2 for 
+        // For GeoTIFF files we put fillvalue - 2 for
         //  the grid cells that are not defined in cell_row/cell_column
         if (size == 8)
         {
             double fill = -9997;
             memcpy(buf, &fill, size);
-        } 
+        }
         else if (size == 4)
         {
             float val = *(float*)buf;
@@ -350,7 +337,7 @@ public:
                 memcpy(buf, &fill, size);
             }
             else if (val == 4294967294)
-            {   
+            {
                 unsigned long fill = 4294967294-2;
                 memcpy(buf, &fill, size);
             }
@@ -365,7 +352,7 @@ public:
             unsigned char fill = 252;
             memcpy(buf, &fill, size);
         }
-        else 
+        else
         {
             cout << "Unknown data type size when calculating off earth fill value. Defaulting to float";
             float fill = -9997;
@@ -375,45 +362,45 @@ public:
     }
 
     // fill values are dependent on the size of the datatype
-    //   This fill value is used for on-earth points outside the swath 
+    //   This fill value is used for on-earth points outside the swath
     void* get_fill_value(DataSet& ds, const char* outputformat)
     {
         size_t size = ds.getDataType().getSize();
         void* buf = malloc(size);
 
-        // Get Default Fill Value  
+        // Get Default Fill Value
         if (ds.attrExists("_FillValue"))
         {
             Attribute attr = ds.openAttribute("_FillValue");
             attr.read(attr.getDataType(), buf);
-        } 
+        }
         else if (size == 4) //cell_lat and cell_lon don't have _FillValue defined, so default to -9999
         {
             float fill = -9999;
-            memcpy(buf, &fill, size); 
+            memcpy(buf, &fill, size);
         }
-        
+
 
         if (strcmp(outputformat, "KML")==0) //for KML use the standard fill value
             return buf;
 
-        // For GeoTIFF files we put fillvalue - 1 for 
+        // For GeoTIFF files we put fillvalue - 1 for
         //  the grid cells that are not defined in cell_row/cell_column
-        
+
         if (size == 8)
         {
             double fill = -9998;
             memcpy(buf, &fill, size);
-        } 
+        }
         else if (size == 4)
-        { 
+        {
             if (*(float*)buf == -9999) //is a float
             {
                 float fill = -9998;
                 memcpy(buf, &fill, size);
             }
             else if (*(int32_t*)buf == 4294967294)
-            {   
+            {
                 unsigned long fill = 4294967294-1;
                 memcpy(buf, &fill, size);
             }
@@ -428,14 +415,14 @@ public:
             unsigned char fill = 253;
             memcpy(buf, &fill, size);
         }
-        else 
+        else
         {
             cout << "Unknown data type size when calculating fill value defaulting to flaot";
             float fill = -9998;
             memcpy(buf, &fill, size);
         }
         return buf;
-    } 
+    }
 
     void get_min_max(short* data, int& min, int& max)
     {
@@ -446,7 +433,7 @@ public:
             if (data[i] < min) min=data[i];
         }
         return;
-    } 
+    }
 
     float get_float(DataSet& ds, hsize_t index)
     {
@@ -536,7 +523,7 @@ public:
             attr.read(attr.getDataType(), buf);
             cout << "Attribute units exists:" << buf << endl;
             return buf;
-        } 
+        }
     }
 
     void set_tiff_keys(TIFF* tif, size_t data_type_size, int data_type, int num_rows, int num_cols, double* geotiepoints, double* pixelscale, string units)
@@ -554,7 +541,7 @@ public:
         TIFFSetField(tif, TIFFTAG_COMPRESSION, COMPRESSION_ADOBE_DEFLATE);
 //        TIFFSetField(tif, TIFFTAG_GDAL_NODATA, ); //=42113
         augment_libtiff_with_custom_tags();
-        
+
         registerCustomTIFFTags(tif);;
         TIFFSetField(tif, TIFFTAG_UNITS, (const char*) units.c_str());
     }
@@ -573,7 +560,7 @@ public:
 
             GTIFKeySet(gtif, GeogAngularUnitsGeoKey, TYPE_SHORT, 1, Angular_Degree);
             GTIFWriteKeys(gtif);
-            return;                             
+            return;
         }
 
         GTIFKeySet(gtif, GTModelTypeGeoKey, TYPE_SHORT, 1, ModelTypeProjected);
@@ -586,24 +573,24 @@ public:
 
         GTIFKeySet(gtif, GeogLinearUnitsGeoKey, TYPE_SHORT, 1, Linear_Meter);
         GTIFKeySet(gtif, GeogAngularUnitsGeoKey, TYPE_SHORT, 1, Angular_Degree);
-        
+
         GTIFKeySet(gtif, ProjectedCSTypeGeoKey, TYPE_SHORT, 1, KvUserDefined);
         GTIFKeySet(gtif, ProjectionGeoKey, TYPE_SHORT, 1, KvUserDefined);
         GTIFKeySet(gtif, ProjLinearUnitsGeoKey, TYPE_SHORT, 1, Linear_Meter);
         GTIFKeySet(gtif, ProjLinearUnitSizeGeoKey, TYPE_DOUBLE, 1, 1.0);
-        
+
         if (!strcmp(projection, "CEA"))
         {
             GTIFKeySet(gtif, GTRasterTypeGeoKey, TYPE_SHORT, 1, RasterPixelIsArea);
             GTIFKeySet(gtif, ProjCoordTransGeoKey, TYPE_SHORT, 1, CT_CylindricalEqualArea);
             GTIFKeySet(gtif, GTCitationGeoKey, TYPE_ASCII, 0, "Cylindrical Equal Area (WGS84)");
             GTIFKeySet(gtif, ProjStdParallelGeoKey, TYPE_DOUBLE, 1, 30.0);
-        } 
-        else 
+        }
+        else
         {
             GTIFKeySet(gtif, GTRasterTypeGeoKey, TYPE_SHORT, 1, RasterPixelIsArea);
             GTIFKeySet(gtif, ProjCoordTransGeoKey, TYPE_SHORT, 1, CT_LambertAzimEqualArea);
-            GTIFKeySet(gtif, ProjCenterLongGeoKey, TYPE_DOUBLE, 1, 0.0);            
+            GTIFKeySet(gtif, ProjCenterLongGeoKey, TYPE_DOUBLE, 1, 0.0);
             if (!strcmp(projection, "NLAEA"))
             {
                 GTIFKeySet(gtif, GTCitationGeoKey, TYPE_ASCII, 0, "Lambert Azimuthal Equal Area - North Polar Projection - (WGS84)");
@@ -634,7 +621,6 @@ public:
         for (int i=0;i<coordinate_size;i++)
         {
             if ((row_data[i] >= row_min && col_data[i] >= col_min) &&
-                (row_data[i] - row_min < num_rows && col_data[i] - col_min < num_cols) &&
                 (row_data[i] - row_min <= row_max && col_data[i] - col_min <= col_max))
             {
                 //cout << row_data[i] << "," << row_min << ", " << col_data[i] << ", " << col_min << endl;
