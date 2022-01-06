@@ -1,9 +1,18 @@
 #!/bin/bash
 # Pushes the docker image to an ECR repo. Requires AWS credentials to be set.
+#
+# This script can be called with an optional parameter denoting the tag to
+# associate with the Docker image. The Bamboo build plan should use the
+# semantic version number saved in docker/service_version.txt. This script will
+# default to use "latest" if no tag is supplied as an argument.
+#
 
 set -ex
 
 image="sds/trajectory-subsetter"
+
+# This tag should be derived from the Bamboo build plan, but defaults to
+# latest if not given.
 tag=${1:-latest}
 
 region=${AWS_DEFAULT_REGION-"us-west-2"}

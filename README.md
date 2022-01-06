@@ -24,6 +24,11 @@ This repository contains a number of subdirectories:
   Trajectory Subsetter within a Harmony service.
 * `tests` - A directory containing Python unit tests for the Harmony service functionality.
 
+Note also: `VERSION` - A file containing the version for the most recent SDPS
+release. This file is only iterated shortly before merging to the `master`
+branch, when a tarball will be placed in Nexus (a.k.a. Maven) ready for that
+release.
+
 ### Harmony service conda environment:
 
 The Harmony service for the trajectory subsetter runs within a conda
@@ -86,3 +91,47 @@ below:
   GeoTIFF output.
 * `Projections` - A dictionary mapping the prefix of some variable paths to a
   string representing the projection (e.g., "NLAEA", "SLAEA" or "CEA").
+
+### Versioning:
+
+There are two versions associated with the Trajectory Subsetter: the SDPS
+release version and the Harmony service Docker image version.
+
+#### SDPS versioning:
+
+The SDPS release version is managed via the `VERSION` file in the root
+directory of this repository. Bamboo reads this file during the build plan,
+and uses the contents in the deployment project when a release is deployed to
+Nexus. This occurs for major SDPS releases and for hotshelves.
+
+The SDPS releases version should only be iterated when a merging from the `dev`
+branch to the `master` branch, at a time when it has been identified that a
+static version of the Trajectory Subsetter is required. The process should be
+as follows:
+
+* Create a release branch from `dev` using `git checkout -b <release_branch_name>`.
+* Update the contents of the `VERSION` file to be the name of the new release,
+  either an SDPS release (e.g., `212_UPDATES`) or a hotshelf (e.g., `HOTSHELF-DAS-XXX`).
+* Commit those changes, and create a pull request against the `master` branch.
+* Once the pull request is merged, ensure an appropriately named artefact has
+  been placed in the [Trajectory Subsetter part of Nexus](https://maven.earthdata.nasa.gov/#browse/browse:trajectorysubsetter).
+* Merge back from `master` into `dev`, to ensure the `dev` branch is up to date.
+
+#### Harmony versioning:
+
+Harmony releases occur every time changes are made to the code and merged into
+the `dev` branch. The versions use semantic version numbers
+(`major.minor.patch`). This version is included in the
+`docker/service_version.txt` file. When updating the Trajectory Subsetter, the
+version number contained in that file should be incremented before creating a
+pull request.
+
+The general rules for which version number to increment are:
+
+* Major: When API changes are made to the service that are not backwards
+  compatible.
+* Minor: When functionality is added in a backwards compatible way.
+* Patch: Used for backwards compatible bug fixes or performance improvements.
+
+When the Docker image is built, it will be tagged with the semantic version
+number as stored in `docker/service_version.txt`.
