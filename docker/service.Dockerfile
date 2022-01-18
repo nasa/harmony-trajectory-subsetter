@@ -45,7 +45,7 @@ COPY subsetter subsetter
 
 WORKDIR /home/subsetter
 # Build binary file "subset" in home directory
-RUN make
+RUN ./makeit
 
 WORKDIR /home
 RUN rm -rf ./subsetter ./hdfeos ./hdfeos5
