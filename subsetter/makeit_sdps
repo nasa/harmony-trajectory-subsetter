@@ -1,4 +1,5 @@
 /tools/common/ref/heglibs-rh8/bin/h5c++ -v -std=c++0x -g Subset.cpp \
+-DSDPS \
 -lgeotiff -ltiff -lGctp -ljpeg -llzma \
 -lboost_program_options \
 -lboost_date_time -lboost_regex \

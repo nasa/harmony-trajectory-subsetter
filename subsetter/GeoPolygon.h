@@ -11,8 +11,13 @@
 #include <boost/geometry.hpp>
 #include <boost/geometry/geometries/point_xy.hpp>
 #include <boost/geometry/geometries/polygon.hpp>
+
+#ifdef SDPS
+#include <boost/geometry/geometries/multi_polygon.hpp>
+#elifdef HARMONY
 #include <boost/geometry/multi/geometries/multi_polygon.hpp>
 #include <boost/type_traits/is_empty.hpp>
+#endif
 
 #include "geobox.h"
 

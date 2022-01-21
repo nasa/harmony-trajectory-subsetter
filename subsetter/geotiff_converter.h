@@ -15,9 +15,14 @@ using namespace H5;
 #include "xtiffio.h"
 
 //GCTP
-//#include "HE5_GctpFunc.h"
+extern "C" {
+#ifdef SDPS
+#include "HE5_GctpFunc.h"
+#elifdef HARMONY
 //#include <gctp_prototypes.h>
 #include <cproj.h>
+#endif
+}
 
 #include <iostream>
 #include <vector>
