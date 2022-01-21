@@ -12,12 +12,8 @@
 #include <boost/geometry/geometries/point_xy.hpp>
 #include <boost/geometry/geometries/polygon.hpp>
 
-#ifdef SDPS
-#include <boost/geometry/geometries/multi_polygon.hpp>
-#elifdef HARMONY
 #include <boost/geometry/multi/geometries/multi_polygon.hpp>
 #include <boost/type_traits/is_empty.hpp>
-#endif
 
 #include "geobox.h"
 
@@ -27,11 +23,7 @@ namespace pt = boost::property_tree;
 
 typedef geometry::model::d2::point_xy<double> point_type;
 typedef geometry::model::polygon<point_type> polygon_type;
-#ifdef SDPS
-typedef geometry::model::geometries::multi_polygon<polygon_type> multi_polygon_type;
-#elifdef HARMONY
 typedef geometry::model::multi_polygon<polygon_type> multi_polygon_type;
-#endif
 typedef geometry::model::box<point_type> box_type;
 
 
