@@ -27,8 +27,13 @@ namespace pt = boost::property_tree;
 
 typedef geometry::model::d2::point_xy<double> point_type;
 typedef geometry::model::polygon<point_type> polygon_type;
+#ifdef SDPS
+typedef geometry::model::geometries::multi_polygon<polygon_type> multi_polygon_type;
+#elifdef HARMONY
 typedef geometry::model::multi_polygon<polygon_type> multi_polygon_type;
+#endif
 typedef geometry::model::box<point_type> box_type;
+
 
 class GeoPolygon
 {
@@ -117,7 +122,11 @@ public:
      */
     bool isEmpty()
     {
+#ifdef SDPS
+        return (boost::geometry::is_empty(polygons))? true : false;
+#elifdef HARMONY
         return polygons.empty();
+#endif
     }
     
 private:
