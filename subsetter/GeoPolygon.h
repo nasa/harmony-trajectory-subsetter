@@ -116,7 +116,7 @@ public:
     {
 #ifdef SDPS
         return (boost::geometry::is_empty(polygons))? true : false;
-#elifdef HARMONY
+#elif defined HARMONY
         return polygons.empty();
 #endif
     }
