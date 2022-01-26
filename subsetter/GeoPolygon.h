@@ -11,6 +11,7 @@
 #include <boost/geometry.hpp>
 #include <boost/geometry/geometries/point_xy.hpp>
 #include <boost/geometry/geometries/polygon.hpp>
+
 #include <boost/geometry/multi/geometries/multi_polygon.hpp>
 #include <boost/type_traits/is_empty.hpp>
 
@@ -24,6 +25,7 @@ typedef geometry::model::d2::point_xy<double> point_type;
 typedef geometry::model::polygon<point_type> polygon_type;
 typedef geometry::model::multi_polygon<polygon_type> multi_polygon_type;
 typedef geometry::model::box<point_type> box_type;
+
 
 class GeoPolygon
 {
@@ -112,7 +114,11 @@ public:
      */
     bool isEmpty()
     {
+#ifdef SDPS
+        return (boost::geometry::is_empty(polygons))? true : false;
+#elif defined HARMONY
         return polygons.empty();
+#endif
     }
     
 private:

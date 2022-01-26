@@ -15,9 +15,14 @@ using namespace H5;
 #include "xtiffio.h"
 
 //GCTP
-//#include "HE5_GctpFunc.h"
-//#include <gctp_prototypes.h>
+extern "C" {
+#ifdef SDPS
+#include "HE5_GctpFunc.h"
+#elif defined HARMONY
+#include <gctp_prototypes.h>
 #include <cproj.h>
+#endif
+}
 
 #include <iostream>
 #include <vector>
@@ -179,11 +184,12 @@ public:
         }
         
         double ul_lat_meters, ul_lon_meters, lr_lat_meters, lr_lon_meters;
+#ifdef SDPS
         ceaforint(r_major, r_minor, 0, 30.*pi/180., 0., 0.);
 
         ceafor(-180.*pi/180., 85.0445664*pi/180., &ul_lon_meters, &ul_lat_meters);
         ceafor(180.*pi/180., -85.0445664*pi/180., &lr_lon_meters, &lr_lat_meters);
-
+#endif
         lat_pixel_size = fabs((ul_lat_meters - lr_lat_meters) / num_row_pixels);
         lon_pixel_size = fabs((ul_lon_meters - lr_lon_meters) / num_col_pixels);
 
