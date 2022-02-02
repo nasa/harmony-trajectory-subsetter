@@ -12,6 +12,9 @@
     * Stage the output file via Harmony functionality to allow the end-user to
       retrieve their results.
 
+    Note: The paths for the Trajectory Subsetter binary and configuration file
+    are set to values specific to the Docker image.
+
 """
 from argparse import ArgumentParser
 from itertools import chain
@@ -20,6 +23,7 @@ from shutil import rmtree
 from sys import argv
 from tempfile import mkdtemp
 from typing import Any, Dict, List, Optional
+import json
 
 from harmony import BaseHarmonyAdapter, run_cli, setup_cli
 from harmony.message import Source
@@ -27,16 +31,16 @@ from harmony.util import (Config, download, generate_output_filename,
                           HarmonyException, stage)
 from pystac import Asset, Item
 
-from harmony_service.utilities import (execute_command, get_file_mimetype,
+from harmony_service.utilities import (convert_harmony_datetime,
+                                       execute_command, get_file_mimetype,
                                        is_bbox_spatial_subset,
                                        is_harmony_subset,
                                        is_polygon_spatial_subset,
                                        is_temporal_subset)
 
 
-# DAS-1263: Updated path to binary to correct value
-SUBSETTER_BINARY_PATH = 'subset'
-SUBSETTER_CONFIG = 'harmony_service/subsetter_config.json'
+SUBSETTER_BINARY_PATH = '/home/subset'
+SUBSETTER_CONFIG = '/home/harmony_service/subsetter_config.json'
 
 
 class HarmonyAdapter(BaseHarmonyAdapter):
@@ -73,14 +77,11 @@ class HarmonyAdapter(BaseHarmonyAdapter):
             binary_parameters = self.parse_binary_parameters(working_directory,
                                                              asset, source)
 
-            # DAS-1263 - Uncomment the following line. It will need extensive
-            # local testing once the Docker image is being built to contain the
-            # subsetter binary.
-            # self.transform(binary_parameters)
+            # Invoke the Trajectory subsetter binary
+            self.transform(binary_parameters)
 
+            # Stage the output file.
             staged_file_name = basename(binary_parameters['--outfile'])
-
-            # stage the output results
             mime = get_file_mimetype(binary_parameters['--outfile'])
             url = stage(binary_parameters['--outfile'], staged_file_name, mime,
                         location=self.message.stagingLocation,
@@ -217,25 +218,33 @@ class HarmonyAdapter(BaseHarmonyAdapter):
             variables = None
 
         if is_temporal_subset(self.message):
-            binary_parameters['--start'] = self.message.temporal.start
-            binary_parameters['--end'] = self.message.temporal.end
+            binary_parameters['--start'] = convert_harmony_datetime(
+                self.message.temporal.start
+            )
+            binary_parameters['--end'] = convert_harmony_datetime(
+                self.message.temporal.end
+            )
 
         if is_bbox_spatial_subset(self.message):
             binary_parameters['--bbox'] = ','.join(str(extent) for extent
                                                    in self.message.subset.bbox)
 
         if is_polygon_spatial_subset(self.message):
-            binary_parameters['--boundingshape'] = download(
-                self.message.subset.shape.href, working_directory,
-                logger=self.logger, access_token=self.message.accessToken,
-                cfg=self.config
-            )
+            shape_file_path = download(self.message.subset.shape.href,
+                                       working_directory, logger=self.logger,
+                                       access_token=self.message.accessToken,
+                                       cfg=self.config)
+
+            with open(shape_file_path, 'r') as file_handler:
+                bounding_shape = json.dumps(json.load(file_handler))
+
+            binary_parameters['--boundingshape'] = f'\'{bounding_shape}\''
 
         binary_parameters['--outfile'] = join_path(
             working_directory,
             generate_output_filename(
                 input_asset.href, variable_subset=variables,
-                is_subsetted=is_harmony_subset(self.message)
+                is_subsetted=is_harmony_subset(self.message, variables)
             )
         )
 

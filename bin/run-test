@@ -1,5 +1,19 @@
 #!/bin/bash
-# Runs tests in Bamboo
+###############################################################################
+# Execute the sds/trajectory-subsetter-test Docker image as a container. This
+# will run the unit test suite, check for Python linting errors, and ensure
+# there are no known security vulnerabilities in imported third party packages.
+#
+# Note: This test suite only covers the Python code for this service, which is
+# the Harmony Python infrastructure that calls the compiled Trajectory
+# Subsetter binary. There is currently no unit testing of the binary or style
+# checking for the C++ source code.
+#
+# This script will output test coverage information to a `coverage` directory
+# and JUnit test report output to a `test-reports` directory on the host
+# machine executing this script.
+#
+###############################################################################
 
 set -ex
 

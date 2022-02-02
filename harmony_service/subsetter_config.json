@@ -7,13 +7,14 @@
     ],
     "Missions": {
         "ATL[\\d]{2}": "ICESAT",
-        "GEDI_L[12][AB]": "GEDI",
+        "GEDI_L[124][AB]": "GEDI",
         "SPL[12].+": "SMAP"
     },
     "CoordinateDatasetNames": {
         "ATL[\\d]{2}": {
             "time": [
-                "delta_time"
+                "delta_time",
+                "transect_time"
             ],
             "latitude": [
                 "latitude",
@@ -21,7 +22,8 @@
                 "lat_ph",
                 "lat_mean",
                 "reference_pt_lat",
-                "segment_lat"
+                "segment_lat",
+                "transect_lat"
             ],
             "longitude": [
                 "longitude",
@@ -29,7 +31,8 @@
                 "lon_ph",
                 "lon_mean",
                 "reference_pt_lon",
-                "segment_lon"
+                "segment_lon",
+                "transect_lon"
             ],
             "ignore": [
                 "cycle_number",
@@ -37,7 +40,7 @@
                 "poly_exponent_y"
             ]
         },
-        "GEDI_L[12][AB]": {
+        "GEDI_L[124][AB]": {
             "time": [
                 "delta_time"
             ],
@@ -120,7 +123,7 @@
         }
     },
     "SuperGroups": {
-        "GEDI_L2A": {
+        "GEDI_L[24]A": {
             "/BEAM[\\d]+/": [
                 "/BEAM[\\d]+/"
             ]
@@ -142,7 +145,7 @@
         }
     },
     "SuperGroupCoordinates": {
-        "GEDI_L2A": {
+        "GEDI_L[24]A": {
             "/BEAM[\\d]+/": [
                 "lat_lowestmode",
                 "lon_lowestmode",
@@ -173,7 +176,7 @@
     },
     "ProductEpochs": {
         "ATL[\\d]{2}": "2005-01-01T00:00:00.000000",
-        "GEDI_L[12][AB]": "2018-01-01T00:00:00.000000"
+        "GEDI_L[124][AB]": "2018-01-01T00:00:00.000000"
     },
     "SubsettableGroups": {},
     "UnsubsettableGroups": {
@@ -185,7 +188,7 @@
             "/atlas/",
             "/quality_assessment/"
         ],
-        "GEDI_L[12][AB]": [
+        "GEDI_L[124][AB]": [
             "/BEAM[\\d]+/(.*/)*ancillary/"
         ]
     },
@@ -243,7 +246,7 @@
         "ASCII": "2"
     },
     "RequiredDatasets": {
-        "GEDI_L[12][AB]": {
+        "GEDI_L[124][AB]": {
             "/BEAM[\\d]+$": "shot_number"
         }
     },
@@ -311,6 +314,7 @@
     "Projections": {
         "/North_Polar_Projection/": "NLAEA",
         "/South_Polar_Projection/": "SLAEA",
+        "/Soil_Moisture_Retrieval_Data_Polar/": "NLAEA",
         "DEFAULT": "CEA"
     }
 }

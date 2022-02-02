@@ -1,6 +1,11 @@
 #!/bin/bash
 
 image="sds/trajectory-subsetter"
+
+# Retrieve the tag from the script argument, or default to "latest". Bamboo
+# will pass the contents of `docker/service_version.txt` as this argument,
+# which contains a semantic version number.
+#
 tag=${1:-latest}
 
 
@@ -12,5 +17,9 @@ if [ ! -z "$old" ]  && [ "$2" != "--no-delete" ]; then
 fi
 
 # Build the image
+# This command tags the image with two tags:
+# - The one supplied as a script argument. Bamboo will provide the semantic
+#   version number from `docker/service_version.txt`.
+# - "latest", so the test Dockerfile can use the service image as a base image.
 #
-docker build -t ${image}:${tag} -f docker/service.Dockerfile .
+docker build -t ${image}:${tag} -t ${image}:latest -f docker/service.Dockerfile .

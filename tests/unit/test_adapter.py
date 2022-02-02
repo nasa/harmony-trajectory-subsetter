@@ -22,6 +22,11 @@ class TestAdapter(TestCase):
     def setUpClass(cls):
         """ Fixtures that only need to be instantiated once for all tests. """
         cls.access_token = 'access'
+        cls.bounding_shape = ('\'{"type": "FeatureCollection", "features": '
+                              '[{"type": "Feature", "properties": {}, '
+                              '"geometry": {"type": "Polygon", "coordinates": '
+                              '[[[20, 15], [50, 15], [50, 40], [20, 40], '
+                              '[20, 15]]]}}]}\'')
         cls.callback = 'https://example.com'
         cls.collection = 'C1234567890-TEST'
         cls.config = config(validate=False)
@@ -29,6 +34,7 @@ class TestAdapter(TestCase):
                        'temporal': {'start': '2021-01-01T00:00:00.000Z',
                                     'end': '2021-01-01T00:00:00.000Z'},
                        'url': 'file.h5'}
+        cls.local_shape_path = 'tests/data/box.geo.json'
         cls.mimetype = 'application/x-hdf'
         cls.staging_location = 's3://example-bucket'
         cls.subsetted_filename = 'file_subsetted.h5'
@@ -44,8 +50,9 @@ class TestAdapter(TestCase):
         if exists(self.temp_dir):
             rmtree(self.temp_dir)
 
-    def test_subsetter_request(self, mock_download, mock_stage,
-                               mock_get_mimetype, mock_mkdtemp):
+    @patch('harmony_service.adapter.execute_command')
+    def test_subsetter_request(self, mock_execute_command, mock_download,
+                               mock_stage, mock_get_mimetype, mock_mkdtemp):
         """ Ensure a simple request will call the expected Harmony functions,
             including to retrieve and stage files.
 
@@ -66,7 +73,14 @@ class TestAdapter(TestCase):
         subsetter = HarmonyAdapter(message, config=self.config)
         subsetter.invoke()
 
+        expected_command = (f'{SUBSETTER_BINARY_PATH} '
+                            f'--configfile {SUBSETTER_CONFIG} '
+                            f'--filename {local_input_path} '
+                            f'--outfile {local_input_path}')
+
         mock_mkdtemp.assert_called_once()
+        mock_execute_command.assert_called_once_with(expected_command,
+                                                     subsetter.logger)
         mock_stage.assert_called_once_with(local_input_path,
                                            basename(message.granules[0].url),
                                            self.mimetype,
@@ -155,8 +169,9 @@ class TestAdapter(TestCase):
         mock_get_mimetype.assert_not_called()
         mock_stage.assert_not_called()
 
-    def test_validation_temporal(self, mock_download, mock_stage,
-                                 mock_get_mimetype, mock_mkdtemp):
+    @patch('harmony_service.adapter.execute_command')
+    def test_validation_temporal(self, mock_execute_command, mock_download,
+                                 mock_stage, mock_get_mimetype, mock_mkdtemp):
         """ Ensure a Harmony message containing temporal subset information
             only passes validation if it has both a start and end time for the
             temporal range.
@@ -193,6 +208,7 @@ class TestAdapter(TestCase):
 
                 mock_mkdtemp.assert_not_called()
                 mock_download.assert_not_called()
+                mock_execute_command.assert_not_called()
                 mock_get_mimetype.assert_not_called()
                 mock_stage.assert_not_called()
 
@@ -210,7 +226,16 @@ class TestAdapter(TestCase):
             subsetter.invoke()
 
             expected_local_out = f'{self.temp_dir}/{self.subsetted_filename}'
+            expected_command = (f'{SUBSETTER_BINARY_PATH} '
+                                f'--configfile {SUBSETTER_CONFIG} '
+                                f'--filename {self.granule["url"]} '
+                                f'--start {start_time} '
+                                f'--end {end_time} '
+                                f'--outfile {expected_local_out}')
+
             mock_mkdtemp.assert_called_once()
+            mock_execute_command.assert_called_once_with(expected_command,
+                                                         subsetter.logger)
             mock_stage.assert_called_once_with(expected_local_out,
                                                self.subsetted_filename,
                                                self.mimetype,
@@ -218,13 +243,15 @@ class TestAdapter(TestCase):
                                                logger=subsetter.logger)
             mock_get_mimetype.assert_called_once_with(expected_local_out)
 
-    def test_validation_shapefile(self, mock_download, mock_stage,
-                                  mock_get_mimetype, mock_mkdtemp):
+    @patch('harmony_service.adapter.execute_command')
+    def test_validation_shapefile(self, mock_execute_command, mock_download,
+                                  mock_stage, mock_get_mimetype, mock_mkdtemp):
         """ Ensure only a shape file with the correct MIME type will pass
             validation. Any non-GeoJSON shape file should raise an exception.
 
         """
-        mock_download.return_value = self.granule['url']
+        mock_download.side_effect = [self.granule['url'],
+                                     self.local_shape_path]
         mock_get_mimetype.return_value = self.mimetype
         mock_stage.return_value = 'tests/to/staged/output'
 
@@ -249,6 +276,7 @@ class TestAdapter(TestCase):
 
             mock_mkdtemp.assert_not_called()
             mock_download.assert_not_called()
+            mock_execute_command.assert_not_called()
             mock_get_mimetype.assert_not_called()
             mock_stage.assert_not_called()
 
@@ -268,7 +296,15 @@ class TestAdapter(TestCase):
             subsetter.invoke()
 
             expected_local_out = f'{self.temp_dir}/{self.subsetted_filename}'
+            expected_command = (f'{SUBSETTER_BINARY_PATH} '
+                                f'--configfile {SUBSETTER_CONFIG} '
+                                f'--filename {self.granule["url"]} '
+                                f'--boundingshape {self.bounding_shape} '
+                                f'--outfile {expected_local_out}')
+
             mock_mkdtemp.assert_called_once()
+            mock_execute_command.assert_called_once_with(expected_command,
+                                                         subsetter.logger)
             mock_stage.assert_called_once_with(expected_local_out,
                                                self.subsetted_filename,
                                                self.mimetype,
@@ -285,7 +321,8 @@ class TestAdapter(TestCase):
 
         """
         base_source = {'collection': self.collection,
-                       'granules': [self.granule]}
+                       'granules': [self.granule],
+                       'variables': []}
 
         base_message = {'accessToken': self.access_token,
                         'callback': self.callback,
@@ -305,8 +342,7 @@ class TestAdapter(TestCase):
 
         # First result is input granule, second is a GeoJSON shape file.
         local_input_path = f'{self.temp_dir}/random_uuid.h5'
-        local_shape_file_path = f'{self.temp_dir}/shape.geo.json'
-        download_list = [local_input_path, local_shape_file_path]
+        download_list = [local_input_path, self.local_shape_path]
 
         with self.subTest('No variables, temporal, bbox or polygon'):
             mock_download.side_effect = download_list
@@ -337,7 +373,7 @@ class TestAdapter(TestCase):
                 '--configfile': SUBSETTER_CONFIG,
                 '--filename': local_input_path,
                 '--includedataset': 'var_one,/nested/var_two',
-                '--outfile': f'{self.temp_dir}/{self.granule["url"]}'
+                '--outfile': f'{self.temp_dir}/{self.subsetted_filename}'
             }
             message_content = base_message.copy()
             source_content = base_source.copy()
@@ -386,7 +422,7 @@ class TestAdapter(TestCase):
         with self.subTest('Polygon spatial subset'):
             mock_download.side_effect = download_list
             expected_parameters = {
-                '--boundingshape': local_shape_file_path,
+                '--boundingshape': self.bounding_shape,
                 '--configfile': SUBSETTER_CONFIG,
                 '--filename': local_input_path,
                 '--outfile': f'{self.temp_dir}/{self.subsetted_filename}'
@@ -448,7 +484,7 @@ class TestAdapter(TestCase):
             mock_download.side_effect = download_list
             expected_parameters = {
                 '--bbox': '10,20,30,40',
-                '--boundingshape': local_shape_file_path,
+                '--boundingshape': self.bounding_shape,
                 '--configfile': SUBSETTER_CONFIG,
                 '--end': end_time,
                 '--filename': local_input_path,
