@@ -246,7 +246,7 @@ int main(int argc, char* argv[])
     catch (Exception e)
     {
         cerr << "ERROR: caught H5 Exception " << e.getDetailMsg() << endl;
-        e.printError();
+        e.printErrorStack();
         ErrorCode = -1;
     }
     catch (std::exception &e)
