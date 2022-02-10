@@ -9,16 +9,21 @@
 # into the Docker image, before environment variables are set to activate the
 # created conda environment.
 #
-FROM centos:7
+FROM centos:8.4.2105
 
 WORKDIR /home
 # All needed libraries
-RUN yum -y install epel-release && \
-    yum -y install gcc-c++ make libjpeg-turbo zlib hdf-devel libtool libxslt-devel \
-        libaec-devel autogen shtool autoconf automake file gcc-gfortran hdf5-devel \
-        libgeotiff-devel java-1.8.0-openjdk-devel netcdf-devel proj-devel mc \
-        boost-static && \
-    yum clean all
+RUN cd /etc/yum.repos.d && \
+# Fix Failed to download metadata for repo. See https://techglimpse.com/failed-metadata-repo-appstream-centos-8/
+    sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-* && \
+    sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-* && \
+    dnf -y update && \
+    yum -y install epel-release && \
+    dnf -y --enablerepo=powertools install boost-static autogen libaec-devel && \
+    dnf -y install --skip-broken gcc-c++ make libjpeg-turbo zlib hdf-devel libtool libxslt-devel \
+        shtool hdf5-devel autoconf automake file gcc-gfortran redhat-rpm-config \
+        libgeotiff-devel java-1.8.0-openjdk-devel netcdf-devel proj-devel mc  && \
+    dnf clean all
 
 # Build HDFEOS and MINICONDA
 ENV HDFEOS_URL="https://maven.earthdata.nasa.gov/repository/heg-c/HDF-EOS2/hdf-eos2-3.0-src.tar.gz"
