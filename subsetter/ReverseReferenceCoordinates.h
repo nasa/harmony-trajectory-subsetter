@@ -82,9 +82,22 @@ public:
         indexes = new IndexSelection(coordinateSize);
         
         DataSet* indexBegSet = NULL;
-        
-        if (!indexBegName.empty() && H5Lexists(ingroup.getLocId(), indexBegName.c_str(), H5P_DEFAULT) > 0)
-            indexBegSet = new DataSet(ingroup.openDataSet(indexBegName));
+
+        if (!indexBegName.empty())
+        {
+            if (H5Lexists(ingroup.getLocId(), indexBegName.c_str(), H5P_DEFAULT) > 0)
+            {
+               indexBegSet = new DataSet(ingroup.openDataSet(indexBegName));
+            }
+            else 
+            {
+                indexBegName = "beam_refsurf_ndx";
+                if (H5Lexists(ingroup.getLocId(), indexBegName.c_str(), H5P_DEFAULT) > 0)
+                {
+                   indexBegSet = new DataSet(ingroup.openDataSet(indexBegName));
+                }
+            }
+        }
         
         reverseSubset(indexBegSet);
         
