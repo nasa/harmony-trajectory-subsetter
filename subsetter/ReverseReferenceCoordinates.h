@@ -91,11 +91,16 @@ public:
             }
             else 
             {
-                indexBegName = "beam_refsurf_ndx";
-                if (H5Lexists(ingroup.getLocId(), indexBegName.c_str(), H5P_DEFAULT) > 0)
-                {
-                   indexBegSet = new DataSet(ingroup.openDataSet(indexBegName));
-                }
+      
+               /*
+                * If you don't find the beam_refsurf_ndx field, you have an earlier version of ATL10 (v004 and below)
+                * so look for that dataset name
+                */
+               indexBegName = "beam_refsur_ndx";
+               if (H5Lexists(ingroup.getLocId(), indexBegName.c_str(), H5P_DEFAULT) > 0)
+               {
+                  indexBegSet = new DataSet(ingroup.openDataSet(indexBegName));
+               }
             }
         }
         
