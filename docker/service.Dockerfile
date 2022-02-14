@@ -9,16 +9,19 @@
 # into the Docker image, before environment variables are set to activate the
 # created conda environment.
 #
-FROM centos:7
+FROM oraclelinux:8.5
 
 WORKDIR /home
 # All needed libraries
-RUN yum -y install epel-release && \
-    yum -y install gcc-c++ make libjpeg-turbo zlib hdf-devel libtool libxslt-devel \
-        libaec-devel autogen shtool autoconf automake file gcc-gfortran hdf5-devel \
-        libgeotiff-devel java-1.8.0-openjdk-devel netcdf-devel proj-devel mc \
-        boost-static && \
-    yum clean all
+RUN dnf -y upgrade && \
+    dnf -y install oracle-epel-release-el8 && \
+    dnf config-manager --set-enabled ol8_codeready_builder && \
+    dnf -y install --skip-broken gcc-c++ make libjpeg-turbo hdf-devel libtool libxslt-devel \
+        file gcc-gfortran redhat-rpm-config \
+        libgeotiff-devel java-1.8.0-openjdk-devel  proj-devel mc && \
+    dnf -y install netcdf-devel libaec-devel autogen hdf5-devel boost-static && \
+    dnf clean all
+
 
 # Build HDFEOS and MINICONDA
 ENV HDFEOS_URL="https://maven.earthdata.nasa.gov/repository/heg-c/HDF-EOS2/hdf-eos2-3.0-src.tar.gz"
@@ -33,7 +36,8 @@ RUN set -e && \
 
 RUN set -e && \
   curl -sfSL ${HDFEOS5_URL} > hdfeos5.tar.gz && \
-  mkdir hdfeos5 && tar xzvf hdfeos5.tar.gz -C hdfeos5 --strip-components 1 && \
+  mkdir hdfeos5 && tar xzvf hdfeos5.tar.gz -C hdfeos5 --strip-components 1 \
+  && \
   cd hdfeos5 && ./configure && make && make install && cd .. && \
   rm -f hdfeos5.tar.gz
 
