@@ -85,22 +85,37 @@ public:
 
         if (!indexBegName.empty())
         {
-            if (H5Lexists(ingroup.getLocId(), indexBegName.c_str(), H5P_DEFAULT) > 0)
+            //
+            // look for a bar as a string delimiter for potential two values of index Selection
+            //
+            string token;
+            string delimiter = "|";
+            bool found = false;
+            int pos;
+            while (((pos = indexBegName.find(delimiter)) != string::npos) and (!found))
+            {
+               //
+               // Isolate the first token found before the bar
+               //
+               token = indexBegName.substr(0, pos);  
+               cout << "Token is: " << token << endl;
+               if (H5Lexists(ingroup.getLocId(), token.c_str(), H5P_DEFAULT) > 0)
+               {
+                  indexBegSet = new DataSet(ingroup.openDataSet(token));
+                  // It existed so set our boolean
+                  found = true;
+                  cout << "Found in bar loop! " << endl;
+               }    
+               //
+               // Keep searching through the string
+               //
+               indexBegName.erase(0, pos + delimiter.length());
+            }
+            
+            if ((!found) and (H5Lexists(ingroup.getLocId(), indexBegName.c_str(), H5P_DEFAULT) > 0))
             {
                indexBegSet = new DataSet(ingroup.openDataSet(indexBegName));
-            }
-            else 
-            {
-      
-               /*
-                * If you don't find the beam_refsurf_ndx field, you have an earlier version of ATL10 (v004 and below)
-                * so look for that dataset name
-                */
-               indexBegName = "beam_refsur_ndx";
-               if (H5Lexists(ingroup.getLocId(), indexBegName.c_str(), H5P_DEFAULT) > 0)
-               {
-                  indexBegSet = new DataSet(ingroup.openDataSet(indexBegName));
-               }
+               cout << "Regular find! " << endl;
             }
         }
         
