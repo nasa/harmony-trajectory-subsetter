@@ -98,13 +98,12 @@ public:
                // Isolate the first token found before the bar
                //
                token = indexBegName.substr(0, pos);  
-               cout << "Token is: " << token << endl;
+               cout << "getIndexSelection Token is: " << token << endl;
                if (H5Lexists(ingroup.getLocId(), token.c_str(), H5P_DEFAULT) > 0)
                {
                   indexBegSet = new DataSet(ingroup.openDataSet(token));
                   // It existed so set our boolean
                   found = true;
-                  cout << "Found in bar loop! " << endl;
                }    
                //
                // Keep searching through the string
@@ -115,7 +114,6 @@ public:
             if ((!found) and (H5Lexists(ingroup.getLocId(), indexBegName.c_str(), H5P_DEFAULT) > 0))
             {
                indexBegSet = new DataSet(ingroup.openDataSet(indexBegName));
-               cout << "Regular find! " << endl;
             }
         }
         
