@@ -9,21 +9,19 @@
 # into the Docker image, before environment variables are set to activate the
 # created conda environment.
 #
-FROM centos:8.4.2105
+FROM oraclelinux:8.5
 
 WORKDIR /home
 # All needed libraries
-RUN cd /etc/yum.repos.d && \
-# Fix Failed to download metadata for repo. See https://techglimpse.com/failed-metadata-repo-appstream-centos-8/
-    sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-* && \
-    sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-* && \
-    dnf -y update && \
-    yum -y install epel-release && \
-    dnf -y --enablerepo=powertools install boost-static autogen libaec-devel && \
-    dnf -y install --skip-broken gcc-c++ make libjpeg-turbo zlib hdf-devel libtool libxslt-devel \
-        shtool hdf5-devel autoconf automake file gcc-gfortran redhat-rpm-config \
-        libgeotiff-devel java-1.8.0-openjdk-devel netcdf-devel proj-devel mc  && \
+RUN dnf -y upgrade && \
+    dnf -y install oracle-epel-release-el8 && \
+    dnf config-manager --set-enabled ol8_codeready_builder && \
+    dnf -y install --skip-broken gcc-c++ make libjpeg-turbo hdf-devel libtool libxslt-devel \
+        file gcc-gfortran redhat-rpm-config \
+        libgeotiff-devel java-1.8.0-openjdk-devel  proj-devel mc && \
+    dnf -y install netcdf-devel libaec-devel autogen hdf5-devel boost-static && \
     dnf clean all
+
 
 # Build HDFEOS and MINICONDA
 ENV HDFEOS_URL="https://maven.earthdata.nasa.gov/repository/heg-c/HDF-EOS2/hdf-eos2-3.0-src.tar.gz"
