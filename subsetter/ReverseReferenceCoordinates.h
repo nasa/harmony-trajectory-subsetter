@@ -82,9 +82,40 @@ public:
         indexes = new IndexSelection(coordinateSize);
         
         DataSet* indexBegSet = NULL;
-        
-        if (!indexBegName.empty() && H5Lexists(ingroup.getLocId(), indexBegName.c_str(), H5P_DEFAULT) > 0)
-            indexBegSet = new DataSet(ingroup.openDataSet(indexBegName));
+
+        if (!indexBegName.empty())
+        {
+            //
+            // look for a bar as a string delimiter for potential two values of index Selection
+            //
+            string token;
+            string delimiter = "|";
+            bool found = false;
+            int pos;
+            while (((pos = indexBegName.find(delimiter)) != string::npos) and (!found))
+            {
+               //
+               // Isolate the first token found before the bar
+               //
+               token = indexBegName.substr(0, pos);  
+               cout << "getIndexSelection Token is: " << token << endl;
+               if (H5Lexists(ingroup.getLocId(), token.c_str(), H5P_DEFAULT) > 0)
+               {
+                  indexBegSet = new DataSet(ingroup.openDataSet(token));
+                  // It existed so set our boolean
+                  found = true;
+               }    
+               //
+               // Keep searching through the string
+               //
+               indexBegName.erase(0, pos + delimiter.length());
+            }
+            
+            if ((!found) and (H5Lexists(ingroup.getLocId(), indexBegName.c_str(), H5P_DEFAULT) > 0))
+            {
+               indexBegSet = new DataSet(ingroup.openDataSet(indexBegName));
+            }
+        }
         
         reverseSubset(indexBegSet);
         

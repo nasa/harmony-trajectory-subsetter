@@ -223,7 +223,7 @@
             "BeamCount": "beam_lead_n",
             "LeadsIndex": "ssh_ndx",
             "LeadsCount": "ssh_n",
-            "BeamFreeboardIndex": "beam_refsur_ndx",
+            "BeamFreeboardIndex": "beam_refsur_ndx|beam_refsurf_ndx",
             "BeamFreeboardCount": "beam_refsur_n",
             "PhotonLatitude": "latitude",
             "PhotonLongitude": "longitude",
