@@ -17,9 +17,9 @@ RUN dnf -y upgrade && \
     dnf -y install oracle-epel-release-el8 && \
     dnf config-manager --set-enabled ol8_codeready_builder && \
     dnf -y install --skip-broken gcc-c++ make libjpeg-turbo hdf-devel libtool libxslt-devel \
-        file gcc-gfortran redhat-rpm-config \
-        libgeotiff-devel java-1.8.0-openjdk-devel  proj-devel mc && \
-    dnf -y install netcdf-devel libaec-devel autogen hdf5-devel boost-static && \
+        file gcc-gfortran redhat-rpm-config libgeotiff-devel java-1.8.0-openjdk-devel  proj-devel \
+        netcdf-devel libaec-devel autogen boost-static mc && \
+    dnf update && \
     dnf clean all
 
 
@@ -85,4 +85,4 @@ ENV _CE_CONDA='' \
     PYTHONPATH="/home"
 
 # Configure a container to be executable via the `docker run` command.
-ENTRYPOINT service: ["python", "harmony_service/adapter.py"]
+#ENTRYPOINT service: ["python", "harmony_service/adapter.py"]
