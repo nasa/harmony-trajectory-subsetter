@@ -12,21 +12,28 @@
 FROM oraclelinux:8.5
 
 WORKDIR /home
-# All needed libraries
+# Add needed libraries
 RUN dnf -y upgrade && \
     dnf -y install oracle-epel-release-el8 && \
     dnf config-manager --set-enabled ol8_codeready_builder && \
     dnf -y install --skip-broken gcc-c++ make libjpeg-turbo hdf-devel libtool libxslt-devel \
         file gcc-gfortran redhat-rpm-config libgeotiff-devel java-1.8.0-openjdk-devel  proj-devel \
-        netcdf-devel libaec-devel autogen boost-static mc && \
-    dnf update && \
+        netcdf-devel libaec-devel autogen boost-static mc which && \
     dnf clean all
 
-
-# Build HDFEOS and MINICONDA
+# Build HDF5-1.8.22, HDFEOS and MINICONDA
+ENV HDF5_URL="https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8/hdf5-1.8.22/src/hdf5-1.8.22.tar.gz"
 ENV HDFEOS_URL="https://maven.earthdata.nasa.gov/repository/heg-c/HDF-EOS2/hdf-eos2-3.0-src.tar.gz"
 ENV HDFEOS5_URL="https://maven.earthdata.nasa.gov/repository/heg-c/HDF-EOS5/hdf-eos5-2.0-src.tar.gz"
 ENV MINICONDA="https://repo.anaconda.com/miniconda/Miniconda3-py39_4.10.3-Linux-x86_64.sh"
+
+RUN set -e && \
+  curl -sfSL ${HDF5_URL} > hdf5.tar.gz && \
+  mkdir hdf5 && tar xzvf hdf5.tar.gz -C hdf5 --strip-components 1 && \
+  cd hdf5 && ./configure  "--prefix=/home" --disable-shared --enable-cxx --enable-static-exec || { echo "ERROR: Configure failed"; exit 1; } && \
+  make || { echo "ERROR: Make failed"; exit 1; } && \
+  make install || { echo "ERROR: Install failed"; exit 1; } && cd .. && \
+  rm -f hdf5.tar.gz
 
 RUN set -e && \
   curl -sfSL ${HDFEOS_URL} > hdfeos.tar.gz && \
@@ -51,7 +58,7 @@ WORKDIR /home/subsetter
 RUN ./makeit_harmony
 
 WORKDIR /home
-RUN rm -rf ./subsetter ./hdfeos ./hdfeos5
+RUN rm -rf ./subsetter ./hdfeos ./hdfeos5 ./hdf5
 
 # Create Conda environment
 ENV PATH="/opt/conda/bin:$PATH"
