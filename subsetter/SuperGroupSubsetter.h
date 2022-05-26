@@ -40,7 +40,7 @@ protected:
             // if the count dataset is not in the output file, create it
             if (H5Lexists(outgroup.getLocId(), countName.c_str(), H5P_DEFAULT) <= 0)
             {
-                // if the input file doesn't have the count dataset, write index begin as normal dataset
+                // if the input file doesn't have the count dataset, write index minIndexStart as normal dataset
                 if (H5Lexists(infile.getLocId(), (groupname+countName).c_str(), H5P_DEFAULT) <= 0)
                 {
                     Subsetter::writeDataset(objname, indataset, outgroup, groupname, indexes);
@@ -50,11 +50,11 @@ protected:
                 // get the input dataset for count and write subsetted dataset to output
                 DataSet inCountDs = infile.openGroup(groupname).openDataSet(countName);
                 Subsetter::writeDataset(countName, inCountDs, outgroup, groupname, indexes);
-                // if the count dataset still doesn't exist, don't write index begin
+                // if the count dataset still doesn't exist, don't write index minIndexStart
                 if (H5Lexists(outgroup.getLocId(), countName.c_str(), H5P_DEFAULT) <= 0)
                     return;
             }
-            // write index begin dataset
+            // write index minIndexStart dataset
             PhotonReferenceDatasets* photonDataset = new PhotonReferenceDatasets(this->getShortName(), objname);
             photonDataset->writeIndexBeginDataset(outgroup, groupname, indataset, indexes, this->getSubsetDataLayers());
             

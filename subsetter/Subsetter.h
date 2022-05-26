@@ -300,7 +300,7 @@ protected:
             inspace.selectNone(); // selects none first            
             hsize_t offset[dimnum], count[dimnum];
             // spatial subsetting            
-            for (map<long,long>::iterator it = indexes->bbox.begin();it!=indexes->bbox.end();it++)
+            for (map<long,long>::iterator it = indexes->segments.begin(); it != indexes->segments.end(); it++)
             {
                 offset[dim] = it->first;
                 for (int j=0;j<dimnum;j++)
@@ -318,14 +318,14 @@ protected:
             //cout << "Total spatially selected is " << inspace.getSelectNpoints() << endl;
     
             // adding temporal if no spatial subsetting
-            if (indexes->bbox.empty())
+            if (indexes->segments.empty())
             {
-                offset[0] = indexes->begin;
+                offset[0] = indexes->minIndexStart;
                 for (int j=0;j<dimnum;j++)
                 {
                     if (j!=dim) offset[j]=0;
                 }
-                count[dim] = indexes->end - indexes->begin;
+                count[dim] = indexes->maxIndexEnd - indexes->minIndexStart;
                 //cout << "selecting " << count[0] << " temporal match inspace with offset " << offset[0] << endl;
                 for (int j=0;j<dimnum;j++)
                 {

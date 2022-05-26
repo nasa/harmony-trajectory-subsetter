@@ -131,7 +131,7 @@ private:
     
     /*
      * limit the index range by referenced group indexSelection 
-     * @param DataSet indexBegSet: index begin dataset
+     * @param DataSet indexBegSet: index minIndexStart dataset
      */
     void reverseSubset(DataSet* indexBegSet)
     {
@@ -143,25 +143,25 @@ private:
         long start = 0, length = 0, end = 0, count = 0, newStart = 0, newLength = 0;
         
         // iterate through index selection of the referenced group (i.e., for leads group ,iterate through freeboard swath group)
-        // if the value in the index begin dataset  matches the indices in the index selection, 
+        // if the value in the index minIndexStart dataset  matches the indices in the index selection,
         // calculate the index range for that value, add it the index selection
-        for (map<long, long>::iterator it = referencedIndexes->bbox.begin(); it != referencedIndexes->bbox.end(); it++)
+        for (map<long, long>::iterator it = referencedIndexes->segments.begin(); it != referencedIndexes->segments.end(); it++)
         {
             start = it->first + 1;
             length = it->second;
             end = start + length;
 
             //cout << "start: " << start << ", length: " << length << ", end: " << endl;
-            //cout << "last index begin: " << indexBegin[coordinateSize-1] << endl;
+            //cout << "last index minIndexStart: " << indexBegin[coordinateSize-1] << endl;
             
-            // if start is greater than the last value in the index begin dataset
+            // if start is greater than the last value in the index minIndexStart dataset
             // skip this referenced index selection pair
             if (start > indexBegin[coordinateSize-1])
             {
                 continue;
             }
             
-            // if end is less than the first value in the index begin dataset
+            // if end is less than the first value in the index minIndexStart dataset
             // skip this referenced index selection pair
             if (end < indexBegin[0])
             {
@@ -184,7 +184,7 @@ private:
                 if (indexBegin[i] < end)
                 {
                     newLength = i + 1 - newStart;
-                    indexes->addBox(newStart, newLength);
+                    indexes->addSegment(newStart, newLength);
                     break;
                 }
             }
@@ -193,12 +193,12 @@ private:
         }
         
         // if no spatial subsetting
-        if (referencedIndexes->bbox.empty())
+        if (referencedIndexes->segments.empty())
         {
             //cout << "no spatial subsetting" << endl;
             // index selection end is excluded
-            start = referencedIndexes->begin;
-            end = referencedIndexes->end;
+            start = referencedIndexes->minIndexStart;
+            end = referencedIndexes->maxIndexEnd;
             
             //cout << "start: " << start << ", end: " << end << endl;
             
@@ -217,7 +217,7 @@ private:
                 if (indexBegin[i] <= end)
                 {
                     newLength = i + 1 - newStart;
-                    indexes->addBox(newStart, newLength);
+                    indexes->addSegment(newStart, newLength);
                     break;
                 }
             }
@@ -226,7 +226,7 @@ private:
         }
                 
         // if no matching data found, return no data
-        if (indexes->bbox.empty()) indexes->addRestriction(0,0);
+        if (indexes->segments.empty()) indexes->addRestriction(0, 0);
         
         delete [] indexBegin;
     }

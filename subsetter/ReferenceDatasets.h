@@ -39,16 +39,16 @@ public:
         size_t inDatasetSize = indataset.getSpace().getSimpleExtentNpoints(); // input dataset size
         size_t subsettedSize = indexes->size(); // subsetted dataset size
         int32_t* inData = new int32_t[inDatasetSize]; // array to store input dataset
-        int32_t* indexBegin = new int32_t[subsettedSize]; // array to store subsetted index begin dataset
-        int32_t* newIndexBegin = new int32_t[subsettedSize]; // array to store repaired index begin dataset
+        int32_t* indexBegin = new int32_t[subsettedSize]; // array to store subsetted index minIndexStart dataset
+        int32_t* newIndexBegin = new int32_t[subsettedSize]; // array to store repaired index minIndexStart dataset
         bool diffIndex = false;
         
         indataset.read(inData, indataset.getDataType());
         int index = 0;
-        // copy index begin from the input file according to indexes
-        if (indexes->bbox.empty())
+        // copy index minIndexStart from the input file according to indexes
+        if (indexes->segments.empty())
         {
-            for (int i = indexes->begin; i < indexes->end; i++)
+            for (int i = indexes->minIndexStart; i < indexes->maxIndexEnd; i++)
             {
                 indexBegin[index] = inData[i];
                 index++;
@@ -56,7 +56,7 @@ public:
         }
         else
         {
-            for (map<long, long>::iterator it = indexes->bbox.begin(); it != indexes->bbox.end(); it++)
+            for (map<long, long>::iterator it = indexes->segments.begin(); it != indexes->segments.end(); it++)
             {
                 for (int i = it->first; i < (it->first+it->second); i++)
                 {
@@ -66,26 +66,26 @@ public:
             }
         }
         
-        // location - new index begin value
-        // offset - difference between new index begin and previous new index begin
-        // prevLocation - previous new index begin
+        // location - new index minIndexStart value
+        // offset - difference between new index minIndexStart and previous new index minIndexStart
+        // prevLocation - previous new index minIndexStart
         // count - keeps track of how many indices in the (start, length) have been accounted for
-        // prevOldLocation - previous index begin
+        // prevOldLocation - previous index minIndexStart
         int32_t location = 1, offset = 0, prevLocation = 1, count = 0, prevOldLocation = 0;
         
         long start = 0, length = 0, end = 0, prevLength = 0;
        
         // if only temporal constraint is specified
-        if (targetIndexes->bbox.empty())
+        if (targetIndexes->segments.empty())
         {
-            start = (targetIndexes->begin)+1;
-            end = targetIndexes->end;
+            start = (targetIndexes->minIndexStart) + 1;
+            end = targetIndexes->maxIndexEnd;
             length = end - start;
         }
         
-        map<long, long>::iterator startIter = targetIndexes->bbox.begin();
+        map<long, long>::iterator startIter = targetIndexes->segments.begin();
         
-        // walk through the subsetted index begin and targetIndexes
+        // walk through the subsetted index minIndexStart and targetIndexes
         for (int i = 0; i < subsettedSize; i++)
         {
             // if indexBegin is 0 or -1, copy over
@@ -96,9 +96,9 @@ public:
             }
 
             // if spatial contraint is specified
-            if (!targetIndexes->bbox.empty())
+            if (!targetIndexes->segments.empty())
             {
-                for (map<long, long>::iterator it = startIter; it != targetIndexes->bbox.end(); it++)
+                for (map<long, long>::iterator it = startIter; it != targetIndexes->segments.end(); it++)
                 {
                     if (indexBegin[i] > it->first && indexBegin[i] <= (it->first + it->second+1))
                     {
@@ -118,24 +118,24 @@ public:
                 }
             }
 
-            // first index begin
-            // calcualte offset if first index begin does not equal to start of the (start, length) pair
+            // first index minIndexStart
+            // calcualte offset if first index minIndexStart does not equal to start of the (start, length) pair
             // in targetIndexes
-            if (prevOldLocation == 0 && startIter == targetIndexes->bbox.begin())
+            if (prevOldLocation == 0 && startIter == targetIndexes->segments.begin())
             {
                 location = indexBegin[i] - (start-1);
                 if (indexBegin[i] != start) offset = indexBegin[i] - start;
             }
-            // anything other than first index begin
-            // offset = index begin - previous index begin
-            // new index begin = previous new index begin + offset
+            // anything other than first index minIndexStart
+            // offset = index minIndexStart - previous index minIndexStart
+            // new index minIndexStart = previous new index minIndexStart + offset
             else
             {
                 offset = indexBegin[i] - prevOldLocation;
                 location = prevLocation + offset;
-                // if the index begin is in a different (start, length) pair than the previous index begin
-                // offset = index begin - start of the (start, length) 
-                // new index begin = previous new index begin + (previous length of the (start, length) - count) + offset
+                // if the index minIndexStart is in a different (start, length) pair than the previous index minIndexStart
+                // offset = index minIndexStart - start of the (start, length)
+                // new index minIndexStart = previous new index minIndexStart + (previous length of the (start, length) - count) + offset
                 // reset count 
                 if (diffIndex) 
                 {
@@ -151,7 +151,7 @@ public:
             prevOldLocation = indexBegin[i];
         }
         
-         // write the index begin dataset
+         // write the index minIndexStart dataset
         int dimnum = indataset.getSpace().getSimpleExtentNdims();
         hsize_t olddims[dimnum], newdims[dimnum], maxdims[dimnum];
         indataset.getSpace().getSimpleExtentDims(olddims, maxdims);

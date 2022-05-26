@@ -94,7 +94,7 @@ public:
         size_t coordinateSize = nonNullDataset->getSpace().getSimpleExtentNpoints();
 	hid_t native_type = H5Tget_native_type(H5Dget_type(indexBegSet->getId()), H5T_DIR_ASCEND);
 
-        // index begin datasets for ATL03 and ATL08 are 64-bit and 32-bit for ATL10
+        // index minIndexStart datasets for ATL03 and ATL08 are 64-bit and 32-bit for ATL10
         int64_t* indexBeg = new int64_t[coordinateSize];
         int32_t* count = new int32_t[coordinateSize];
 
@@ -114,22 +114,22 @@ public:
 
         //cout << "localIndexes" << endl; 
         // add (start, length) pairs in the local coordinate reference
-        for (map<long, long>::iterator it = localIndexes->bbox.begin(); it != localIndexes->bbox.end(); it++)
+        for (map<long, long>::iterator it = localIndexes->segments.begin(); it != localIndexes->segments.end(); it++)
         {
-            indexes->addBox(it->first, it->second);
+            indexes->addSegment(it->first, it->second);
         }
 
         //cout << "leadsIndexes" << endl;
         // add (start, length) pairs in the leads IndexSelection
         long start, length;
-        for (map<long, long>::iterator it = leadsIndexes->bbox.begin(); it != leadsIndexes->bbox.end(); it++)
+        for (map<long, long>::iterator it = leadsIndexes->segments.begin(); it != leadsIndexes->segments.end(); it++)
         {
             start = it->first;
             length = it->second;
             for (int i = start; i < length+start; i++)
             {
 		//cout << i << " - " << "indexBegin: " << indexBeg[i] << "; count: " << count[i] << endl;
-		indexes->addBox(indexBeg[i]-1, count[i]);
+		indexes->addSegment(indexBeg[i] - 1, count[i]);
             }
         }
         indexesProcessed = true;

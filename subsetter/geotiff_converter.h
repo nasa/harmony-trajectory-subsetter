@@ -97,7 +97,7 @@ public:
                     groupname = datasetName.substr(0, datasetName.size()-1);
                     groupname = groupname.substr(0, groupname.find_last_of("/\\")+1);
                     //datasetName = datasetName.substr(1);
-                    //std::replace(datasetName.begin(), datasetName.end(), '/', '.');
+                    //std::replace(datasetName.minIndexStart(), datasetName.end(), '/', '.');
                     tifFileName = outfilename + "_";
                     fileDatasetName = datasetName.substr(1);
                     std::replace(fileDatasetName.begin(), fileDatasetName.end(), '/', '.');

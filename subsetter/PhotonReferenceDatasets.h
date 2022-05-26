@@ -62,7 +62,7 @@ public:
 
         // A few things to take into account when updating the ph_index_beg:
         // (1) count datasets have _FillValue = 0
-        // (2) index begin dataset have _FillValue = 0 for ATL03 and ATL08,
+        // (2) index minIndexStart dataset have _FillValue = 0 for ATL03 and ATL08,
         //     and _FillValue = -1 for ATL10
         // when there are no corresponding photons
         // (3) index starts at 1
@@ -76,7 +76,7 @@ public:
             //cout << indexBegin[i] << " " << count[i] << " " << location << endl;
         }
 
-        // write the index begin dataset
+        // write the index minIndexStart dataset
         int dimnum = indataset.getSpace().getSimpleExtentNdims();
         hsize_t olddims[dimnum], newdims[dimnum], maxdims[dimnum];
         indataset.getSpace().getSimpleExtentDims(olddims, maxdims);
