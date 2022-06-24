@@ -1,3 +1,4 @@
+from datetime import datetime
 from os import makedirs
 from os.path import basename, exists
 from shutil import rmtree
@@ -5,8 +6,8 @@ from unittest import TestCase
 from unittest.mock import patch
 
 from harmony.message import Message, Source
-from harmony.util import config, HarmonyException
-from pystac import Asset
+from harmony.util import config, HarmonyException, bbox_to_geometry
+from pystac import Asset, Catalog, Item
 
 from harmony_service.adapter import (HarmonyAdapter, main,
                                      SUBSETTER_BINARY_PATH, SUBSETTER_CONFIG)
@@ -58,9 +59,10 @@ class TestAdapter(TestCase):
 
         """
         local_input_path = f'{self.temp_dir}/{self.granule["url"]}'
+        staged_output_url = 'tests/to/staged/output_subsetted.h5'
         mock_download.return_value = local_input_path
         mock_get_mimetype.return_value = self.mimetype
-        mock_stage.return_value = 'tests/to/staged/output'
+        mock_stage.return_value = staged_output_url
 
         message = Message({'accessToken': self.access_token,
                            'callback': self.callback,
@@ -70,8 +72,20 @@ class TestAdapter(TestCase):
                            'stagingLocation': self.staging_location,
                            'user': self.user})
 
-        subsetter = HarmonyAdapter(message, config=self.config)
-        subsetter.invoke()
+        input_catalog = Catalog(id='input', description='test input')
+        input_item = Item(id='input_granule',
+                          geometry=bbox_to_geometry([-180, -90, 180, 90]),
+                          bbox=[-180, -90, 180, 90],
+                          datetime=datetime(2001, 1, 1), properties=None)
+        input_item.add_asset('input',
+                             Asset('https://www.example.com/file.h5',
+                                   media_type='application/x-hdf',
+                                   roles=['data']))
+        input_catalog.add_item(input_item)
+
+        subsetter = HarmonyAdapter(message, config=self.config,
+                                   catalog=input_catalog)
+        _, output_catalog = subsetter.invoke()
 
         expected_command = (f'{SUBSETTER_BINARY_PATH} '
                             f'--configfile {SUBSETTER_CONFIG} '
@@ -87,6 +101,15 @@ class TestAdapter(TestCase):
                                            location=self.staging_location,
                                            logger=subsetter.logger)
         mock_get_mimetype.assert_called_once_with(local_input_path)
+
+        # Confirm output catalog only contains an item for the subsetter
+        # output, and that there is a single asset pointing to the subsetted
+        # file
+        output_items = list(output_catalog.get_all_items())
+        self.assertEqual(len(output_items), 1)
+        self.assertListEqual(list(output_items[0].assets.keys()), ['data'])
+        self.assertEqual(output_items[0].assets['data'].href,
+                         staged_output_url)
 
     def test_exception_raised(self, mock_download, mock_stage,
                               mock_get_mimetype, mock_mkdtemp):
