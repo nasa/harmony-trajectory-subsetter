@@ -65,7 +65,7 @@ class HarmonyAdapter(BaseHarmonyAdapter):
 
         """
         result = item.clone()
-        result.asserts = {}
+        result.assets = {}
 
         working_directory = mkdtemp()
 
