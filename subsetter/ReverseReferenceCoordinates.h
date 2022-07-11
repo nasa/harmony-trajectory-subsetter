@@ -131,7 +131,7 @@ private:
     
     /*
      * limit the index range by referenced group indexSelection 
-     * @param DataSet indexBegSet: index minIndexStart dataset
+     * @param DataSet indexBegSet: index begin dataset
      */
     void reverseSubset(DataSet* indexBegSet)
     {
@@ -143,7 +143,7 @@ private:
         long start = 0, length = 0, end = 0, count = 0, newStart = 0, newLength = 0;
         
         // iterate through index selection of the referenced group (i.e., for leads group ,iterate through freeboard swath group)
-        // if the value in the index minIndexStart dataset  matches the indices in the index selection,
+        // if the value in the index begin dataset  matches the indices in the index selection,
         // calculate the index range for that value, add it the index selection
         for (map<long, long>::iterator it = referencedIndexes->segments.begin(); it != referencedIndexes->segments.end(); it++)
         {
@@ -152,16 +152,16 @@ private:
             end = start + length;
 
             //cout << "start: " << start << ", length: " << length << ", end: " << endl;
-            //cout << "last index minIndexStart: " << indexBegin[coordinateSize-1] << endl;
+            //cout << "last index begin: " << indexBegin[coordinateSize-1] << endl;
             
-            // if start is greater than the last value in the index minIndexStart dataset
+            // if start is greater than the last value in the index begin dataset
             // skip this referenced index selection pair
             if (start > indexBegin[coordinateSize-1])
             {
                 continue;
             }
             
-            // if end is less than the first value in the index minIndexStart dataset
+            // if end is less than the first value in the index begin dataset
             // skip this referenced index selection pair
             if (end < indexBegin[0])
             {

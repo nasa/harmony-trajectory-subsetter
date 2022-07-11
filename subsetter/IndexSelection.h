@@ -1,7 +1,7 @@
 #ifndef IndexSelection_H 
 #define IndexSelection_H
 //
-// IndexSelection encapsulates the temporal bounds and the spatial 
+// IndexSelection encapsulates the temporal bounds and the spatial
 // bounding boxes into a single structure - selected segments of a 1D
 // trajectory - start-index and length.
 //

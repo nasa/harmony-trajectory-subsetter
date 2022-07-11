@@ -1,5 +1,5 @@
-#ifndef PHOTONREFERENCEDATASETS_H
-#define PHOTONREFERENCEDATASETS_H
+#ifndef FWDREFBEGINDATASET_H
+#define FWDREFBEGINDATASET_H
 
 #include <stdlib.h>
 
@@ -8,14 +8,14 @@ using namespace std;
 /**
  * class to write index begin datasets for ATL03 and ATL08
  */
-class PhotonReferenceDatasets
+class FwdRefBeginDataset
 {
 public:
 
     string shortname;
     string datasetName;
 
-    PhotonReferenceDatasets(string shortname, string objname)
+    FwdRefBeginDataset(string shortname, string objname)
     : shortname(shortname), datasetName(objname)
     {
     }
@@ -28,9 +28,9 @@ public:
      * @param indexes IndexSelection index selection object  
      * @param subsetDataLayers SubsetDataLayers list of included dataset names   
      */
-    void writeIndexBeginDataset(Group& outgroup, const string& groupname, const DataSet& indataset,IndexSelection* indexes, SubsetDataLayers* subsetDataLayers)
+    void writeDataset(Group& outgroup, const string& groupname, const DataSet& indataset,IndexSelection* indexes, SubsetDataLayers* subsetDataLayers)
     {
-        cout << "ForwardReferenceDatasets.writeIndexBeginDataset" << endl;
+        cout << "ForwardReferenceDatasets.writeDataset" << endl;
         string countName = Configuration::getInstance()->getCountDatasetName(shortname, groupname,datasetName);
         //cout << "groupname+countName: " << groupname << " + " << countName << endl;
 
@@ -62,7 +62,7 @@ public:
 
         // A few things to take into account when updating the ph_index_beg:
         // (1) count datasets have _FillValue = 0
-        // (2) index minIndexStart dataset have _FillValue = 0 for ATL03 and ATL08,
+        // (2) index begin dataset have _FillValue = 0 for ATL03 and ATL08,
         //     and _FillValue = -1 for ATL10
         // when there are no corresponding photons
         // (3) index starts at 1
@@ -76,7 +76,7 @@ public:
             //cout << indexBegin[i] << " " << count[i] << " " << location << endl;
         }
 
-        // write the index minIndexStart dataset
+        // write the index begin dataset
         int dimnum = indataset.getSpace().getSimpleExtentNdims();
         hsize_t olddims[dimnum], newdims[dimnum], maxdims[dimnum];
         indataset.getSpace().getSimpleExtentDims(olddims, maxdims);
