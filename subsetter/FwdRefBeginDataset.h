@@ -31,32 +31,34 @@ public:
     void writeDataset(Group& outgroup, const string& groupname, const DataSet& indataset,IndexSelection* indexes, SubsetDataLayers* subsetDataLayers)
     {
         cout << "ForwardReferenceDatasets.writeDataset" << endl;
-        string countName = Configuration::getInstance()->getCountDatasetName(shortname, groupname,datasetName);
-        //cout << "groupname+countName: " << groupname << " + " << countName << endl;
 
-     	// read the count in the output
-     	DataSet countDs = outgroup.openDataSet(countName);
-        size_t coordinateSize = countDs.getSpace().getSimpleExtentNpoints();
-        hid_t count_native_type = H5Tget_native_type(H5Dget_type(countDs.getId()), H5T_DIR_ASCEND);
-        int32_t* count = new int32_t[coordinateSize];
-        int64_t* indexBegin = new int64_t[coordinateSize];
-        
-        if (H5Tequal(count_native_type, H5T_NATIVE_INT)) // 32-bit int
+        // Get output coordinate data rate from output count dataset.
+        string countName = Configuration::getInstance()->getCountDatasetName(shortname, groupname, datasetName);
+        DataSet countOutDs = outgroup.openDataSet(countName);
+        size_t outputCoordinateSize = countOutDs.getSpace().getSimpleExtentNpoints();
+
+        // Read in the source and declare the output index begin dataset.
+        hid_t indexBegin_native_type = H5Tget_native_type(H5Dget_type(indataset.getId()), H5T_DIR_ASCEND);
+        size_t inputCoordinateSize = indataset.getSpace().getSimpleExtentNpoints();
+        int64_t* indexBeginIn = new int64_t[inputCoordinateSize];
+        int64_t* indexBeginOut = new int64_t[outputCoordinateSize];
+
+        if (H5Tequal(indexBegin_native_type, H5T_NATIVE_INT)) // 32-bit int
         {
-            countDs.read(count, countDs.getDataType());
+            indataset.read(indexBeginIn, indataset.getDataType());
         }
-        else if(H5Tequal(count_native_type, H5T_NATIVE_USHORT)) // unsigend 16-bit int
+        else if(H5Tequal(indexBegin_native_type, H5T_NATIVE_USHORT)) // unsigned 16-bit int
         {
-            uint16_t* data = new uint16_t[coordinateSize];
-            countDs.read(data, countDs.getDataType());
-            for (int i = 0; i < coordinateSize; i++) count[i] = data[i];
+            uint16_t* data = new uint16_t[inputCoordinateSize];
+            indataset.read(data, indataset.getDataType());
+            for (int i = 0; i < inputCoordinateSize; i++) indexBeginIn[i] = data[i];
             delete[] data;
         }
-        else if(H5Tequal(count_native_type, H5T_NATIVE_LONG)) // 64-bit int
+        else
         {
-            int64_t* data = new int64_t[coordinateSize];
-            countDs.read(data, countDs.getDataType());
-            for (int i = 0; i < coordinateSize; i++) count[i] = data[i];
+            int64_t* data = new int64_t[inputCoordinateSize];
+            indataset.read(data, indataset.getDataType());
+            for (int i = 0; i < inputCoordinateSize; i++) indexBeginIn[i] = data[i];
             delete[] data;
         }
 
@@ -67,34 +69,40 @@ public:
         // when there are no corresponding photons
         // (3) index starts at 1
 
-        //keep track of current photon location, start with 1       
-        int64_t location = 1;
-        for (int i = 0; i < coordinateSize; i++)
+        // For each segment group, write to the index begin output/subset dataset.
+        for (map<long, long>::iterator it = indexes->segments.begin(); it != indexes->segments.end(); it++)
         {
-            indexBegin[i] = (count[i] == 0) ? 0 : location;
-            location += count[i];
-            //cout << indexBegin[i] << " " << count[i] << " " << location << endl;
+            long segmentStart = it->first;
+            long segmentLength = it->second;
+
+            // For each segment, construct the index begin subset dataset by subtracting the first index begin value
+            // in each segment from each consecutive value in the source/input index begin dataset.
+            // One is added to each index begin subset/output value to account for the index begin datasets starting
+            // at one and not zero.
+            for (int i = 0; i < segmentLength; i++)
+            {
+                indexBeginOut[i] = indexBeginIn[segmentStart + i] - indexBeginIn[segmentStart] + 1;
+            }
         }
 
-        // write the index begin dataset
+        // Write the index begin dataset.
         int dimnum = indataset.getSpace().getSimpleExtentNdims();
         hsize_t olddims[dimnum], newdims[dimnum], maxdims[dimnum];
         indataset.getSpace().getSimpleExtentDims(olddims, maxdims);
-        newdims[0] = coordinateSize;
+        newdims[0] = outputCoordinateSize;
         for (int d = 1; d < dimnum; d++) newdims[d] = olddims[d];
 
         DataSpace outspace(dimnum, newdims, maxdims);
         DataType datatype(indataset.getDataType());
         DataSet outdataset(outgroup.createDataSet(datasetName, datatype, outspace, indataset.getCreatePlist()));
-        outdataset.write(indexBegin, datatype, DataSpace::ALL, outspace);
-        delete[] count;
-        delete[] indexBegin;
+        outdataset.write(indexBeginOut, datatype, DataSpace::ALL, outspace);
+        delete[] indexBeginOut;
 
-        // unlink the count dataset if user doesn't ask for it
+        // Unlink the count dataset if user doesn't ask for it.
         if (!subsetDataLayers->is_dataset_included(groupname + countName))
         {
-	    outgroup.unlink(countName);
-	}
+	        outgroup.unlink(countName);
+	    }
     }
   
 };
