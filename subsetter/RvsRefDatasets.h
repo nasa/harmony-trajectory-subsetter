@@ -34,8 +34,6 @@ public:
      */
     void mapWriteDataset(Group& outgroup, const string&groupname, const DataSet& indataset, IndexSelection* indexes, IndexSelection* targetIndexes, SubsetDataLayers* subsetDataLayers)
     {
-        //cout << "mapWriteDataset" << endl;
-
         size_t inDatasetSize = indataset.getSpace().getSimpleExtentNpoints(); // input dataset size
         size_t subsettedSize = indexes->size(); // subsetted dataset size
         int32_t* inData = new int32_t[inDatasetSize]; // array to store input dataset
@@ -133,11 +131,8 @@ public:
             {
                 offset = indexRef[i] - prevOldLocation;
                 location = prevLocation + offset;
-                // if the index is in a different (start, length) pair than the previous index reference
-                // offset = index - start of the (start, length)
-                // new index = previous new index + (previous length of the (start, length) - count) + offset
-                // reset count 
-                if (diffIndex) 
+                // diffIndex - index is in a different (start, length) pair than the previous index reference
+                if (diffIndex)
                 {
                     offset = indexRef[i] - start;
                     location = prevLocation + (prevLength - count) + offset;
