@@ -36,7 +36,8 @@ from harmony_service.utilities import (convert_harmony_datetime,
                                        is_bbox_spatial_subset,
                                        is_harmony_subset,
                                        is_polygon_spatial_subset,
-                                       is_temporal_subset)
+                                       is_temporal_subset,
+                                       include_support_variables)
 
 
 SUBSETTER_BINARY_PATH = '/home/subset'
@@ -59,6 +60,7 @@ class HarmonyAdapter(BaseHarmonyAdapter):
 
             * Retrieve the source granule.
             * Extract relevant parameters from the input Harmony message.
+            * Append supporting variables.
             * Invoke the transformation service.
             * Stage the results.
             * Create an updated STAC record and return it.
@@ -76,6 +78,9 @@ class HarmonyAdapter(BaseHarmonyAdapter):
 
             binary_parameters = self.parse_binary_parameters(working_directory,
                                                              asset, source)
+
+            binary_parameters = include_support_variables(binary_parameters,
+                                                          self.logger)
 
             # Invoke the Trajectory subsetter binary
             self.transform(binary_parameters)

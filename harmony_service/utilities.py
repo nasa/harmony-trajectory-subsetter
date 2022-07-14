@@ -7,10 +7,11 @@ from logging import Logger
 from mimetypes import guess_type as guess_mime_type
 from os.path import splitext
 from subprocess import PIPE, Popen
-from typing import List, Optional
+from typing import List, Optional, Dict
 
 from dateutil.parser import parse as parse_datetime
 from harmony.message import Message, Variable as HarmonyVariable
+from varinfo import VarInfoFromNetCDF4
 
 from harmony_service.exceptions import (CustomError, InternalError,
                                         InvalidParameter, MissingParameter,
@@ -152,3 +153,24 @@ def convert_harmony_datetime(harmony_datetime_str: str) -> str:
 
     """
     return parse_datetime(harmony_datetime_str).strftime('%Y-%m-%dT%H:%M:%S')
+
+
+def include_support_variables(
+    binary_parameters: Dict,
+    logger: Logger,
+) -> Dict:
+    """Get support variables needed for a viable subset.
+
+    Parse the variable list and update it with any supporting variables that
+    are necessary to use a subsetted file.
+    """
+    # TODO [MHS, 07/14/2022] Update with Config when that is figured out.
+    var_info = VarInfoFromNetCDF4(binary_parameters.get('--filename', None),
+                                  logger, None)
+    requested_vars = set(
+        binary_parameters.get('--includedataset', '').split(','))
+    updated_vars = var_info.get_required_variables(requested_vars)
+
+    return {
+        **binary_parameters, '--includedataset': ','.join(list(updated_vars))
+    }

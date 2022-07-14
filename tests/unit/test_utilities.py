@@ -2,6 +2,7 @@ from logging import Logger
 from unittest import TestCase
 from unittest.mock import Mock, patch
 
+
 from harmony.message import Message
 
 from harmony_service.exceptions import (InternalError, InvalidParameter,
@@ -12,7 +13,8 @@ from harmony_service.utilities import (convert_harmony_datetime,
                                        execute_command, is_bbox_spatial_subset,
                                        is_harmony_subset,
                                        is_polygon_spatial_subset,
-                                       is_temporal_subset, is_variable_subset)
+                                       is_temporal_subset, is_variable_subset,
+                                       include_support_variables)
 
 
 class TestUtilities(TestCase):
@@ -254,3 +256,49 @@ class TestUtilities(TestCase):
 
         self.assertEqual(convert_harmony_datetime(message.temporal.end),
                          end_time)
+
+
+class TestIncludeSupportVariables(TestCase):
+    """ Test include_support_variables from harmony_service.utilities. """
+    @classmethod
+    def setUp(self):
+        self.logger = Mock(spec=Logger)
+        self.binary_parameters = {
+            '--configfile': '/home/harmony_service/subsetter_config.json',
+            '--filename': '/tmp/tmprnxav3hs/86019ac37c24f47f.h5',
+            '--includedataset': 'replaced in each test',
+            '--outfile': '/tmp/tmprnxav3hs/GEDI04__001_01_subsetted.h5'
+        }
+
+    @patch('harmony_service.utilities.VarInfoFromNetCDF4')
+    def test_single_variable_with_no_support_variables(self, varinfo_mock):
+        """
+
+        """
+        input_var = '/BEAM0000/avel'
+        test_params = {**self.binary_parameters, '--includedataset': input_var}
+        expected_params = test_params.copy()
+
+        varinfo_mock.return_value.get_required_variables.return_value = {input_var}
+
+        actual_params = include_support_variables(test_params, self.logger)
+
+        self.assertDictEqual(actual_params, expected_params)
+
+    def test_multiple_variable_with_no_support_variables(self):
+        """
+
+        """
+        pass
+
+    def test_single_variable_with_support_variables(self):
+        """
+
+        """
+        pass
+
+    def test_multiple_variable_with_support_variables(self):
+        """
+
+        """
+        pass
