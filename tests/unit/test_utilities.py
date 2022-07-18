@@ -260,6 +260,7 @@ class TestUtilities(TestCase):
 
 class TestIncludeSupportVariables(TestCase):
     """ Test include_support_variables from harmony_service.utilities. """
+
     @classmethod
     def setUp(self):
         self.logger = Mock(spec=Logger)
@@ -287,8 +288,7 @@ class TestIncludeSupportVariables(TestCase):
 
         self.assertDictEqual(actual_params, expected_params)
         var_info_object_mock.get_required_variables.assert_called_once_with(
-            {'/BEAM0000/avel'}
-        )
+            {'/BEAM0000/avel'})
 
     @patch('harmony_service.utilities.VarInfoFromNetCDF4')
     def test_multiple_variable_with_no_support_variables(self, varinfo_mock):
@@ -309,7 +309,6 @@ class TestIncludeSupportVariables(TestCase):
         var_info_object_mock.get_required_variables.assert_called_once_with(
             {'/BEAM0000/agbd', '/BEAM0000/delta_time'})
 
-
     @patch('harmony_service.utilities.VarInfoFromNetCDF4')
     def test_single_variable_with_support_variables(self, varinfo_mock):
         """Test single support variable appends correct support
@@ -319,11 +318,15 @@ class TestIncludeSupportVariables(TestCase):
         returned_vars = '/BEAM0000/avel,/BEAM0000/support1,/BEAM0000/support2'
 
         test_params = {**self.binary_parameters, '--includedataset': input_var}
-        expected_params = {**test_params.copy(), '--includedataset': returned_vars}
+        expected_params = {
+            **test_params.copy(), '--includedataset': returned_vars
+        }
 
         var_info_object_mock = Mock(spec=VarInfoFromNetCDF4)
         varinfo_mock.return_value = var_info_object_mock
-        var_info_object_mock.get_required_variables.return_value = {returned_vars}
+        var_info_object_mock.get_required_variables.return_value = {
+            returned_vars
+        }
 
         actual_params = include_support_variables(test_params, self.logger)
 
@@ -342,11 +345,15 @@ class TestIncludeSupportVariables(TestCase):
                          '/BEAM001/support1')
 
         test_params = {**self.binary_parameters, '--includedataset': input_var}
-        expected_params = {**test_params.copy(), '--includedataset': returned_vars}
+        expected_params = {
+            **test_params.copy(), '--includedataset': returned_vars
+        }
 
         var_info_object_mock = Mock(spec=VarInfoFromNetCDF4)
         varinfo_mock.return_value = var_info_object_mock
-        var_info_object_mock.get_required_variables.return_value = {returned_vars}
+        var_info_object_mock.get_required_variables.return_value = {
+            returned_vars
+        }
 
         actual_params = include_support_variables(test_params, self.logger)
 
