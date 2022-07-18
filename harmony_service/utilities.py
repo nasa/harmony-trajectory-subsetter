@@ -165,8 +165,9 @@ def include_support_variables(
     are necessary to use a subsetted file.
     """
     # TODO [MHS, 07/14/2022] Update with Config when that is figured out.
+    varinfo_config_filename = None
     var_info = VarInfoFromNetCDF4(binary_parameters.get('--filename', None),
-                                  logger, None)
+                                  logger, varinfo_config_filename)
     requested_vars = set(
         binary_parameters.get('--includedataset', '').split(','))
     updated_vars = var_info.get_required_variables(requested_vars)
