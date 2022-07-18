@@ -144,7 +144,8 @@ class HarmonyAdapter(BaseHarmonyAdapter):
 
         if not has_granules and not has_items:
             raise Exception('No granules specified for trajectory subsetting.')
-        elif self.message.isSynchronous and len(self.message.granules) > 1:
+
+        if self.message.isSynchronous and len(self.message.granules) > 1:
             raise Exception('Synchronous requests accept only one granule.')
 
         if (

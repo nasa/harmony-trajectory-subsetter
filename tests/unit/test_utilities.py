@@ -14,7 +14,7 @@ from harmony_service.utilities import (convert_harmony_datetime,
                                        is_harmony_subset,
                                        is_polygon_spatial_subset,
                                        is_temporal_subset, is_variable_subset,
-                                       include_support_variables)
+                                       include_support_variables, VarInfoFromNetCDF4)
 
 
 class TestUtilities(TestCase):
@@ -272,33 +272,84 @@ class TestIncludeSupportVariables(TestCase):
 
     @patch('harmony_service.utilities.VarInfoFromNetCDF4')
     def test_single_variable_with_no_support_variables(self, varinfo_mock):
-        """
+        """Test single input variable with no support vars.
 
         """
         input_var = '/BEAM0000/avel'
         test_params = {**self.binary_parameters, '--includedataset': input_var}
         expected_params = test_params.copy()
 
-        varinfo_mock.return_value.get_required_variables.return_value = {input_var}
+        var_info_object_mock = Mock(spec=VarInfoFromNetCDF4)
+        varinfo_mock.return_value = var_info_object_mock
+        var_info_object_mock.get_required_variables.return_value = {input_var}
 
         actual_params = include_support_variables(test_params, self.logger)
 
         self.assertDictEqual(actual_params, expected_params)
+        var_info_object_mock.get_required_variables.assert_called_once_with(
+            {'/BEAM0000/avel'}
+        )
 
-    def test_multiple_variable_with_no_support_variables(self):
-        """
-
-        """
-        pass
-
-    def test_single_variable_with_support_variables(self):
-        """
+    @patch('harmony_service.utilities.VarInfoFromNetCDF4')
+    def test_multiple_variable_with_no_support_variables(self, varinfo_mock):
+        """Test multiple variables with no support variables.
 
         """
-        pass
+        input_var = '/BEAM0000/agbd,/BEAM0000/delta_time'
+        test_params = {**self.binary_parameters, '--includedataset': input_var}
+        expected_params = test_params.copy()
 
-    def test_multiple_variable_with_support_variables(self):
-        """
+        var_info_object_mock = Mock(spec=VarInfoFromNetCDF4)
+        varinfo_mock.return_value = var_info_object_mock
+        var_info_object_mock.get_required_variables.return_value = {input_var}
+
+        actual_params = include_support_variables(test_params, self.logger)
+
+        self.assertDictEqual(actual_params, expected_params)
+        var_info_object_mock.get_required_variables.assert_called_once_with(
+            {'/BEAM0000/agbd', '/BEAM0000/delta_time'})
+
+
+    @patch('harmony_service.utilities.VarInfoFromNetCDF4')
+    def test_single_variable_with_support_variables(self, varinfo_mock):
+        """Test single support variable appends correct support
 
         """
-        pass
+        input_var = '/BEAM0000/avel'
+        returned_vars = '/BEAM0000/avel,/BEAM0000/support1,/BEAM0000/support2'
+
+        test_params = {**self.binary_parameters, '--includedataset': input_var}
+        expected_params = {**test_params.copy(), '--includedataset': returned_vars}
+
+        var_info_object_mock = Mock(spec=VarInfoFromNetCDF4)
+        varinfo_mock.return_value = var_info_object_mock
+        var_info_object_mock.get_required_variables.return_value = {returned_vars}
+
+        actual_params = include_support_variables(test_params, self.logger)
+
+        self.assertDictEqual(actual_params, expected_params)
+        var_info_object_mock.get_required_variables.assert_called_once_with(
+            {'/BEAM0000/avel'})
+
+    @patch('harmony_service.utilities.VarInfoFromNetCDF4')
+    def test_multiple_variable_with_support_variables(self, varinfo_mock):
+        """test multiple input vars each with support vars.
+
+        """
+        input_var = '/BEAM0000/avel,/BEAM0001/testvar'
+        returned_vars = ('/BEAM0000/avel,/BEAM0000/support1,'
+                         '/BEAM0000/support2,/BEAM0001/testvar,'
+                         '/BEAM001/support1')
+
+        test_params = {**self.binary_parameters, '--includedataset': input_var}
+        expected_params = {**test_params.copy(), '--includedataset': returned_vars}
+
+        var_info_object_mock = Mock(spec=VarInfoFromNetCDF4)
+        varinfo_mock.return_value = var_info_object_mock
+        var_info_object_mock.get_required_variables.return_value = {returned_vars}
+
+        actual_params = include_support_variables(test_params, self.logger)
+
+        self.assertDictEqual(actual_params, expected_params)
+        var_info_object_mock.get_required_variables.assert_called_once_with(
+            {'/BEAM0000/avel', '/BEAM0001/testvar'})
