@@ -5,7 +5,7 @@
 """
 from logging import Logger
 from mimetypes import guess_type as guess_mime_type
-from os.path import splitext
+from os.path import splitext, join, dirname, abspath
 from subprocess import PIPE, Popen
 from typing import List, Optional, Dict
 
@@ -30,6 +30,10 @@ KNOWN_EXIT_STATUSES = {1: InvalidParameter,
                        2: MissingParameter,
                        3: NoMatchingData,
                        6: NoPolygonFound}
+
+TRAJECTORY_SUBSETTER_VARINFO_CONFIG = join(
+    dirname(abspath(__file__)), 'config',
+    'trajectorysubsetter_varinfo_config.yml')
 
 
 def get_file_mimetype(file_name: str) -> Optional[str]:
@@ -164,10 +168,8 @@ def include_support_variables(
     Parse the variable list and update it with any supporting variables that
     are necessary to use a subsetted file.
     """
-    # TODO [MHS, 07/14/2022] Update with Config when that is figured out.
-    varinfo_config_filename = None
     var_info = VarInfoFromNetCDF4(binary_parameters.get('--filename', None),
-                                  logger, varinfo_config_filename)
+                                  logger, TRAJECTORY_SUBSETTER_VARINFO_CONFIG)
     requested_vars = set(
         binary_parameters.get('--includedataset', '').split(','))
     updated_vars = var_info.get_required_variables(requested_vars)

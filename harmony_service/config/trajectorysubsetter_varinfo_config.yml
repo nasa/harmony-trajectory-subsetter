@@ -1,0 +1,60 @@
+Identification: trajectorysubsetter_varinfo_config
+Version: 1
+
+# A list of hdf subdataset paths that provide the shortname value of the
+# collection for the data file being processed.  Processed in this order to
+# find a shortname value for the current file.
+Collection_ShortName_Path:
+  - '/HDF5_GLOBAL/short_name'
+  - '/NC_GLOBAL/short_name'
+  - '/Metadata/DatasetIdentification/shortName'
+  - '/METADATA/DatasetIdentification/shortName'
+  - '/Metadata/SeriesIdentification/shortName'
+  - '/METADATA/SeriesIdentification/shortName'
+  - '/HDF5_GLOBAL/id'
+  - '/NC_GLOBAL/id'
+  - 'short_name'
+  - 'ShortName' # Required for MERRA-2
+
+# A set of mission tagged shortname patterns defines a mission name for
+# matching shortname values.
+Mission:
+  'GEDI_L4A': 'GEDI'
+
+
+# Temporal subsetting typically encounters time tags in data files as
+# e.g., delta_time, where the time value is relative to a "start-time"
+# for the collection of datafiles, referred to as the time Epoch.
+ProductEpochs:
+  - Applicability:
+      Mission: GEDI
+    Epoch: '2018-01-01T00:00:00.000000'
+
+
+# For cases where CF references do not exist, or are invalid
+# These variables have no dimension references in the HDF5 file contents
+CF_Overrides:
+  - Applicability:
+      Mission: 'GEDI'
+      ShortNamePath: 'GEDI_L4A'
+    Applicability_Group:
+      - Applicability:
+          Variable_Pattern: '/BEAM[\d]+/shot_number'
+        Attributes:
+          - Name: 'coordinates'
+            Value: 'delta_time lat_lowestmode lon_lowestmode'
+
+# For extending CF references. This allows for CF references to persist, while
+# supplemental information is provided. In particular, e.g. for subsetting
+# support, non-CF attributes can be provided.
+
+CF_Supplements:
+  - Applicability:
+      Mission: 'GEDI'
+      ShortNamePath: 'GEDI_L4A'
+    Applicability_Group:
+      - Applicability:
+          Variable_Pattern: '/BEAM[\d]+/.*'
+        Attributes:
+          - Name: 'ancillary_variables'
+            Value: 'shot_number'
