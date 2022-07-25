@@ -69,56 +69,88 @@ public:
         // when there are no corresponding photons
         // (3) index starts at 1
 
-        bool firstSegment = true;           // The calculation for the first segment is different from additional segments, if they exist.
-        int segmentStartIdx = 0;            // This is the start index of the current segment in the index begin output dataset.
-        int64_t previousIndexBeginOut = 0;  // If there are multiple segments, the last written index begin index will have to be accessed.
-        int64_t previousIndexBeginIn = 0;   // If there are multiple segments, the offset is calculated using the following index begin value from the source index begin dataset.
-        int64_t nextIndexBeginIn = 0;       // If there are multiple segments, the offset is calculated using the following index begin value from the source index begin dataset.
+        /////// DAVID REVISION ///////
+
+        int64_t previousPartialOffset = -1;
+        // The offset between the source datasets index-begin values and the output index-begin
+        // values is composed of an accumulation of previous offsets plus the current
+        // source index-begin value, and starting at -1. (See offset variable following)
+
+        int frSegmentStart_Out = 0;
+        // Forward Reference Segment Start index to output dataset (starts at position 0)
+
+        // For each segment group, write to the index begin output/subset dataset.
+        for (map<long, long>::iterator it
+                = indexes->segments.begin(); it != indexes->segments.end(); it++)
+        {
+            long frSegmentStart_In = it->first;
+            long segmentsCountIn = it->second;
+
+            int64_t offset
+                    = previousPartialOffset + indexBeginIn[frSegmentStart_In];
+            // indexBeginIn here defines the end of the skipped values from the previous iteration.
+            // Accumulating offset = offset + recently-skipped-value-count
+            // recently-skipped-value-count = skipped-end-point - skipped-start
+            // previousPartialOffsest = offset - skipped-start
+
+            // Write segment to output index begin dataset.
+            for (int i = 0; i < segmentsCountIn; i++)
+            {
+                indexBeginOut[frSegmentStart_Out + i] = indexBeginIn[frSegmentStart_In + i] - offset;
+            }
+
+            // Recalculate offset.
+            frSegmentStart_Out = frSegmentStart_Out + segmentsCountIn;
+            // Update the output starting index for the next segment, where to start writing to.
+
+            int64_t nextIndexBeginIn
+                    = indexBeginIn[frSegmentStart_In + segmentsCountIn];
+
+            previousPartialOffset = offset - nextIndexBeginIn;
+            // nextIndexBeginIn here defines the start of the skipped values in the target
+            // (segmented) dataset.
+        }
+
+        //////////////////////////////
+
+        /////// JOSIE REVISION ///////
+        /*
+        int64_t offset = 1;                 // The first segment will begin at the zeroth position in the output index begin dataset.
+                                            // However, the index begin dataset starts at 1, not zero, so the initial offset is 1.
+        int frSegmentStartIdx_Out = 0;      // Forward Reference Segment Start Index for index begin output dataset.
 
         // For each segment group, write to the index begin output/subset dataset.
         for (map<long, long>::iterator it = indexes->segments.begin(); it != indexes->segments.end(); it++)
         {
-            long segmentStart = it->first;
-            long segmentLength = it->second;
-
-            // Calculate offset.
-
-            // The first segment will begin at the zeroth position in the output index begin datatset.
-            // However, the index begin dataset starts at 1, not zero, so the offset is 1.
-            int64_t offset;
-            if (firstSegment)
-            {
-                offset = 1;
-            }
-            // The following segments will be offset by the value associated with the last index in the last segment.
-            // To find this offset, we must find this value's length.
-            // *** Note: We cannot just use the count dataset to do this since the count dataset only considers
-            // non-padded data, whereas some data collections (e.g., GEDI) include zero padding in each segment.
-            // Instead, we can just calculate the length of that last index begin value by considering it's
-            // difference from what the next index begin value is in the source dataset.
-            // Then we add that difference to the last written index begin output value.
-            else
-            {
-                offset = nextIndexBeginIn - previousIndexBeginIn + previousIndexBeginOut;
-            }
+            long frSegmentStartIdx_In = it->first;
+            long segmentLengthIn = it->second;
 
             // Write segment to output index begin dataset.
-            for (int i = 0; i < segmentLength; i++)
+            for (int i = 0; i < segmentLengthIn; i++)
             {
-                indexBeginOut[i + segmentStartIdx] = indexBeginIn[segmentStart + i] - indexBeginIn[segmentStart] + offset;
+                indexBeginOut[frSegmentStartIdx_Out + i] = indexBeginIn[frSegmentStartIdx_In + i] - indexBeginIn[frSegmentStartIdx_In] - offset;
             }
 
             // If there are multiple segments, we'll need this data to calculate the index begin output values,
             // including the offset, for the following segment.
             if (indexes->segments.size() > 1)
             {
-                firstSegment = false;
-                segmentStartIdx = segmentLength;   // Update the current index begin index so that the next segment knows where to start writing to.
-                nextIndexBeginIn = indexBeginIn[segmentStart + segmentLength];
-                previousIndexBeginIn = indexBeginIn[segmentStart + segmentLength - 1];
-                previousIndexBeginOut = indexBeginOut[segmentLength - 1];
+                // Re-calculate the offset for following segment, which is offset by the value associated with the last
+                // index in the last segment. To find this offset, we must find this value's length.
+                // *** Note: We cannot just use the count dataset to do this since the count dataset only considers
+                // non-padded data, whereas some data collections (e.g., GEDI) include zero padding in each segment.
+                // Instead, we can just calculate the length of that last index begin value by considering it's
+                // difference from what the next index begin value is in the source dataset.
+                // Then we add that difference to the last written index begin output value.
+                frSegmentStartIdx_Out = segmentLengthIn;   // Update the current index begin index so that the next segment knows where to start writing to.
+                int64_t nextIndexBeginIn = indexBeginIn[frSegmentStartIdx_In + segmentLengthIn];
+                int64_t previousIndexBeginIn = indexBeginIn[frSegmentStartIdx_In + segmentLengthIn - 1];
+                int64_t previousIndexBeginOut = indexBeginOut[segmentLengthIn - 1];
+                offset = offset + nextIndexBeginIn; // - previousIndexBeginIn + previousIndexBeginOut;
             }
         }
+        */
+        //////////////////////////////
 
         // Write the index begin dataset.
         int dimnum = indataset.getSpace().getSimpleExtentNdims();

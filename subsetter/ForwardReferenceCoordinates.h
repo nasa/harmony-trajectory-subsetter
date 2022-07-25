@@ -221,7 +221,8 @@ private:
             {
                 if (indexBeg[segStart+i] > 0)
                 {
-                    length = indexBeg[segStart+i] - 1 + count[segStart+i] - start;
+                    long countFull = indexBeg[segStart+i+1] - indexBeg[segStart+i]; // This includes data padding, if it exists.
+                    length = indexBeg[segStart+i] - 1 + countFull - start;
                     indexes->addSegment(start, length);
                     break;
                 }
