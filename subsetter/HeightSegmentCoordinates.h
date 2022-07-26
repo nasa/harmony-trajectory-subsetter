@@ -94,7 +94,7 @@ public:
         size_t coordinateSize = nonNullDataset->getSpace().getSimpleExtentNpoints();
 	hid_t native_type = H5Tget_native_type(H5Dget_type(indexBegSet->getId()), H5T_DIR_ASCEND);
 
-        // index minIndexStart datasets for ATL03 and ATL08 are 64-bit and 32-bit for ATL10
+        // index begin datasets for ATL03 and ATL08 are 64-bit and 32-bit for ATL10
         int64_t* indexBeg = new int64_t[coordinateSize];
         int32_t* count = new int32_t[coordinateSize];
 

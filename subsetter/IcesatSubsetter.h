@@ -7,8 +7,8 @@
 
 #include "Temporal.h"
 #include "Configuration.h"
-#include "PhotonReferenceDatasets.h"
-#include "ReferenceDatasets.h"
+#include "FwdRefBeginDataset.h"
+#include "RvsRefDatasets.h"
 #include "ReverseReferenceCoordinates.h"
 
 using namespace std;
@@ -36,7 +36,7 @@ protected:
     virtual void writeDataset(const string& objname, const DataSet& indataset, Group& outgroup, 
                         const string& groupname, IndexSelection* indexes)
     {
-        // write index minIndexStart datasets for ATL03 and ATL08
+        // write index begin datasets for ATL03 and ATL08
         // if it's segment group with ph_index_beg and it's been subsetted,
         // we have to write this dataset with updated value calculated from segment_ph_cnt
         //if (indexes != NULL) cout << "IcesatSubsetter.writeDataset -- indexes.size(): " << indexes->size() << endl;
@@ -51,7 +51,7 @@ protected:
             // if the count dataset is not in the output file, create it
             if (H5Lexists(outgroup.getLocId(), countName.c_str(), H5P_DEFAULT) <= 0)
             {
-                // if the input file doesn't have the count dataset, write index minIndexStart as normal dataset
+                // if the input file doesn't have the count dataset, write index begin as normal dataset
                 if (H5Lexists(infile.getLocId(), (groupname+countName).c_str(), H5P_DEFAULT) <= 0)
                 {
                     Subsetter::writeDataset(objname, indataset, outgroup, groupname, indexes);
@@ -61,20 +61,20 @@ protected:
                 // get the input dataset for count and write subsetted dataset to output
                 DataSet inCountDs = infile.openGroup(groupname).openDataSet(countName);
                 Subsetter::writeDataset(countName, inCountDs, outgroup, groupname, indexes);
-                // if the count dataset still doesn't exist, don't write index minIndexStart
+                // if the count dataset still doesn't exist, don't write index begin
                 if (H5Lexists(outgroup.getLocId(), countName.c_str(), H5P_DEFAULT) <= 0)
                     return;
             }
-            // write index minIndexStart dataset
-            PhotonReferenceDatasets* photonDataset = new PhotonReferenceDatasets(this->getShortName(), objname);
-            photonDataset->writeIndexBeginDataset(outgroup, groupname, indataset, indexes, this->getSubsetDataLayers());
+            // write index begin dataset
+            FwdRefBeginDataset* photonDataset = new FwdRefBeginDataset(this->getShortName(), objname);
+            photonDataset->writeDataset(outgroup, groupname, indataset, indexes, this->getSubsetDataLayers());
             
             
             // copy attributes
             DataSet outdataset(outgroup.openDataSet(objname));
             copyAttributes(indataset, outdataset, groupname);
         }
-        // write index minIndexStart for ATL10 if it has been subsetted
+        // write index begin for ATL10 if it has been subsetted
         else if (indexes != NULL && (indexes->getMaxSize() != indexes->size() ||indexes->size() == 1) && indexes->size() != 0 &&
                 (Configuration::getInstance()->isLeadsGroup(this->getShortName(), groupname) ||
                 Configuration::getInstance()->isFreeboardSwathSegmentGroup(this->getShortName(), groupname) ||
@@ -82,12 +82,12 @@ protected:
                 Configuration::getInstance()->isHeightSegmentRateGroup(this->getShortName(), groupname)) && 
                 Configuration::getInstance()->getIndexBeginDatasetName(this->getShortName(), groupname, objname, true) ==objname)
         {
-            ReferenceDatasets* referenceDataset = new ReferenceDatasets(this->getShortName(), objname);
+            RvsRefDatasets* referenceDataset = new RvsRefDatasets(this->getShortName(), objname);
             
             // get target group index selection
             string targetGroupname = Configuration::getInstance()->getTargetGroupname(this->getShortName(), groupname, objname);
                         
-            // if target group does not exist in input, write index minIndexStart as normal dataset
+            // if target group does not exist in input, write index begin as normal dataset
             if (H5Lexists(infile.getLocId(), targetGroupname.c_str(), H5P_DEFAULT) <= 0)
             {
                 Subsetter::writeDataset(objname, indataset, outgroup, groupname, indexes);
@@ -106,8 +106,8 @@ protected:
             
             //cout << "targetIndexes.size: " << targetIndexes->size() << endl;
             
-            // write index minIndexStart
-            referenceDataset->indexBeginMapping(outgroup, groupname, indataset, indexes, targetIndexes, this->getSubsetDataLayers());
+            // write index begin
+            referenceDataset->mapWriteDataset(outgroup, groupname, indataset, indexes, targetIndexes, this->getSubsetDataLayers());
             
             // copy attributes
             DataSet outdataset(outgroup.openDataSet(objname));
@@ -164,7 +164,7 @@ private:
         }
         else
         {
-            Subsetter::getCoordinate(root, ingroup, groupname, subsetDataLayers, geoboxes, temporal, geoPolygon);
+            return Subsetter::getCoordinate(root, ingroup, groupname, subsetDataLayers, geoboxes, temporal, geoPolygon);
         }
     }
     

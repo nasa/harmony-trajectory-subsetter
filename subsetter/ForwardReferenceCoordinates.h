@@ -141,7 +141,7 @@ private:
     
     /*
      * limit the index range by indexBeg and count datasets
-     * @param DataSet indexBegSet: index minIndexStart dataset
+     * @param DataSet indexBegSet: index begin dataset
      * @param DataSet countSet: index count dataset
      */
     void photonSubset(DataSet* indexBegSet, DataSet* countSet)
@@ -154,7 +154,7 @@ private:
         size_t coordinateSize = nonNullDataset->getSpace().getSimpleExtentNpoints();
         //cout << "coordinateSize: " << coordinateSize << endl;
         
-        // index minIndexStart datasets for ATL03 and ATL08 are 64-bit and 32-bit for ATL10
+        // index begin datasets for ATL03 and ATL08 are 64-bit and 32-bit for ATL10
         hid_t indexBeg_native_type = H5Tget_native_type(H5Dget_type(indexBegSet->getId()), H5T_DIR_ASCEND);
         hid_t count_native_type = H5Tget_native_type(H5Dget_type(countSet->getId()), H5T_DIR_ASCEND);
 
@@ -210,9 +210,22 @@ private:
 
             for (int i = 0; i < segLength; i++)
             {
-                start = indexBeg[segStart + i] - 1;
-                length = count[segStart + i];
-                indexes->addSegment(start, length);
+                if (indexBeg[segStart+i] > 0 )
+                {
+                    start = indexBeg[segStart+i] - 1;
+                    break;
+                }
+            }
+
+            for (int i = segLength-1; i >= 0; i--)
+            {
+                if (indexBeg[segStart+i] > 0)
+                {
+                    long countFull = indexBeg[segStart+i+1] - indexBeg[segStart+i]; // This includes data padding, if it exists.
+                    length = indexBeg[segStart+i] - 1 + countFull - start;
+                    indexes->addSegment(start, length);
+                    break;
+                }
             }
         }
         
