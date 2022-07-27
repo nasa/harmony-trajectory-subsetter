@@ -1,4 +1,7 @@
+# requirements to be installed via PIP
+--extra-index-url https://maven.earthdata.nasa.gov/repository/python-repo/simple
+sds-varinfo ~= 1.2.5
 # Open source packages available from PyPI:
 python-dateutil ~= 2.8.2
-harmony-service-lib ~= 1.0.12
+harmony-service-lib ~= 1.0.20
 pystac ~= 0.5.3
