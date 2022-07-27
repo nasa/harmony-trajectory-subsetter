@@ -143,9 +143,9 @@ class TestAdapter(TestCase):
         with self.assertRaises(HarmonyException) as context_manager:
             subsetter.invoke()
 
-            self.assertEqual(str(context_manager.exception),
-                             ('L2 Trajectory Subsetter failed with error: '
-                              'Failed to download'))
+        self.assertEqual(context_manager.exception.message,
+                         ('L2 Trajectory Subsetter failed with error: '
+                          'Failed to download'))
 
         mock_mkdtemp.assert_called_once()
         mock_get_mimetype.assert_not_called()
@@ -168,9 +168,9 @@ class TestAdapter(TestCase):
 
         with self.assertRaises(Exception) as context_manager:
             subsetter.invoke()
-            self.assertEqual(str(context_manager.exception),
-                             'No granules specified for the Trajectory '
-                             'subsetter')
+
+        self.assertEqual(str(context_manager.exception),
+                         'No granules specified for trajectory subsetting.')
 
         mock_mkdtemp.assert_not_called()
         mock_download.assert_not_called()
@@ -197,8 +197,9 @@ class TestAdapter(TestCase):
 
         with self.assertRaises(Exception) as context_manager:
             subsetter.invoke()
-            self.assertEqual(str(context_manager.exception),
-                             'Synchronous requests accept only one granule.')
+
+        self.assertEqual(str(context_manager.exception),
+                         'Synchronous requests accept only one granule.')
 
         mock_mkdtemp.assert_not_called()
         mock_download.assert_not_called()
@@ -241,9 +242,10 @@ class TestAdapter(TestCase):
 
                 with self.assertRaises(Exception) as context_manager:
                     subsetter.invoke()
-                    self.assertEqual(str(context_manager.exception),
-                                     'Invalid temporal range, both start and '
-                                     'end required.')
+
+                self.assertEqual(str(context_manager.exception),
+                                 'Invalid temporal range, both start and '
+                                 'end required.')
 
                 mock_mkdtemp.assert_not_called()
                 mock_download.assert_not_called()
@@ -312,8 +314,9 @@ class TestAdapter(TestCase):
 
             with self.assertRaises(Exception) as context_manager:
                 subsetter.invoke()
-                self.assertEqual(str(context_manager.exception),
-                                 'Invalid shape file format. Must be GeoJSON.')
+
+            self.assertEqual(str(context_manager.exception),
+                             'Invalid shape file format. Must be GeoJSON.')
 
             mock_mkdtemp.assert_not_called()
             mock_download.assert_not_called()
