@@ -7,8 +7,8 @@
 
 #include "Temporal.h"
 #include "Configuration.h"
-#include "PhotonReferenceDatasets.h"
-#include "ReferenceDatasets.h"
+#include "FwdRefBeginDataset.h"
+#include "RvsRefDatasets.h"
 #include "ReverseReferenceCoordinates.h"
 
 using namespace std;
@@ -66,8 +66,8 @@ protected:
                     return;
             }
             // write index begin dataset
-            PhotonReferenceDatasets* photonDataset = new PhotonReferenceDatasets(this->getShortName(), objname);
-            photonDataset->writeIndexBeginDataset(outgroup, groupname, indataset, indexes, this->getSubsetDataLayers());
+            FwdRefBeginDataset* photonDataset = new FwdRefBeginDataset(this->getShortName(), objname);
+            photonDataset->writeDataset(outgroup, groupname, indataset, indexes, this->getSubsetDataLayers());
             
             
             // copy attributes
@@ -82,7 +82,7 @@ protected:
                 Configuration::getInstance()->isHeightSegmentRateGroup(this->getShortName(), groupname)) && 
                 Configuration::getInstance()->getIndexBeginDatasetName(this->getShortName(), groupname, objname, true) ==objname)
         {
-            ReferenceDatasets* referenceDataset = new ReferenceDatasets(this->getShortName(), objname);
+            RvsRefDatasets* referenceDataset = new RvsRefDatasets(this->getShortName(), objname);
             
             // get target group index selection
             string targetGroupname = Configuration::getInstance()->getTargetGroupname(this->getShortName(), groupname, objname);
@@ -107,7 +107,7 @@ protected:
             //cout << "targetIndexes.size: " << targetIndexes->size() << endl;
             
             // write index begin
-            referenceDataset->indexBeginMapping(outgroup, groupname, indataset, indexes, targetIndexes, this->getSubsetDataLayers());
+            referenceDataset->mapWriteDataset(outgroup, groupname, indataset, indexes, targetIndexes, this->getSubsetDataLayers());
             
             // copy attributes
             DataSet outdataset(outgroup.openDataSet(objname));
@@ -164,7 +164,7 @@ private:
         }
         else
         {
-            Subsetter::getCoordinate(root, ingroup, groupname, subsetDataLayers, geoboxes, temporal, geoPolygon);
+            return Subsetter::getCoordinate(root, ingroup, groupname, subsetDataLayers, geoboxes, temporal, geoPolygon);
         }
     }
     

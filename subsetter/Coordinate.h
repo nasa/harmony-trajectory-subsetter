@@ -473,7 +473,7 @@ private:
         
         //readLatLonDatasets(latSet, lonSet, lat, lon);
         
-        long indexBegin = indexes->begin, indexEnd = indexes->end-1;
+        long indexBegin = indexes->minIndexStart, indexEnd = indexes->maxIndexEnd - 1;
         long start = 0, length = 0;
         for (int i=indexBegin; i<=indexEnd; i++)
         {
@@ -506,7 +506,7 @@ private:
                     //cout << "latitude " << lat[i] << " and longitude " << lon[i] << " was not in the polygon" << endl;
                     if (length != 0)
                     {
-                        indexes->addBox(start, length);
+                        indexes->addSegment(start, length);
                         length = 0;
                     }
                 }
@@ -514,9 +514,9 @@ private:
         }
         
         // if new index range found, but does not have an end point, add it
-        if (length != 0) indexes->addBox(start, length);
+        if (length != 0) indexes->addSegment(start, length);
         // if no index range found, return no data
-        if (indexes->bbox.empty()) indexes->addRestriction(0,0);
+        if (indexes->segments.empty()) indexes->addRestriction(0, 0);
     }
     
     // limit the index range by polygon
@@ -540,7 +540,7 @@ private:
         //if (geoPolygon->crossedEast) cout << "crossedEast" << endl;
         //else if (geoPolygon->crossedWest) cout << "crossedWest" << endl;
         
-        for (map<long, long>::iterator it = indexes->bbox.begin(); it != indexes->bbox.end(); it++)
+        for (map<long, long>::iterator it = indexes->segments.begin(); it != indexes->segments.end(); it++)
         {
             for (int i = it->first; i != it->second+it->first; i++)
             {                
@@ -565,7 +565,7 @@ private:
                         //cout << "point: (" << lat[i] << "," << lon[i] << ") is not within the polygon" << endl;
                         if (length != 0)
                         {
-                            newIndexes->addBox(start, length);
+                            newIndexes->addSegment(start, length);
                             length = 0;
                         }
                     }
@@ -573,16 +573,16 @@ private:
             }
             if (length != 0)
             {
-                newIndexes->addBox(start, length);
+                newIndexes->addSegment(start, length);
                 length = 0;
             }
             
         }
         
         // if new index range found, but does not have an end point, add it
-        if (length != 0) newIndexes->addBox(start, length);
+        if (length != 0) newIndexes->addSegment(start, length);
         // if no index range found, return no data
-        if (newIndexes->bbox.empty()) newIndexes->addRestriction(0,0);
+        if (newIndexes->segments.empty()) newIndexes->addRestriction(0, 0);
         
         indexes = newIndexes;
     }

@@ -5,6 +5,8 @@
 -I/usr/include/libgeotiff \
 -lgeotiff -ltiff -lGctp -g Subset.cpp \
 /usr/lib64/libboost_program_options.a \
+/usr/lib64/libboost_system.a \
+/usr/lib64/libboost_filesystem.a \
 /usr/lib64/libboost_date_time.a \
 /usr/lib64/libboost_regex.a \
 -o /home/subset

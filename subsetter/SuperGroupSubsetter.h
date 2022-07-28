@@ -55,8 +55,8 @@ protected:
                     return;
             }
             // write index begin dataset
-            PhotonReferenceDatasets* photonDataset = new PhotonReferenceDatasets(this->getShortName(), objname);
-            photonDataset->writeIndexBeginDataset(outgroup, groupname, indataset, indexes, this->getSubsetDataLayers());
+            FwdRefBeginDataset* photonDataset = new FwdRefBeginDataset(this->getShortName(), objname);
+            photonDataset->writeDataset(outgroup, groupname, indataset, indexes, this->getSubsetDataLayers());
             
             
             // copy attributes
@@ -88,7 +88,7 @@ private:
         }
         else
         {
-            Subsetter::getCoordinate(root, ingroup, groupname, subsetDataLayers, geoboxes, temporal, geoPolygon);
+            return Subsetter::getCoordinate(root, ingroup, groupname, subsetDataLayers, geoboxes, temporal, geoPolygon);
         }
     }
 };

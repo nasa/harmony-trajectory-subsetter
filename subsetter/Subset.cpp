@@ -27,7 +27,7 @@ using namespace boost;
 
 string infilename;
 string outfilename;
-string configFile; 
+string configFile;
 string subsettype;
 string bounding_box;
 string startString;
@@ -137,7 +137,7 @@ int process_args(int argc, char* argv[])
         cout << "ERROR: Invalid temporal parameters, must pass in both --start and --end parameters" << endl;
         return 1;
     }
-    
+
     if (vm.count("includedataset"))
     {
         datasetList = vm["includedataset"].as<std::string>();
@@ -158,7 +158,7 @@ int process_args(int argc, char* argv[])
             pt::read_json(ss, boundingShapePt);
         }
     }
-    
+
     if (vm.count("reformat"))
     {
         cout << "reformat" << endl;
@@ -168,7 +168,7 @@ int process_args(int argc, char* argv[])
         else if (outputFormat == "netCDF3" || outputFormat == "NetCDF3" || outputFormat == "NetCDF-3") outputFormat = "NetCDF-3";
         cout << "Reformatting to " << originalOutputFormat << endl;
     }
-    
+
     if (vm.count("crs")) reproject=true;
     else reproject=false;
 
@@ -180,7 +180,7 @@ int main(int argc, char* argv[])
     if (ErrorCode = process_args(argc, argv)) return ErrorCode;
     clock_t startTime, endTime;
     startTime=clock();
-    
+
     int ErrorCode = 0;
 
     try
@@ -231,11 +231,11 @@ int main(int argc, char* argv[])
             g = new SuperGroupSubsetter(subsetDataLayers, geoboxes, temporal, geoPolygon);
         }
         ErrorCode = g->subset(infilename, outfilename);
-        
+
         delete subsetDataLayers;
         if (temporal != NULL) delete temporal;
         if (geoPolygon != NULL) delete geoPolygon;
-        delete g;        
+        delete g;
         Configuration::destroyInstance();
 
         endTime=clock();
@@ -260,6 +260,8 @@ int main(int argc, char* argv[])
         ErrorCode = -1;
     }
     return ErrorCode;
-}
+ }
+
+
 
 

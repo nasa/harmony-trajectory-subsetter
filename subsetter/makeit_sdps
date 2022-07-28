@@ -2,5 +2,6 @@
 -DSDPS \
 -lgeotiff -ltiff -lGctp -ljpeg -llzma \
 -lboost_program_options \
+-lboost_filesystem -lboost_system \
 -lboost_date_time -lboost_regex \
 -o /ecs/formal/DPL/bin/linux/subset
