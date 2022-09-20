@@ -2,6 +2,6 @@
 
 # Compress directory "subsetter"
 
-tar -czf trajectorysubsetter.tar.gz ./subsetter
+tar -czf trajectorysubsetter.tar.gz ./subsetter ./harmony_service/config/trajectorysubsetter_varinfo_config.yml
 
 echo "Prepared: trajectorysubsetter.tar.gz"
