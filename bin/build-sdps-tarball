@@ -5,8 +5,6 @@
 # zip
 
 tar -cf trajectorysubsetter.tar ./subsetter
-tar -rf trajectorysubsetter.tar --strip-components 2 ./harmony_service/config/trajectorysubsetter_varinfo_config.yml
-tar -tvf trajectorysubsetter.tar
-tar --version
+tar -rf trajectorysubsetter.tar -C ./harmony_service ./config/trajectorysubsetter_varinfo_config.yml
 gzip trajectorysubsetter.tar
 echo "Prepared: trajectorysubsetter.tar.gz"
