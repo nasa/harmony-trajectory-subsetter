@@ -1,7 +1,10 @@
 #!/bin/bash
 
-# Compress directory "subsetter"
+# create archive of directory "subsetter"
+# append trajectory subsetter varinfo config file.
+# zip
 
-tar -czf trajectorysubsetter.tar.gz ./subsetter ./harmony_service/config/trajectorysubsetter_varinfo_config.yml
-
+tar -cf trajectorysubsetter.tar ./subsetter
+tar -rf trajectorysubsetter.tar --strip-components 2 ./harmony_service/config/trajectorysubsetter_varinfo_config.yml
+gzip trajectorysubsetter.tar
 echo "Prepared: trajectorysubsetter.tar.gz"
