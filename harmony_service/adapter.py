@@ -241,7 +241,7 @@ class HarmonyAdapter(BaseHarmonyAdapter):
                                        access_token=self.message.accessToken,
                                        cfg=self.config)
 
-            with open(shape_file_path, 'r') as file_handler:
+            with open(shape_file_path, 'r', encoding='utf-8') as file_handler:
                 bounding_shape = json.dumps(json.load(file_handler))
 
             binary_parameters['--boundingshape'] = f'\'{bounding_shape}\''
