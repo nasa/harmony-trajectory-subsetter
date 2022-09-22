@@ -169,7 +169,8 @@ def include_support_variables(
     are necessary to use a subsetted file.
     """
     var_info = VarInfoFromNetCDF4(binary_parameters.get('--filename', None),
-                                  logger, TRAJECTORY_SUBSETTER_VARINFO_CONFIG)
+                                  logger,
+                                  config_file=TRAJECTORY_SUBSETTER_VARINFO_CONFIG)
     requested_vars = set(
         binary_parameters.get('--includedataset', '').split(','))
     updated_vars = var_info.get_required_variables(requested_vars)
