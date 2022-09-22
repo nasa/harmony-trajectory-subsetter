@@ -1,3 +1,8 @@
+[version 0.1.2] UNRELEASED
+
+- **DAS-1639**
+   - Update sds-varinfo config file to include GEDI L1 and L2 overrides.
+
 [version 0.1.1] 2022-07-27
 
 - **DAS-1445**
