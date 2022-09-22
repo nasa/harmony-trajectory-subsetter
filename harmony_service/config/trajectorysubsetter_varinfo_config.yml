@@ -19,8 +19,7 @@ Collection_ShortName_Path:
 # A set of mission tagged shortname patterns defines a mission name for
 # matching shortname values.
 Mission:
-  'GEDI_L4A': 'GEDI'
-
+  'GEDI_L[1234][AB]|GEDI0[1234]_[AB]': 'GEDI'
 
 # Temporal subsetting typically encounters time tags in data files as
 # e.g., delta_time, where the time value is relative to a "start-time"
