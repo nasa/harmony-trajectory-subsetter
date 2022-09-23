@@ -3,5 +3,5 @@
 sds-varinfo ~= 2.2.0
 # Open source packages available from PyPI:
 python-dateutil ~= 2.8.2
-harmony-service-lib ~= 1.0.20
+harmony-service-lib ~= 1.0.21
 pystac ~= 0.5.3
