@@ -3,6 +3,7 @@
 - **DAS-1639**
    - Update sds-varinfo config file to include GEDI L1 and L2 overrides.
    - Update sds-varinto to 2.2.0
+   - Update harmony-service-library-py to ~1.0.21
 
 [version 0.1.1] 2022-07-27
 
