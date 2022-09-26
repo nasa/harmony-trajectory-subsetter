@@ -1,3 +1,8 @@
+[version 0.1.3] 2022-09-26
+
+- **DAS-1639**
+  - Update sds-varinfo configuration file for GEDI L1 and L2 supplements.
+
 [version 0.1.2] 2022-09-23
 
 - **DAS-1639**
