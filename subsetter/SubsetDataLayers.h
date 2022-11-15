@@ -253,40 +253,79 @@ public:
     
 private:
     
-    // add a dataset to "datasets" only if its ancestor is not already included
+    // Add a dataset to "datasets" only if its ancestor is not already included.
+    // Purge lower-level datasets if their ancestor is being added.
     void add_dataset(string str)
     {   
         string ancestor = "";
         set<string> empty_set;
         size_t next_slash;
 
-        if (datasets.size() == 0) datasets.push_back(empty_set);
+        if (datasets.size() == 0) 
+        {
+            datasets.push_back(empty_set);
+        }
         
         vector< set <string> >::iterator it = datasets.begin();
         
         next_slash = str.find('/',1);
         
+        // Step through levels of added dataset string, treating levels as ancestors.
+        // Step down through levels of datasets and exit if ancestor is found.
         while (next_slash != string::npos)
         {           
-            it++;
-            if (it == datasets.end()) it = datasets.insert(it, empty_set);
+            it++;   // Step down into datasets.
+
+            if (it == datasets.end()) 
+            {
+                // If no set of variables are found at this level, add an empty
+                // set at this level.
+                // (insert of dataset follows)
+                it = datasets.insert(it, empty_set);
+            }
+
+            // Expand ancestor string to include next level.
             ancestor = str.substr(0, next_slash+1);
+
+            // Move end-marker to next '/', starting at current end-marker.
+            // Current next_slash == ancestor.size().
             next_slash = str.find('/', ancestor.size()+1);
-            if (it->find(ancestor) != it->end()) return;
+            if (it->find(ancestor) != it->end()) 
+            {
+                // Found the ancestor string in the set at this level (it).
+                return;
+            }
         }
         
+        // If full dataset string is not found at this level, insert dataset.
         if (it->find(str) == it->end())
         {
             it->insert(str);
             cout << "inserted dataset: " << str << endl;
+
+            // Skip to the next level, purge any lower-level datasets
+            // where the new dataset being added is an ancestor.
             it++;
             while (it != datasets.end())
             {
+                // Now start iterating through the datasets within the set
+                // at this level.
                 set<string>::iterator set_iter = it->begin();
                 while(set_iter!=it->end())
                 {
-                    if (set_iter->find(str)==0) it->erase(set_iter);
-                    set_iter++;
+                    // Look for the new dataset being added as a prefix in any
+                    // of the datasets withing the current set.
+                    if (set_iter->find(str)==0) 
+                    {
+                        // Remove the set-item that has matching prefix.
+                        // Compute the parameter set-iter, iterate, and call erase.
+                        it->erase(set_iter++);
+                    }
+                    else
+                    {
+                        set_iter++;
+                    }
+                    
                 }
                 it++;
             }
