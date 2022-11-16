@@ -1,3 +1,8 @@
+[version 0.1.4] 2022-11-15
+
+- **DAS-1683**
+  - Added a small fix to the function SubsetDataLayers::add_dataset() that corrected an iterator that allows added datasets that are already included within an included ancestor dataset to be purged.
+
 [version 0.1.3] 2022-09-26
 
 - **DAS-1639**
