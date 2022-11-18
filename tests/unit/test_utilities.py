@@ -360,3 +360,37 @@ class TestIncludeSupportVariables(TestCase):
         self.assertDictEqual(actual_params, expected_params)
         var_info_object_mock.get_required_variables.assert_called_once_with(
             {'/BEAM0000/avel', '/BEAM0001/testvar'})
+
+    @patch('harmony_service.utilities.VarInfoFromNetCDF4')
+    def test_include_support_variables_no_leading_slashes(self, mock_varinfo):
+        """ Ensure that if requested variables do not contain a leading slash,
+            the variable set used with
+            `VarInfoFromNetCDF4.get_required_variables` still are prepended
+            with that slash. This is because all variables in sds-varinfo are
+            prepended with slashes.
+
+        """
+        requested_variables = 'BEAM0000/avel,BEAM0001/testvar'
+        required_variables = {'/BEAM0000/avel', '/BEAM0000/support1',
+                              '/BEAM0000/support2', '/BEAM0001/testvar',
+                              '/BEAM001/support1'}
+
+        input_parameters = {**self.binary_parameters,
+                            '--includedataset': requested_variables}
+
+        var_info_object_mock = Mock(spec=VarInfoFromNetCDF4)
+        mock_varinfo.return_value = var_info_object_mock
+        var_info_object_mock.get_required_variables.return_value = required_variables
+
+        actual_parameters = include_support_variables(input_parameters,
+                                                      self.logger)
+        self.assertSetEqual(
+            set(actual_parameters['--includedataset'].split(',')),
+            required_variables
+        )
+
+        # All variables should have been prepended with a slash prior to
+        # calling VarInfoFromNetCDF4.get_required_variables()
+        var_info_object_mock.get_required_variables.assert_called_once_with(
+            {'/BEAM0000/avel', '/BEAM0001/testvar'}
+        )

@@ -159,22 +159,26 @@ def convert_harmony_datetime(harmony_datetime_str: str) -> str:
     return parse_datetime(harmony_datetime_str).strftime('%Y-%m-%dT%H:%M:%S')
 
 
-def include_support_variables(
-    binary_parameters: Dict,
-    logger: Logger,
-) -> Dict:
-    """Get support variables needed for a viable subset.
+def include_support_variables(binary_parameters: Dict,
+                              logger: Logger) -> Dict:
+    """ Get support variables needed for a viable subset.
 
-    Parse the variable list and update it with any supporting variables that
-    are necessary to use a subsetted file.
+        Parse the variable list, ensuring all variable names have a leading
+        slash, even when variable names supplied by Harmony do not. Then update
+        that list to include all supporting variables necessary to use a
+        subsetted file.
+
     """
     var_info = VarInfoFromNetCDF4(
         binary_parameters.get('--filename', None),
         logger,
         config_file=TRAJECTORY_SUBSETTER_VARINFO_CONFIG
     )
-    requested_vars = set(
-        binary_parameters.get('--includedataset', '').split(','))
+    requested_vars = binary_parameters.get('--includedataset', '').split(',')
+    requested_vars = set(requested_var
+                         if requested_var.startswith('/')
+                         else f'/{requested_var}'
+                         for requested_var in requested_vars)
     updated_vars = var_info.get_required_variables(requested_vars)
 
     return {

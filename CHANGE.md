@@ -1,3 +1,11 @@
+[vesrion 0,1,5] 2022-11-16
+
+- **DAS-1701**
+  - Ensures that if variables in a Harmony request do not include a leading
+    slash, one will be added before determining required variables using
+    `sds-varinfo`. `sds-varinfo` expects all variable paths to have a leading
+    slash.
+
 [version 0.1.4] 2022-11-15
 
 - **DAS-1683**
