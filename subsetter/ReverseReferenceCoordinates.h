@@ -143,9 +143,9 @@ private:
         long start = 0, length = 0, end = 0, count = 0, newStart = 0, newLength = 0;
         
         // iterate through index selection of the referenced group (i.e., for leads group ,iterate through freeboard swath group)
-        // if the value in the index begin dataset  matches the indices in the index selection, 
+        // if the value in the index begin dataset  matches the indices in the index selection,
         // calculate the index range for that value, add it the index selection
-        for (map<long, long>::iterator it = referencedIndexes->bbox.begin(); it != referencedIndexes->bbox.end(); it++)
+        for (map<long, long>::iterator it = referencedIndexes->segments.begin(); it != referencedIndexes->segments.end(); it++)
         {
             start = it->first + 1;
             length = it->second;
@@ -184,7 +184,7 @@ private:
                 if (indexBegin[i] < end)
                 {
                     newLength = i + 1 - newStart;
-                    indexes->addBox(newStart, newLength);
+                    indexes->addSegment(newStart, newLength);
                     break;
                 }
             }
@@ -193,12 +193,12 @@ private:
         }
         
         // if no spatial subsetting
-        if (referencedIndexes->bbox.empty())
+        if (referencedIndexes->segments.empty())
         {
             //cout << "no spatial subsetting" << endl;
             // index selection end is excluded
-            start = referencedIndexes->begin;
-            end = referencedIndexes->end;
+            start = referencedIndexes->minIndexStart;
+            end = referencedIndexes->maxIndexEnd;
             
             //cout << "start: " << start << ", end: " << end << endl;
             
@@ -217,7 +217,7 @@ private:
                 if (indexBegin[i] <= end)
                 {
                     newLength = i + 1 - newStart;
-                    indexes->addBox(newStart, newLength);
+                    indexes->addSegment(newStart, newLength);
                     break;
                 }
             }
@@ -226,7 +226,7 @@ private:
         }
                 
         // if no matching data found, return no data
-        if (indexes->bbox.empty()) indexes->addRestriction(0,0);
+        if (indexes->segments.empty()) indexes->addRestriction(0, 0);
         
         delete [] indexBegin;
     }

@@ -126,7 +126,7 @@ public:
         }
         if (!countName.empty() && H5Lexists(segGroup.getLocId(), countName.c_str(), H5P_DEFAULT) > 0)
             countSet = new DataSet(segGroup.openDataSet(countName));
-        
+
         photonSubset(indexBegSet, countSet);
                 
         indexesProcessed = true;
@@ -160,7 +160,7 @@ private:
 
         int64_t* indexBeg = new int64_t[coordinateSize];
         int32_t* count = new int32_t[coordinateSize];
-                
+
         if (H5Tequal(indexBeg_native_type, H5T_NATIVE_LLONG)) // 64-bit int
         {
             indexBegSet->read(indexBeg, indexBegSet->getDataType());
@@ -179,7 +179,7 @@ private:
             for (int i = 0; i < coordinateSize; i++) indexBeg[i] = data[i];
             delete[] data;
         }
-        
+
         if (H5Tequal(count_native_type, H5T_NATIVE_INT)) // 32-bit int
         {
             countSet->read(count, countSet->getDataType());
@@ -202,12 +202,12 @@ private:
         // set start and length for the photon level subsetting
         // start = first non-zero indexBeg - 1
         // length = last non-zero indexBeg - 1 + last non-zero count - start;
-        for (map<long, long>::iterator it = segIndexes->bbox.begin(); it != segIndexes->bbox.end(); it++)
+        for (map<long, long>::iterator it = segIndexes->segments.begin(); it != segIndexes->segments.end(); it++)
         {
             start = 0, length = 0;
             segStart = it->first;
             segLength = it->second;
-            
+
             for (int i = 0; i < segLength; i++)
             {
                 if (indexBeg[segStart+i] > 0 )
@@ -216,23 +216,24 @@ private:
                     break;
                 }
             }
-            
+
             for (int i = segLength-1; i >= 0; i--)
             {
                 if (indexBeg[segStart+i] > 0)
                 {
-                    length = indexBeg[segStart+i] - 1 + count[segStart+i] - start;
-                    indexes->addBox(start, length);
+                    long countFull = indexBeg[segStart+i+1] - indexBeg[segStart+i]; // This includes data padding, if it exists.
+                    length = indexBeg[segStart+i] - 1 + countFull - start;
+                    indexes->addSegment(start, length);
                     break;
                 }
             }
         }
         
         // if no spatial subsetting
-        if (segIndexes->bbox.empty())
+        if (segIndexes->segments.empty())
         {
             // index selection end is excluded
-            for (int i = segIndexes->begin; i < segIndexes->end; i++)
+            for (int i = segIndexes->minIndexStart; i < segIndexes->maxIndexEnd; i++)
             {
                 if (indexBeg[i] > 0)
                 {
@@ -240,19 +241,19 @@ private:
                     break;
                 }
             }
-            for (int i = segIndexes->end-1; i >= segIndexes->begin; i--)
+            for (int i = segIndexes->maxIndexEnd - 1; i >= segIndexes->minIndexStart; i--)
             {
                 if (indexBeg[i] > 0)
                 {
                     length = indexBeg[i] - 1 + count[i] - start;
-                    indexes->addBox(start, length);
+                    indexes->addSegment(start, length);
                     break;
                 }
             }
         }
         
         // no data found matched the spatial/temporal constraints, return no data
-        if (indexes->bbox.empty()) indexes->addRestriction(0,0);
+        if (indexes->segments.empty()) indexes->addRestriction(0, 0);
         
         delete [] indexBeg;
         delete [] count;

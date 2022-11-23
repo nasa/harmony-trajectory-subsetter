@@ -114,22 +114,22 @@ public:
 
         //cout << "localIndexes" << endl; 
         // add (start, length) pairs in the local coordinate reference
-        for (map<long, long>::iterator it = localIndexes->bbox.begin(); it != localIndexes->bbox.end(); it++)
+        for (map<long, long>::iterator it = localIndexes->segments.begin(); it != localIndexes->segments.end(); it++)
         {
-            indexes->addBox(it->first, it->second);
+            indexes->addSegment(it->first, it->second);
         }
 
         //cout << "leadsIndexes" << endl;
         // add (start, length) pairs in the leads IndexSelection
         long start, length;
-        for (map<long, long>::iterator it = leadsIndexes->bbox.begin(); it != leadsIndexes->bbox.end(); it++)
+        for (map<long, long>::iterator it = leadsIndexes->segments.begin(); it != leadsIndexes->segments.end(); it++)
         {
             start = it->first;
             length = it->second;
             for (int i = start; i < length+start; i++)
             {
 		//cout << i << " - " << "indexBegin: " << indexBeg[i] << "; count: " << count[i] << endl;
-		indexes->addBox(indexBeg[i]-1, count[i]);
+		indexes->addSegment(indexBeg[i] - 1, count[i]);
             }
         }
         indexesProcessed = true;

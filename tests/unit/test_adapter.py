@@ -1,3 +1,4 @@
+from datetime import datetime
 from os import makedirs
 from os.path import basename, exists
 from shutil import rmtree
@@ -5,19 +6,21 @@ from unittest import TestCase
 from unittest.mock import patch
 
 from harmony.message import Message, Source
-from harmony.util import config, HarmonyException
-from pystac import Asset
+from harmony.util import config, HarmonyException, bbox_to_geometry
+from pystac import Asset, Catalog, Item
 
 from harmony_service.adapter import (HarmonyAdapter, main,
                                      SUBSETTER_BINARY_PATH, SUBSETTER_CONFIG)
 
 
+@patch('harmony_service.adapter.include_support_variables')
 @patch('harmony_service.adapter.mkdtemp', return_value='tests/temp')
 @patch('harmony_service.adapter.get_file_mimetype')
 @patch('harmony_service.adapter.stage')
 @patch('harmony_service.adapter.download')
 class TestAdapter(TestCase):
     """ Test the HarmonyAdapter class for basic functionality. """
+
     @classmethod
     def setUpClass(cls):
         """ Fixtures that only need to be instantiated once for all tests. """
@@ -41,6 +44,11 @@ class TestAdapter(TestCase):
         cls.temp_dir = 'tests/temp'
         cls.user = 'tglennan'
 
+    @staticmethod
+    def side_effect_fxn(input, logger):
+        return input
+
+
     def setUp(self):
         """ Fixtures that must be created individually for all tests. """
         makedirs(self.temp_dir, exist_ok=True)
@@ -51,16 +59,20 @@ class TestAdapter(TestCase):
             rmtree(self.temp_dir)
 
     @patch('harmony_service.adapter.execute_command')
-    def test_subsetter_request(self, mock_execute_command, mock_download,
-                               mock_stage, mock_get_mimetype, mock_mkdtemp):
+    def test_subsetter_request(self, mock_execute_command,
+                               mock_download,
+                               mock_stage, mock_get_mimetype, mock_mkdtemp,
+                               mock_support_variables):
         """ Ensure a simple request will call the expected Harmony functions,
             including to retrieve and stage files.
 
         """
         local_input_path = f'{self.temp_dir}/{self.granule["url"]}'
+        staged_output_url = 'tests/to/staged/output_subsetted.h5'
         mock_download.return_value = local_input_path
         mock_get_mimetype.return_value = self.mimetype
-        mock_stage.return_value = 'tests/to/staged/output'
+        mock_stage.return_value = staged_output_url
+        mock_support_variables.side_effect = self.side_effect_fxn
 
         message = Message({'accessToken': self.access_token,
                            'callback': self.callback,
@@ -70,8 +82,20 @@ class TestAdapter(TestCase):
                            'stagingLocation': self.staging_location,
                            'user': self.user})
 
-        subsetter = HarmonyAdapter(message, config=self.config)
-        subsetter.invoke()
+        input_catalog = Catalog(id='input', description='test input')
+        input_item = Item(id='input_granule',
+                          geometry=bbox_to_geometry([-180, -90, 180, 90]),
+                          bbox=[-180, -90, 180, 90],
+                          datetime=datetime(2001, 1, 1), properties=None)
+        input_item.add_asset('input',
+                             Asset('https://www.example.com/file.h5',
+                                   media_type='application/x-hdf',
+                                   roles=['data']))
+        input_catalog.add_item(input_item)
+
+        subsetter = HarmonyAdapter(message, config=self.config,
+                                   catalog=input_catalog)
+        _, output_catalog = subsetter.invoke()
 
         expected_command = (f'{SUBSETTER_BINARY_PATH} '
                             f'--configfile {SUBSETTER_CONFIG} '
@@ -88,8 +112,18 @@ class TestAdapter(TestCase):
                                            logger=subsetter.logger)
         mock_get_mimetype.assert_called_once_with(local_input_path)
 
+        # Confirm output catalog only contains an item for the subsetter
+        # output, and that there is a single asset pointing to the subsetted
+        # file
+        output_items = list(output_catalog.get_all_items())
+        self.assertEqual(len(output_items), 1)
+        self.assertListEqual(list(output_items[0].assets.keys()), ['data'])
+        self.assertEqual(output_items[0].assets['data'].href,
+                         staged_output_url)
+
     def test_exception_raised(self, mock_download, mock_stage,
-                              mock_get_mimetype, mock_mkdtemp):
+                              mock_get_mimetype, mock_mkdtemp,
+                              mock_support_variables):
         """ Ensure a request that raises an exception ends with a
             HarmonyException being raised.
 
@@ -109,16 +143,17 @@ class TestAdapter(TestCase):
         with self.assertRaises(HarmonyException) as context_manager:
             subsetter.invoke()
 
-            self.assertEqual(str(context_manager.exception),
-                             ('L2 Trajectory Subsetter failed with error: '
-                              'Failed to download'))
+        self.assertEqual(context_manager.exception.message,
+                         ('L2 Trajectory Subsetter failed with error: '
+                          'Failed to download'))
 
         mock_mkdtemp.assert_called_once()
         mock_get_mimetype.assert_not_called()
         mock_stage.assert_not_called()
 
     def test_missing_granules(self, mock_download, mock_stage,
-                              mock_get_mimetype, mock_mkdtemp):
+                              mock_get_mimetype, mock_mkdtemp,
+                              mock_support_variables):
         """ A request with no specified granules in an inbound message should
             raise an exception.
 
@@ -133,9 +168,9 @@ class TestAdapter(TestCase):
 
         with self.assertRaises(Exception) as context_manager:
             subsetter.invoke()
-            self.assertEqual(str(context_manager.exception),
-                             'No granules specified for the Trajectory '
-                             'subsetter')
+
+        self.assertEqual(str(context_manager.exception),
+                         'No granules specified for trajectory subsetting.')
 
         mock_mkdtemp.assert_not_called()
         mock_download.assert_not_called()
@@ -143,7 +178,8 @@ class TestAdapter(TestCase):
         mock_stage.assert_not_called()
 
     def test_synchronous_multiple_granules(self, mock_download, mock_stage,
-                                           mock_get_mimetype, mock_mkdtemp):
+                                           mock_get_mimetype, mock_mkdtemp,
+                                           mock_support_variables):
         """ Ensure asynchronous request with more than one granule raises an
             exception.
 
@@ -161,8 +197,9 @@ class TestAdapter(TestCase):
 
         with self.assertRaises(Exception) as context_manager:
             subsetter.invoke()
-            self.assertEqual(str(context_manager.exception),
-                             'Synchronous requests accept only one granule.')
+
+        self.assertEqual(str(context_manager.exception),
+                         'Synchronous requests accept only one granule.')
 
         mock_mkdtemp.assert_not_called()
         mock_download.assert_not_called()
@@ -171,7 +208,8 @@ class TestAdapter(TestCase):
 
     @patch('harmony_service.adapter.execute_command')
     def test_validation_temporal(self, mock_execute_command, mock_download,
-                                 mock_stage, mock_get_mimetype, mock_mkdtemp):
+                                 mock_stage, mock_get_mimetype, mock_mkdtemp,
+                                 mock_support_variables):
         """ Ensure a Harmony message containing temporal subset information
             only passes validation if it has both a start and end time for the
             temporal range.
@@ -180,6 +218,8 @@ class TestAdapter(TestCase):
         mock_download.return_value = self.granule['url']
         mock_get_mimetype.return_value = self.mimetype
         mock_stage.return_value = 'tests/to/staged/output'
+        mock_support_variables.side_effect = self.side_effect_fxn
+
 
         start_time = '2001-02-03T04:05:06'
         end_time = '2002-03-04T05:06:07'
@@ -202,9 +242,10 @@ class TestAdapter(TestCase):
 
                 with self.assertRaises(Exception) as context_manager:
                     subsetter.invoke()
-                    self.assertEqual(str(context_manager.exception),
-                                     'Invalid temporal range, both start and '
-                                     'end required.')
+
+                self.assertEqual(str(context_manager.exception),
+                                 'Invalid temporal range, both start and '
+                                 'end required.')
 
                 mock_mkdtemp.assert_not_called()
                 mock_download.assert_not_called()
@@ -245,7 +286,8 @@ class TestAdapter(TestCase):
 
     @patch('harmony_service.adapter.execute_command')
     def test_validation_shapefile(self, mock_execute_command, mock_download,
-                                  mock_stage, mock_get_mimetype, mock_mkdtemp):
+                                  mock_stage, mock_get_mimetype, mock_mkdtemp,
+                                  mock_support_variables):
         """ Ensure only a shape file with the correct MIME type will pass
             validation. Any non-GeoJSON shape file should raise an exception.
 
@@ -254,6 +296,7 @@ class TestAdapter(TestCase):
                                      self.local_shape_path]
         mock_get_mimetype.return_value = self.mimetype
         mock_stage.return_value = 'tests/to/staged/output'
+        mock_support_variables.side_effect = self.side_effect_fxn
 
         with self.subTest('Non GeoJSON shape file'):
             message = Message({
@@ -271,8 +314,9 @@ class TestAdapter(TestCase):
 
             with self.assertRaises(Exception) as context_manager:
                 subsetter.invoke()
-                self.assertEqual(str(context_manager.exception),
-                                 'Invalid shape file format. Must be GeoJSON.')
+
+            self.assertEqual(str(context_manager.exception),
+                             'Invalid shape file format. Must be GeoJSON.')
 
             mock_mkdtemp.assert_not_called()
             mock_download.assert_not_called()
@@ -313,7 +357,8 @@ class TestAdapter(TestCase):
             mock_get_mimetype.assert_called_once_with(expected_local_out)
 
     def test_parse_binary_parameters(self, mock_download, mock_stage,
-                                     mock_get_mimetype, mock_mkdtemp):
+                                     mock_get_mimetype, mock_mkdtemp,
+                                     mock_support_variables):
         """ Ensure Harmony messages for the Trajectory Subsetter that specify
             a variety of transformations (spatial, temporal, variable)
             correctly translate the message parameters into a dictionary of
@@ -525,7 +570,7 @@ class TestAdapter(TestCase):
 
     @patch('harmony_service.adapter.execute_command')
     def test_transform(self, mock_execute_command, mock_download, mock_stage,
-                       mock_get_mime_type, mock_mkdtemp):
+                       mock_get_mime_type, mock_mkdtemp, mock_support_variables):
         """ Ensure that a command to invoke the binary subsetter is correctly
             constructed and passed to the
             `harmony_service.utilities.execute_command` function.
@@ -552,7 +597,7 @@ class TestAdapter(TestCase):
 
     @patch('harmony_service.adapter.run_cli')
     def test_main(self, mock_run_cli, mock_download, mock_stage,
-                  mock_get_mimetype, mock_mkdtemp):
+                  mock_get_mimetype, mock_mkdtemp, mock_support_variables):
         """ Ensure expected arguments can be parsed, and that unexpected
             arguments result in an exception being raised.
 

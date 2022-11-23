@@ -1,9 +1,9 @@
 #ifndef IndexSelection_H 
 #define IndexSelection_H
 //
-// IndexSelection encapsulates the temporal bounds and the spatial 
-// bounding boxes into a single structure, bbox.
-//
+// IndexSelection encapsulates the temporal bounds and the spatial
+// bounding boxes into a single structure - selected segments of a 1D
+// trajectory - start-index and length.
 //
 
 #include <map>
@@ -14,122 +14,158 @@ class IndexSelection
 {
     public:
 
-        // ordered list of non-overlapping start/length pairs 
-        map<long, long> bbox;
+        // Ordered list of non-overlapping start/length pairs
+        map<long, long> segments;
 
-        // begin and end are used to limit the union of bounding boxes to a specified
-        // region. they are determined by the temporal bounding box
-        long begin;
-        long end; // = start+length = ending index+1 
+        // Begin and end are used to limit the addition of segments to a specified
+        // constraint. They are typically determined by the temporal constraints.
+        long minIndexStart;
+        long maxIndexEnd; // = start+length = ending index+1
 
 
 
-        //initialization with length of 1-d array for dimension scale
-        IndexSelection(long maxlength) : maxsize(maxlength), begin(0), end(maxlength) {};
-        long offset() {return begin;};
+        // Initialization, typically with the length of 1-d array for dimension scale
+        IndexSelection(long maxlength) :
+                maxsize(maxlength),
+                minIndexStart(0),
+                maxIndexEnd(maxlength)
+        {};
 
-        long getMaxSize() {return maxsize;}
+        long offset() 
+            {return minIndexStart;};
+
+        long getMaxSize() 
+            {return maxsize;};
 
         long size() 
         {
             long size = 0;
             map<long, long>::iterator it;
-            for (it=bbox.begin();it!=bbox.end();it++)
+            for (it=segments.begin(); it != segments.end(); it++)
                 size += it->second;
-            if (!size) size=end-begin;                
+            if (!size) size= maxIndexEnd - minIndexStart;
             return size;
         }
 
-        //add temporal restriction, assume the data is temporally continuous
-        void addRestriction(long start, long length)
+        // Add temporal restriction, assume the data is temporally continuous
+        void addRestriction(long newStart, long newLength)
         {
-            cout << "IndexSelection.addRestriction changing from (" << begin << "," << end << ") to (" 
-                 << start << "," << start+length << ")" << endl; 
-            begin = start;
-            end = start+length;
-            // reset the bbox map with the new temporal constraints in place
-            map<long,long> original_bbox = bbox;
-            bbox.erase(bbox.begin(), bbox.end());
-            map<long, long>::iterator it = original_bbox.begin();
-            for (;it != original_bbox.end();it++) addBox(it->first,it->second);
+            cout << "IndexSelection.addRestriction changing from (" << minIndexStart << "," << maxIndexEnd << ") to ("
+                 << newStart << "," << newStart+newLength << ")" << endl;
+            minIndexStart = newStart;
+            maxIndexEnd = newStart + newLength;
+            // reset the segments map with the new temporal constraints in place
+            map<long,long> original_segments = segments;
+            segments.erase(segments.begin(), segments.end());
+            map<long, long>::iterator it;
+            for (it = original_segments.begin(); it != original_segments.end(); it++) 
+                addSegment(it->first, it->second);
         }
 
-        //union bounding box with existing ones within limits
-        void addBox(long start, long length)
+        // Add segment:
+        //   union new segment with existing segments,
+        //   and limit to within restrictions
+        void addSegment(long newStart, long newLength)
         {
-            map<long, long>::iterator it;
+            map<long, long>::reverse_iterator it;
 
-            //limit bounding box to temporal region
-            if (start < begin) 
+            // Limit bounding segment to temporal region
+            if (newStart < minIndexStart)
             {
-                length = length - (begin - start);
-                start = begin;
+                newLength = newLength - (minIndexStart - newStart);
+                newStart = minIndexStart;
             }
-            if (start+length > end) length = end-start;
-
-
-            //if bounding box does not exist in temporal selection do nothing
-            if (length <= 0) return;
-
-            cout << "IndexSelection.addBox Adding box " << start << " - " << length << endl;
-
-            //union this box with all the others
-            for (it=bbox.begin();it!=bbox.end();it++)
+            if (newStart+newLength > maxIndexEnd)
             {
-                //starts before existing bounding box
-                if (it->first > start) 
-                {
-                    //ends before start of existing bounding box add bounding box
-                    if (it->first > start + length) bbox[start]=length;
-                    else
-                    //ends after existing bounding box ends
-                    if (it->first + it->second <= start + length) 
-                    {
-                        bbox.erase(it);         //erase existing box 
-                        addBox(start,length);   //add this one
-                    }
-                    else 
-                    //if it ends before existing bounding box ends 
-                    if (it->first + it->second > start + length)
-                    {
-                        long newlength = it->first + it->second - start;
-                        bbox.erase(it);         //erase existing box 
-                        bbox[start]=newlength;  //create unioned bounding box 
-                    }    
-                    return;
-                }
-                //if it starts after existing bounding box
-                else if (it->first <= start)
-                {
-                    //if fully enclosed in an existing bounding box ignore
-                    if (it->first + it->second >= start + length) return;
-          
-                    //if it comes after exiting bounding box go on to next one
-                    if (it->first + it->second < start) continue;
+                newLength = maxIndexEnd - newStart;
+            }
 
-                    //if it overlaps, remove existing bounding box and add this one 
-                    if (it->first + it->second <= start+length)
+            // If bounding segment does not exist in temporal selection do nothing
+            if (newLength <= 0)
+            {
+                return;
+            }
+
+            cout << "\tAdding segment (" << newStart << ", " << newLength << ")." << endl;
+
+            // Potentially combine this segment with any existing overlapping segments
+            //  [ ] - existing segment
+            //  { } - new segment
+            //   _  - content
+            //   +  - joined
+            // Sweep from end of list, check backwards from end of existing items
+
+            long newEnd = newStart + newLength - 1;
+            // Scan in reverse, optimized for adding to the end (the most typical use-case)
+            // Note early loop/function exits, once an insertion point for new segment is found.
+            for (it=segments.rbegin(); it != segments.rend(); it++)
+            {
+                // With reverse_iterator ---------------------------------------------------
+                long existingStart = it->first;
+                long existingLength = it->second;
+                long existingEnd = existingStart + existingLength - 1;
+
+                // Case A: New segment ends at or after existing segment
+                if (newStart + newLength - 1 >= existingEnd)
+                {
+                    // Case A1: [ _ ] _ { _ } - if new segment starts after existing segment;
+                    // (following, no overlap) a common use-case - add segment to end of list
+                    if (newStart > (existingEnd + 1))
                     {
-                        long newstart = it->first;
-                        long newlength = start + length - it->first;
-                        bbox.erase(it);
-                        addBox(newstart, newlength);
+                        // Add segment as a new segment at end.
+                        segments[newStart] = newLength;
+                        // Note any intervening following segments have already been caught by this loop
+                        return;
+                    }
+                    // Case A2: [ _ { _ ] _ } - new segment extends existing segment
+                    else if (newStart >= existingStart)
+                    {
+                        // Reset length of this segment, no need to add segments
+                        it->second = newStart + newLength - existingStart;
+                        // Note any overlapping following segments have already been caught by this loop
+                        return;
+                    }
+                    // Case A3: { _ [ _ ] _ } - new segment starts before existing segment starts (enclosing)
+                    else
+                    {
+                        segments.erase( --(it.base()) );   // erase existing segment
+                        addSegment(newStart, newLength);       // add this one,
+                        // using recursion to catch any earlier potentially overlapping segments
                         return;
                     }
                 }
-                         
+
+                // Case B: New segment ends before the existing segment ends
+                else // if (newEnd < existingEnd) // else to if above
+                {
+                    // Case B1: [ _ { _ } _ ] - new segment fully enclosed in existing segment - new segment starts before start of existing segment
+                    if (newStart >= existingStart)
+                    {
+                        return;   // do nothing; existing segment in list already covers this case.
+                    }
+
+                    // Case B2: { _ [ _ } _ ] - new segment starts before existing segment ends
+                    else if ((newEnd + 1) >= existingStart)
+                    {
+                        newLength = existingEnd - newStart + 1;   // revised length value
+                        segments.erase( --(it.base()) ); // erase existing segment
+                        addSegment(newStart, newLength);       // add this one
+                        // Using recursion to catch any earlier potentially overlapping segments
+                        return;  // exist loop
+                    }
+                }
             }
 
-            //add bounding box if we haven't yet
-            bbox[start]=length;
+            // Add segment if we haven't yet (iterator was empty, any non-empty loop will find a return case)
+            segments[newStart] = newLength;
         }
 
-        friend ostream& operator<<(ostream& out, IndexSelection& bbox)
+        friend ostream& operator<<(ostream& out, IndexSelection& selection)
         {
             map<long, long>::iterator it;
-            out << "[" << bbox.begin << " ";
-            for (it=bbox.bbox.begin();it!=bbox.bbox.end();it++) out << " (" << it->first << "," << it->second << ") ";
-            out << " " << bbox.end << "]";
+            out << "[" << " ";
+            for (it=selection.segments.begin(); it != selection.segments.end(); it++) out << " (" << it->first << "," << it->second << ") ";
+            out << " " << "]";
             return out; 
         }
     private:
@@ -138,21 +174,3 @@ class IndexSelection
 
 };
 #endif
-
-/*
-int main()
-{
-    IndexSelection bbox(10, 190);
-    while(1)
-    {
-        long start,length;
-        cout << "enter start of bound : " ;
-        cin >> start;
-        cout << "enter length of bound : ";
-        cin >> length;
-        bbox.addBox(start, length);
-        cout << "Bounding box is now " << bbox << endl;
-    }
-    return 0;
-};
-*/
