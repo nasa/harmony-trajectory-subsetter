@@ -1,4 +1,11 @@
-[vesrion 0,1,5] 2022-11-16
+[version 0.1.6] 2022-12-19
+
+- **DAS-1726**
+  - Convert the service to use `sds-varinfo==3.0.0`, which uses a JSON format
+    configuration file instead of a YAML format. Note, the underlying schema
+	remains the same.
+
+[version 0.1.5] 2022-11-16
 
 - **DAS-1701**
   - Ensures that if variables in a Harmony request do not include a leading

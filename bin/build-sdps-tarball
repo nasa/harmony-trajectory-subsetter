@@ -5,6 +5,8 @@
 # zip
 
 tar -cf trajectorysubsetter.tar ./subsetter
+# YAML file to be removed after DAS-1726 and SDPS using JSON instead
 tar -rf trajectorysubsetter.tar -C ./harmony_service ./config/trajectorysubsetter_varinfo_config.yml
+tar -rf trajectorysubsetter.tar -C ./harmony_service ./config/trajectorysubsetter_varinfo_config.json
 gzip trajectorysubsetter.tar
 echo "Prepared: trajectorysubsetter.tar.gz"
