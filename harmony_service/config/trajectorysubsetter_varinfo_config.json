@@ -17,6 +17,18 @@
     "GEDI_L[1234][AB]|GEDI0[1234]_[AB]": "GEDI",
     "ATL\\d{2}": "ICESat2"
   },
+ "Excluded_Science_Variables": [
+    {
+      "Applicability": {
+        "Mission": "ICESat2"
+      },
+      "Variable_Pattern": [
+        "/quality_assessment/.*",
+        "/orbit_info/.*",
+        "/atlas_impulse_response/.*"
+      ]
+    }
+  ],
   "ProductEpochs": [
     {
       "Applicability": {
@@ -319,7 +331,7 @@
         {
           "Applicability": {
             "ShortNamePath": "ATL03",
-            "Variable_Pattern": "/gt[123][lr]/geolocation/ph_ind"
+            "Variable_Pattern": "/gt[123][lr]/geolocation/ph_index_beg"
           },
           "Attributes": [
             {
