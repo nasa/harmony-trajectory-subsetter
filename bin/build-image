@@ -9,12 +9,9 @@ image="sds/trajectory-subsetter"
 tag=${1:-latest}
 
 
-# Look for old version of image and remove
+# Remove old versions of sds/trajectory-subsetter and sds/trajectory-subsetter-test
 #
-old=$(docker images | grep "$image" | grep "$tag" | awk '{print $3}')
-if [ ! -z "$old" ]  && [ "$2" != "--no-delete" ]; then
-    docker rmi "$old"
-fi
+./bin/clean-images
 
 # Build the image
 # This command tags the image with two tags:
