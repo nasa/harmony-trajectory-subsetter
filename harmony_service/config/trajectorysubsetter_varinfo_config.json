@@ -1,0 +1,386 @@
+{
+  "Identification": "trajectorysubsetter_varinfo_config",
+  "Version": 2,
+  "Collection_ShortName_Path": [
+    "/HDF5_GLOBAL/short_name",
+    "/NC_GLOBAL/short_name",
+    "/Metadata/DatasetIdentification/shortName",
+    "/METADATA/DatasetIdentification/shortName",
+    "/Metadata/SeriesIdentification/shortName",
+    "/METADATA/SeriesIdentification/shortName",
+    "/HDF5_GLOBAL/id",
+    "/NC_GLOBAL/id",
+    "short_name",
+    "ShortName"
+  ],
+  "Mission": {
+    "GEDI_L[1234][AB]|GEDI0[1234]_[AB]": "GEDI",
+    "ATL\\d{2}": "ICESat2"
+  },
+ "Excluded_Science_Variables": [
+    {
+      "Applicability": {
+        "Mission": "ICESat2"
+      },
+      "Variable_Pattern": [
+        "/quality_assessment/.*",
+        "/orbit_info/.*",
+        "/atlas_impulse_response/.*"
+      ]
+    }
+  ],
+  "ProductEpochs": [
+    {
+      "Applicability": {
+        "Mission": "GEDI"
+      },
+      "Epoch": "2018-01-01T00:00:00.000000"
+    },
+    {
+      "Applicability": {
+        "Mission": "ICESat2"
+      },
+      "Epoch": "2005-01-01T00:00:00.000000"
+    }
+  ],
+  "CF_Overrides": [
+    {
+      "Applicability": {
+        "Mission": "GEDI",
+        "ShortNamePath": "GEDI_L4A"
+      },
+      "Applicability_Group": [
+        {
+          "Applicability": {
+            "Variable_Pattern": "/BEAM[\\d]+/shot_number"
+          },
+          "Attributes": [
+            {
+              "Name": "coordinates",
+              "Value": "delta_time lat_lowestmode lon_lowestmode"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "CF_Supplements": [
+    {
+      "Applicability": {
+        "Mission": "GEDI",
+        "ShortNamePath": "GEDI_L4A"
+      },
+      "Applicability_Group": [
+        {
+          "Applicability": {
+            "Variable_Pattern": "/BEAM[\\d]+/.*"
+          },
+          "Attributes": [
+            {
+              "Name": "ancillary_variables",
+              "Value": "shot_number"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Applicability": {
+        "Mission": "GEDI",
+        "ShortNamePath": "GEDI_L[1234][AB]|GEDI0[1234]_[AB]"
+      },
+      "Global_Attributes": [
+        {
+          "Name": "Data_Organization",
+          "Value": "h5_trajectory"
+        }
+      ],
+      "Applicability_Group": [
+        {
+          "Applicability": {
+            "ShortNamePath": "GEDI_L1[AB]|GEDI01_[AB]",
+            "Variable_Pattern": "/BEAM[\\d]+/geolocation/"
+          },
+          "Attributes": [
+            {
+              "Name": "subset_control_variables",
+              "Value": "delta_time, latitude_bin0, longitude_bin0"
+            },
+            {
+              "Name": "subset_control_type",
+              "Value": "coordinates"
+            }
+          ],
+          "_Description": "Reset the spatial coordinates for subsetting purposes."
+        },
+        {
+          "Applicability": {
+            "ShortNamePath": "GEDI_L2A|GEDI02_A",
+            "Variable_Pattern": "/BEAM[\\d]+/"
+          },
+          "Attributes": [
+            {
+              "Name": "subset_control_variables",
+              "Value": "lat_lowestmode, lon_lowestmode, delta_time"
+            },
+            {
+              "Name": "subset_control_type",
+              "Value": "coordinates"
+            }
+          ],
+          "_Description": "Reset the spatial coordinates for subsetting purposes."
+        },
+        {
+          "Applicability": {
+            "ShortNamePath": "GEDI_L1[AB]|GEDI01_[AB]",
+            "Variable_Pattern": "/BEAM[\\d]+/rxwaveform"
+          },
+          "Attributes": [
+            {
+              "Name": "subset_control_variables",
+              "Value": "rx_sample_start_index, rx_sample_count"
+            },
+            {
+              "Name": "subset_control_type",
+              "Value": "fwd_segment_index"
+            }
+          ],
+          "_Description": "Provide index segment subset-control variables."
+        },
+        {
+          "Applicability": {
+            "ShortNamePath": "GEDI_L1[AB]|GEDI01_[AB]",
+            "Variable_Pattern": "/BEAM[\\d]+/rx_sample_start_index"
+          },
+          "Attributes": [
+            {
+              "Name": "subset_control_variable_type",
+              "Value": "segment_index_beg"
+            }
+          ],
+          "_Description": "Provide index segment subset-control designation."
+        },
+        {
+          "Applicability": {
+            "ShortNamePath": "GEDI_L1[AB]|GEDI01_[AB]",
+            "Variable_Pattern": "/BEAM[\\d]+/rx_sample_count"
+          },
+          "Attributes": [
+            {
+              "Name": "subset_control_variable_type",
+              "Value": "segment_index_cnt"
+            }
+          ],
+          "_Description": "Provide index segment subset-control designation."
+        },
+        {
+          "Applicability": {
+            "ShortNamePath": "GEDI_L1[AB]|GEDI01_[AB]",
+            "Variable_Pattern": "/BEAM[\\d]+/txwaveform"
+          },
+          "Attributes": [
+            {
+              "Name": "subset_control_variables",
+              "Value": "tx_sample_start_index, tx_sample_count"
+            },
+            {
+              "Name": "subset_control_type",
+              "Value": "fwd_segment_index"
+            }
+          ],
+          "_Description": "Provide index segment subset-control variables."
+        },
+        {
+          "Applicability": {
+            "ShortNamePath": "GEDI_L1[AB]|GEDI01_[AB]",
+            "Variable_Pattern": "/BEAM[\\d]+/tx_sample_start_index"
+          },
+          "Attributes": [
+            {
+              "Name": "subset_control_variable_type",
+              "Value": "segment_index_beg"
+            }
+          ],
+          "_Description": "Provide index segment subset-control designation."
+        },
+        {
+          "Applicability": {
+            "ShortNamePath": "GEDI_L1[AB]|GEDI01_[AB]",
+            "Variable_Pattern": "/BEAM[\\d]+/tx_sample_count"
+          },
+          "Attributes": [
+            {
+              "Name": "subset_control_variable_type",
+              "Value": "segment_index_cnt"
+            }
+          ],
+          "_Description": "Provide index segment subset-control designation."
+        },
+        {
+          "Applicability": {
+            "ShortNamePath": "GEDI_L2B|GEDI02_B",
+            "Variable_Pattern": "/BEAM[\\d]+/pgap_theta_z"
+          },
+          "Attributes": [
+            {
+              "Name": "subset_control_variables",
+              "Value": "rx_sample_start_index, rx_sample_count"
+            },
+            {
+              "Name": "subset_control_type",
+              "Value": "fwd_segment_index"
+            }
+          ],
+          "_Description": "Provide index segment subset-control variables."
+        },
+        {
+          "Applicability": {
+            "ShortNamePath": "GEDI_L2B|GEDI02_B",
+            "Variable_Pattern": "/BEAM[\\d]+/rx_sample_start_index"
+          },
+          "Attributes": [
+            {
+              "Name": "subset_control_variable_type",
+              "Value": "segment_index_beg"
+            }
+          ],
+          "_Description": "Provide index segment subset-control designation."
+        },
+        {
+          "Applicability": {
+            "ShortNamePath": "GEDI_L2B|GEDI02_B",
+            "Variable_Pattern": "/BEAM[\\d]+/rx_sample_count"
+          },
+          "Attributes": [
+            {
+              "Name": "subset_control_variable_type",
+              "Value": "segment_index_cnt"
+            }
+          ],
+          "_Description": "Provide index segment subset-control designation."
+        }
+      ]
+    },
+    {
+      "Applicability": {
+        "Mission": "ICESat2",
+        "ShortNamePath": "ATL0[2-9]|ATL1[0123]"
+      },
+      "Global_Attributes": [
+        {
+          "Name": "Data_Organization",
+          "Value": "h5_trajectory"
+        }
+      ],
+      "Applicability_Group": [
+        {
+          "Applicability": {
+            "Variable_Pattern": "/gt[123][lr]/geolocation/.*"
+          },
+          "Attributes": [
+            {
+              "Name": "ancillary_variables",
+              "Value": "podppd_flag"
+            }
+          ]
+        },
+        {
+          "Applicability": {
+            "ShortNamePath": "ATL03",
+            "Variable_Pattern": "/gt[123][lr]/geophys_corr/.*"
+          },
+          "Attributes": [
+            {
+              "Name": "subset_control_variables",
+              "Value": "../geolocation/delta_time, ../geolocation/reference_photon_lat, ../geolocation/reference_photon_lon"
+            },
+            {
+              "Name": "subset_control_type",
+              "Value": "coordinates"
+            }
+          ]
+        },
+        {
+          "Applicability": {
+            "ShortNamePath": "ATL03",
+            "Variable_Pattern": "/gt[123][lr]/heights/.*"
+          },
+          "Attributes": [
+            {
+              "Name": "subset_control_variables",
+              "Value": "../geolocation/ph_index_beg, ../geolocation/segment_ph_cnt"
+            },
+            {
+              "Name": "subset_control_type",
+              "Value": "fwd_segment_index"
+            }
+          ]
+        },
+        {
+          "Applicability": {
+            "ShortNamePath": "ATL03",
+            "Variable_Pattern": "/gt[123][lr]/geolocation/ph_index_beg"
+          },
+          "Attributes": [
+            {
+              "Name": "subset_control_variable_type",
+              "Value": "segment_index_beg"
+            }
+          ]
+        },
+        {
+          "Applicability": {
+            "ShortNamePath": "ATL03",
+            "Variable_Pattern": "/gt[123][lr]/geolocation/ph_index_beg"
+          },
+          "Attributes": [
+            {
+              "Name": "subset_control_variable_type",
+              "Value": "segment_index_cnt"
+            }
+          ]
+        },
+        {
+          "Applicability": {
+            "ShortNamePath": "ATL08",
+            "Variable_Pattern": "/gt[123][lr]/signal_photons/.*"
+          },
+          "Attributes": [
+            {
+              "Name": "subset_control_variables",
+              "Value": "../land_segments/ph_ndx_beg, ../land_segments/n_seg_ph"
+            },
+            {
+              "Name": "subset_control_type",
+              "Value": "fwd_segment_index"
+            }
+          ]
+        },
+        {
+          "Applicability": {
+            "ShortNamePath": "ATL08",
+            "Variable_Pattern": "/gt[123][lr]/land_segments/ph_ndx_beg"
+          },
+          "Attributes": [
+            {
+              "Name": "subset_control_variable_type",
+              "Value": "segment_index_beg"
+            }
+          ]
+        },
+        {
+          "Applicability": {
+            "ShortNamePath": "ATL08",
+            "Variable_Pattern": "/gt[123][lr]/land_segments/n_seg_ph"
+          },
+          "Attributes": [
+            {
+              "Name": "subset_control_variable_type",
+              "Value": "segment_index_cnt"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

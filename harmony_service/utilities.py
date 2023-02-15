@@ -33,7 +33,8 @@ KNOWN_EXIT_STATUSES = {1: InvalidParameter,
 
 TRAJECTORY_SUBSETTER_VARINFO_CONFIG = join(
     dirname(abspath(__file__)), 'config',
-    'trajectorysubsetter_varinfo_config.yml')
+    'trajectorysubsetter_varinfo_config.json'
+)
 
 
 def get_file_mimetype(file_name: str) -> Optional[str]:

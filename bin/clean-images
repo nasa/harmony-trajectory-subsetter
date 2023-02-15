@@ -1,0 +1,25 @@
+#!/bin/bash
+###############################################################################
+#
+# Look for all versions of images containing the string "sds/trajectory-subsetter"
+# and remove them. This is primarily for clean-up after development.
+#
+# 2023-01-27: Updated to fix image deletion for both test and service images.
+#
+###############################################################################
+remove_image_by_name() {
+    echo "Removing images for: $1"
+    matching_images=$(docker images --filter reference="$1" --format="{{.ID}}")
+
+    if [ ! -z "${matching_images}" ]; then
+        docker rmi "${matching_images}"
+    fi
+}
+
+image_base_name="sds/trajectory-subsetter"
+
+# First remove test images:
+remove_image_by_name "${image_base_name}-test"
+
+# Next remove service images:
+remove_image_by_name "${image_base_name}"
