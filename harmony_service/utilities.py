@@ -159,6 +159,7 @@ def convert_harmony_datetime(harmony_datetime_str: str) -> str:
     """
     return parse_datetime(harmony_datetime_str).strftime('%Y-%m-%dT%H:%M:%S')
 
+
 def include_support_variables(binary_parameters: Dict,
                               logger: Logger, short_name: str) -> Dict:
     """ Get support variables needed for a viable subset.
@@ -181,7 +182,6 @@ def include_support_variables(binary_parameters: Dict,
                          else f'/{requested_var}'
                          for requested_var in requested_vars)
     updated_vars = var_info.get_required_variables(requested_vars)
-    
     return {
         **binary_parameters, '--includedataset': ','.join(list(updated_vars))
     }
