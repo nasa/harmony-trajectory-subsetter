@@ -161,7 +161,8 @@ def convert_harmony_datetime(harmony_datetime_str: str) -> str:
 
 
 def include_support_variables(binary_parameters: Dict,
-                              logger: Logger, short_name: str) -> Dict:
+                              short_name: str,
+                              logger: Logger) -> Dict:
     """ Get support variables needed for a viable subset.
 
         Parse the variable list, ensuring all variable names have a leading

@@ -80,8 +80,8 @@ class HarmonyAdapter(BaseHarmonyAdapter):
                                                              asset, source)
 
             binary_parameters = include_support_variables(binary_parameters,
-                                                          self.logger,
-                                                          source.shortName)
+                                                          source.shortName,
+                                                          self.logger)
 
             # Invoke the Trajectory subsetter binary
             self.transform(binary_parameters)
