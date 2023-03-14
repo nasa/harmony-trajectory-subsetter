@@ -45,7 +45,7 @@ class TestAdapter(TestCase):
         cls.user = 'tglennan'
 
     @staticmethod
-    def side_effect_fxn(input, logger):
+    def side_effect_fxn(input, short_name, logger):
         return input
 
 

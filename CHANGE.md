@@ -1,3 +1,8 @@
+[version 0.1.7] 2023-03-13
+
+- **DAS-1772**
+  - Update to extract the collection short name from the input Source object.
+
 [version 0.1.6] 2022-12-19
 
 - **DAS-1726**
