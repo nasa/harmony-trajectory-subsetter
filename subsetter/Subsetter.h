@@ -100,6 +100,7 @@ public:
         cout << "WRITING " << endl;
         outfile.flush(H5F_SCOPE_GLOBAL);
         cout << "datasets size: " << subsetDataLayers->getDatasets().size() << endl;
+
         if (!matchingDataFound)
         {
             returnCode = 3;
@@ -588,13 +589,13 @@ private:
     }
 
     /**
-     * check if matching data found in the output.
-     * If the result has only one root item, return false, since the meatadata group is always included.
+     * Check if matching data found in the output.
+     * If the result has only one group and that group is
+     * the metadata group, return false.
      * Otherwise return true in the following cases:
-     * (1). Only parameter subsetting
-     * (2). Spatial/temporal subsetting, user request only contains unsubsettable datasets
-     * (3). Spatial/temporal subsetting, user request contains subsettable datasets, and output has 
-     *      subsettable datasets
+     * (1). Only parameter subsetting.
+     * (2). Spatial/temporal subsetting, user request only contains unsubsettable datasets.
+     * (3). Spatial/temporal subsetting, user request contains subsettable datasets, and output has subsettable datasets.
      */
     bool isMatchingDataFound()
     {
@@ -603,29 +604,44 @@ private:
         Group ingroup = infile.openGroup("/");
         Group outgroup = outfile.openGroup("/");
         cout << "num of groups: " << outgroup.getNumObjs() << endl;
-        // the output has more than metadata group if matching data is found        
-        if (outgroup.getNumObjs() > 1)
+
+        // There may be an instance where the first and only group in the 
+        // file is the metadata group, which is not subsettable.
+        std::string group_name = boost::to_upper_copy<std::string>(outgroup.getObjnameByIdx(0));
+        if (outgroup.getNumObjs() == 1 && group_name == "METADATA")
         {
-            // (1) only parameter subsetting
+            return matchingDataFound;
+        }
+        else if (outgroup.getNumObjs() > 0)
+        {
+            // (1) If only variable subsetting, then we know that
+            // data clearly exists.
             if (this->temporal == NULL && this->geoboxes == NULL && this->geoPolygon == NULL)
+            {
                 matchingDataFound = true;
-            // (2)(3). spatial/temporal subsetting
+            }
+            // (2)(3). For spatial/temporal subsetting...
             else
             {
-                // check if request contains subsettable datasets
-                // expand subsetDataLayers to get all the datasets/groups requested in the input file
+                // Check if request contains subsettable datasets.
+                // Expand subsetDataLayers to get all the datasets/groups
+                // requested in the input file.
                 subsetDataLayers->expand_group(ingroup, "");
-                //subsetDataLayers->print_datasets();
                 bool subsettableDatasetRequested = containsSubsettableDatasets(subsetDataLayers->getDatasets());
-                // (2) user only requested unsubsettable datasets,then return matching data
+
+                // (2) If the user only requested unsubsettable datasets,
+                // then return matching data.
                 if (!subsettableDatasetRequested)
-                    matchingDataFound = true;
-                else //(3) has to check if the output has any subsettable dataset 
                 {
-                    // use a new SubsetDataLayer object to get a list of the datasets/group in the output
+                    matchingDataFound = true;
+                }
+
+                // (3) If not, check if the output has any subsettable dataset.
+                else
+                {
+                    // Use a new SubsetDataLayer object to get a list of the datasets/group in the output.
                     SubsetDataLayers* osub = new SubsetDataLayers(vector<string>());
                     osub->expand_group(outgroup, "");
-                    //osub->print_datasets();
                     matchingDataFound = containsSubsettableDatasets(osub->getDatasets());
                 }
             }

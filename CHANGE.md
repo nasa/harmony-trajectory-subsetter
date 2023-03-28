@@ -1,3 +1,8 @@
+[version 0.1.8] 2023-03-22
+
+- **DAS-1773**
+  - Removed metadata dataset assumption/requirements.
+
 [version 0.1.7] 2023-03-13
 
 - **DAS-1772**
