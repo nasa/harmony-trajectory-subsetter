@@ -6,7 +6,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <vector>
-using namespace std;
+
 
 /**
  * This class handles dimension scales. It provides functionalities to 
@@ -19,14 +19,14 @@ public:
 
     DimensionScales()
     {
-        dimScaleDatasets = new vector<string>();
-        datasetScales = new map<string, vector<pair<string, int>>*>();
+        dimScaleDatasets = new std::vector<std::string>();
+        datasetScales = new std::map<std::string, std::vector<std::pair<std::string, int>>*>();
     }
 
     ~DimensionScales()
     {
         delete dimScaleDatasets;
-        for (map<string, vector<pair < string, int>>*>::iterator it = datasetScales->begin();
+        for (std::map<std::string, std::vector<std::pair < std::string, int>>*>::iterator it = datasetScales->begin();
              it != datasetScales->end(); it++)
         {
              delete it->second;
@@ -46,11 +46,11 @@ public:
      */
     static herr_t dimensionScaleCallback(hid_t did, unsigned idx, hid_t dsid, void *opdata)
     {   
-        map<string,string>* scale = (map<string,string>*)opdata;
-        string datasetName = getObjectName(did);
-        string scaleDatasetName = getObjectName(dsid);
-        //cout << datasetName << " has scale " << scaleDatasetName << " at index " << idx << endl;
-        scale->insert(pair<string,string>(datasetName, scaleDatasetName));        
+        std::map<std::string,std::string>* scale = (std::map<std::string,std::string>*)opdata;
+        std::string datasetName = getObjectName(did);
+        std::string scaleDatasetName = getObjectName(dsid);
+        //std::cout << datasetName << " has scale " << scaleDatasetName << " at index " << idx << std::endl;
+        scale->insert(std::pair<std::string,std::string>(datasetName, scaleDatasetName));        
         return 1;
     }
 
@@ -58,10 +58,10 @@ public:
      * keep track of dimension scales for each dataset,
      * it should be called for each dataset which will be included
      */
-    void trackDimensionScales(const DataSet& dataset)
+    void trackDimensionScales(const H5::DataSet& dataset)
     {
         hid_t did = dataset.getId();
-        string datasetName = getObjectName(did); 
+        std::string datasetName = getObjectName(did); 
         // is a dimension scale dataset
         if (H5DSis_scale(did))
         {
@@ -79,18 +79,18 @@ public:
                 // scales attached to dimension i
                 for (int j = 0; j < numscales; j++)
                 {                    
-                    map<string,string>* scale = new map<string,string>();                    
+                    std::map<std::string,std::string>* scale = new std::map<std::string,std::string>();                    
                     H5DSiterate_scales(did, i, &j, DimensionScales::dimensionScaleCallback, scale);
                     if (!scale->empty())
                     {   
-                        string datasetName = scale->begin()->first;
-                        string scaleDatasetName = scale->begin()->second;                    
-                        pair<string, int> scaleDim(scaleDatasetName, i);
-                        //cout << datasetName << " with scale " << scaleDatasetName << " at dim " << i << endl;
+                        std::string datasetName = scale->begin()->first;
+                        std::string scaleDatasetName = scale->begin()->second;                    
+                        std::pair<std::string, int> scaleDim(scaleDatasetName, i);
+                        //std::cout << datasetName << " with scale " << scaleDatasetName << " at dim " << i << std::endl;
                         if (datasetScales->find(datasetName) == datasetScales->end())
                         {
-                            vector<pair<string, int>>*scaleDims = new vector<pair<string, int>>();
-                            datasetScales->insert(pair<string, vector<pair<string, int>>*>(datasetName, scaleDims));
+                            std::vector<std::pair<std::string, int>>*scaleDims = new std::vector<std::pair<std::string, int>>();
+                            datasetScales->insert(std::pair<std::string, std::vector<std::pair<std::string, int>>*>(datasetName, scaleDims));
                         }
                         datasetScales->at(datasetName)->push_back(scaleDim);
                         numValidScales++;
@@ -98,8 +98,8 @@ public:
                     delete scale;
                 }
                 if (numscales != numValidScales)
-                    cout << "WARNING dataset " << datasetName << " has " << numscales-numValidScales
-                         << " invalid scale references in the dimension " << dimnum << endl; 
+                    std::cout << "WARNING dataset " << datasetName << " has " << numscales-numValidScales
+                         << " invalid scale references in the dimension " << dimnum << std::endl; 
             }                
         }
     }
@@ -107,31 +107,31 @@ public:
     /**
      * recreate dimension scales and re-attach scales in output
      */
-    void recreateDimensionScales(H5File& outfile)
+    void recreateDimensionScales(H5::H5File& outfile)
     {
-        cout << "DimensionScales.recreateDimensionScales try to recreate "
+        std::cout << "DimensionScales.recreateDimensionScales try to recreate "
              << dimScaleDatasets->size() << " dimension scales, and re-attach to "
-             << datasetScales->size() << " datasets " << endl;
+             << datasetScales->size() << " datasets " << std::endl;
 
         // H5Lexists prints error message when any element before the final link doesn't exist,
         // so suppress the error message print
         // save off error handler
         H5E_auto2_t func;
         void* client_data;
-        Exception::getAutoPrint(func, &client_data);
-        Exception::dontPrint();
+        H5::Exception::getAutoPrint(func, &client_data);
+        H5::Exception::dontPrint();
 
         // recreate the dimension scales,
         // save the pointer of the dimension scale datasets for later attaching,
         // the dataset id is valid only when the dataset is open
-        map<string, DataSet*>* scaleDatasetsMap = new map<string, DataSet*>();
-        for (vector<string>::iterator it = dimScaleDatasets->begin(); it != dimScaleDatasets->end(); it++)
+        std::map<std::string, H5::DataSet*>* scaleDatasetsMap = new std::map<std::string, H5::DataSet*>();
+        for (std::vector<std::string>::iterator it = dimScaleDatasets->begin(); it != dimScaleDatasets->end(); it++)
         {
-            string ds = *it;
+            std::string ds = *it;
             // if the dataset exists in the file, make it dimension scale
             if (H5Lexists(outfile.getLocId(), ds.c_str(), H5P_DEFAULT) > 0)
             {
-                DataSet* dataset = new DataSet(outfile.openDataSet(ds));
+                H5::DataSet* dataset = new H5::DataSet(outfile.openDataSet(ds));
                 // remove CLASS attribute, set_scale will set CLASS to "DIMENSION_SCALE" 
                 // and an empty REFERENCE_LIST attribute
                 // name and label should have already been copied as attributes
@@ -139,34 +139,34 @@ public:
                 hid_t dsid = dataset->getId();
                 if (H5DSis_scale(dsid) || H5DSset_scale(dsid, NULL) >= 0)
                 {
-                    //cout << " set dataset to dimension scale " << ds << endl;
-                    scaleDatasetsMap->insert(pair<string, DataSet*>(ds, dataset));
+                    //std::cout << " set dataset to dimension scale " << ds << std::endl;
+                    scaleDatasetsMap->insert(std::pair<std::string, H5::DataSet*>(ds, dataset));
                 }
             }
         }
 
         // re-attach scales        
-        for (map<string, vector<pair < string, int>>*>::iterator it = datasetScales->begin();
+        for (std::map<std::string, std::vector<std::pair < std::string, int>>*>::iterator it = datasetScales->begin();
              it != datasetScales->end(); it++)
         {
-            string d = it->first;
-            vector<pair<string, int>>*scales = it->second;
+            std::string d = it->first;
+            std::vector<std::pair<std::string, int>>*scales = it->second;
             // if the dataset exists in the file, attach scales to it
             if (H5Lexists(outfile.getLocId(), d.c_str(), H5P_DEFAULT) > 0)
             {
-                //cout << "dataset exists " << d << endl;
-                DataSet dd = outfile.openDataSet(d);                
+                //std::cout << "dataset exists " << d << std::endl;
+                H5::DataSet dd = outfile.openDataSet(d);                
                 hid_t did = dd.getId();                
-                for (vector<pair < string, int>>::iterator sit = scales->begin(); sit != scales->end(); sit++)
+                for (std::vector<std::pair < std::string, int>>::iterator sit = scales->begin(); sit != scales->end(); sit++)
                 {
-                    string ds = sit->first;
+                    std::string ds = sit->first;
                     int dim = sit->second;
                     if (scaleDatasetsMap->find(ds) != scaleDatasetsMap->end())
                     {
                         hid_t dsid = scaleDatasetsMap->find(ds)->second->getId();
                         if (H5DSattach_scale(did, dsid, dim) >= 0)
                         {
-                            //cout << " attach " << ds << " to " << d << " at " << dim << endl;
+                            //std::cout << " attach " << ds << " to " << d << " at " << dim << std::endl;
                         }
                     }
                 }
@@ -174,10 +174,10 @@ public:
         }
 
         // restore error message
-        Exception::setAutoPrint(func,client_data);
+        H5::Exception::setAutoPrint(func,client_data);
 
         // close the datasets
-        for (map<string, DataSet*>::iterator it = scaleDatasetsMap->begin();
+        for (std::map<std::string, H5::DataSet*>::iterator it = scaleDatasetsMap->begin();
              it != scaleDatasetsMap->end(); it++)
         {
             delete it->second;
@@ -186,14 +186,14 @@ public:
         delete scaleDatasetsMap;
     }
     
-    vector<string>* getDimScaleDatasets() { return this->dimScaleDatasets; }
+    std::vector<std::string>* getDimScaleDatasets() { return this->dimScaleDatasets; }
 
 private:
 
     // get the object name by id
-    static string getObjectName(hid_t objId)
+    static std::string getObjectName(hid_t objId)
     {
-        string name;
+        std::string name;
         size_t len = H5Iget_name(objId, NULL, 0);
         if (len > 0)
         {
@@ -207,13 +207,13 @@ private:
     /**
      * keep map of dimension scale dataset names     
      */
-    vector<string>* dimScaleDatasets;
+    std::vector<std::string>* dimScaleDatasets;
 
     /**
      * keep track of the scales for datasets
      * key: dataset name
      * value: scales (dim scale dataset name, dimension idx of dataset) attached to dataset
      */
-    map<string, vector<pair<string, int>>*>* datasetScales;
+    std::map<std::string, std::vector<std::pair<std::string, int>>*>* datasetScales;
 };
 #endif

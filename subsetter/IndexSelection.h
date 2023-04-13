@@ -8,14 +8,14 @@
 
 #include <map>
 #include <iostream>
-using namespace std;
+
 
 class IndexSelection
 {
     public:
 
         // Ordered list of non-overlapping start/length pairs
-        map<long, long> segments;
+        std::map<long, long> segments;
 
         // Begin and end are used to limit the addition of segments to a specified
         // constraint. They are typically determined by the temporal constraints.
@@ -40,7 +40,7 @@ class IndexSelection
         long size() 
         {
             long size = 0;
-            map<long, long>::iterator it;
+            std::map<long, long>::iterator it;
             for (it=segments.begin(); it != segments.end(); it++)
                 size += it->second;
             if (!size) size= maxIndexEnd - minIndexStart;
@@ -50,14 +50,14 @@ class IndexSelection
         // Add temporal restriction, assume the data is temporally continuous
         void addRestriction(long newStart, long newLength)
         {
-            cout << "IndexSelection.addRestriction changing from (" << minIndexStart << "," << maxIndexEnd << ") to ("
-                 << newStart << "," << newStart+newLength << ")" << endl;
+            std::cout << "IndexSelection.addRestriction changing from (" << minIndexStart << "," << maxIndexEnd << ") to ("
+                 << newStart << "," << newStart+newLength << ")" << std::endl;
             minIndexStart = newStart;
             maxIndexEnd = newStart + newLength;
             // reset the segments map with the new temporal constraints in place
-            map<long,long> original_segments = segments;
+            std::map<long,long> original_segments = segments;
             segments.erase(segments.begin(), segments.end());
-            map<long, long>::iterator it;
+            std::map<long, long>::iterator it;
             for (it = original_segments.begin(); it != original_segments.end(); it++) 
                 addSegment(it->first, it->second);
         }
@@ -67,7 +67,7 @@ class IndexSelection
         //   and limit to within restrictions
         void addSegment(long newStart, long newLength)
         {
-            map<long, long>::reverse_iterator it;
+            std::map<long, long>::reverse_iterator it;
 
             // Limit bounding segment to temporal region
             if (newStart < minIndexStart)
@@ -86,7 +86,7 @@ class IndexSelection
                 return;
             }
 
-            cout << "\tAdding segment (" << newStart << ", " << newLength << ")." << endl;
+            std::cout << "\tAdding segment (" << newStart << ", " << newLength << ")." << std::endl;
 
             // Potentially combine this segment with any existing overlapping segments
             //  [ ] - existing segment
@@ -160,9 +160,9 @@ class IndexSelection
             segments[newStart] = newLength;
         }
 
-        friend ostream& operator<<(ostream& out, IndexSelection& selection)
+        friend std::ostream& operator<<(std::ostream& out, IndexSelection& selection)
         {
-            map<long, long>::iterator it;
+            std::map<long, long>::iterator it;
             out << "[" << " ";
             for (it=selection.segments.begin(); it != selection.segments.end(); it++) out << " (" << it->first << "," << it->second << ") ";
             out << " " << "]";

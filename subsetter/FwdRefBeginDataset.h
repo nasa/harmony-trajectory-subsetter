@@ -3,7 +3,6 @@
 
 #include <stdlib.h>
 
-using namespace std;
 
 /**
  * class to write index begin datasets for ATL03 and ATL08
@@ -12,10 +11,10 @@ class FwdRefBeginDataset
 {
 public:
 
-    string shortname;
-    string datasetName;
+    std::string shortname;
+    std::string datasetName;
 
-    FwdRefBeginDataset(string shortname, string objname)
+    FwdRefBeginDataset(std::string shortname, std::string objname)
     : shortname(shortname), datasetName(objname)
     {
     }
@@ -28,13 +27,13 @@ public:
      * @param indexes IndexSelection index selection object  
      * @param subsetDataLayers SubsetDataLayers list of included dataset names   
      */
-    void writeDataset(Group& outgroup, const string& groupname, const DataSet& indataset,IndexSelection* indexes, SubsetDataLayers* subsetDataLayers)
+    void writeDataset(H5::Group& outgroup, const std::string& groupname, const H5::DataSet& indataset,IndexSelection* indexes, SubsetDataLayers* subsetDataLayers)
     {
-        cout << "ForwardReferenceDatasets.writeDataset" << endl;
+        std::cout << "ForwardReferenceDatasets.writeDataset" << std::endl;
 
         // Get output coordinate data rate from output count dataset.
-        string countName = Configuration::getInstance()->getCountDatasetName(shortname, groupname, datasetName);
-        DataSet countOutDs = outgroup.openDataSet(countName);
+        std::string countName = Configuration::getInstance()->getCountDatasetName(shortname, groupname, datasetName);
+        H5::DataSet countOutDs = outgroup.openDataSet(countName);
         size_t outputCoordinateSize = countOutDs.getSpace().getSimpleExtentNpoints();
 
         // Read in the source and declare the output index begin dataset.
@@ -78,7 +77,7 @@ public:
         // Forward Reference Segment Start index to output dataset (starts at position 0)
 
         // For each segment group, write to the index begin output/subset dataset.
-        for (map<long, long>::iterator it
+        for (std::map<long, long>::iterator it
                 = indexes->segments.begin(); it != indexes->segments.end(); it++)
         {
             long frSegmentStart_In = it->first;
@@ -116,10 +115,10 @@ public:
         newdims[0] = outputCoordinateSize;
         for (int d = 1; d < dimnum; d++) newdims[d] = olddims[d];
 
-        DataSpace outspace(dimnum, newdims, maxdims);
-        DataType datatype(indataset.getDataType());
-        DataSet outdataset(outgroup.createDataSet(datasetName, datatype, outspace, indataset.getCreatePlist()));
-        outdataset.write(indexBeginOut, datatype, DataSpace::ALL, outspace);
+        H5::DataSpace outspace(dimnum, newdims, maxdims);
+        H5::DataType datatype(indataset.getDataType());
+        H5::DataSet outdataset(outgroup.createDataSet(datasetName, datatype, outspace, indataset.getCreatePlist()));
+        outdataset.write(indexBeginOut, datatype, H5::DataSpace::ALL, outspace);
         delete[] indexBeginOut;
 
         // Unlink the count dataset if user doesn't ask for it.

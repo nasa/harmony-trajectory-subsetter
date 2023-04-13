@@ -3,7 +3,7 @@
 
 #include <stdlib.h>
 
-using namespace std;
+
 
 /**
  * class to write index begin datasets for ATL03 and ATL08
@@ -11,7 +11,7 @@ using namespace std;
 class SuperGroupCoordinate: public Coordinate
 {
 public:
-    SuperGroupCoordinate(string groupname, vector<geobox>* geoboxes, Temporal* temporal, GeoPolygon* geoPolygon)
+    SuperGroupCoordinate(std::string groupname, std::vector<geobox>* geoboxes, Temporal* temporal, GeoPolygon* geoPolygon)
     : Coordinate(groupname, geoboxes, temporal, geoPolygon)
     {
     }
@@ -31,37 +31,37 @@ public:
      * @param Vector<geobox> geoboxes: bounding boxes(spatial constraints)
      * @param Temporal temporal: temporal constraint
      */
-    static Coordinate* getCoordinate(Group& root, Group& ingroup, const string& shortname, SubsetDataLayers* subsetDataLayers,
-            const string& groupname, vector<geobox>* geoboxes, Temporal* temporal, GeoPolygon* geoPolygon)
+    static Coordinate* getCoordinate(H5::Group& root, H5::Group& ingroup, const std::string& shortname, SubsetDataLayers* subsetDataLayers,
+            const std::string& groupname, std::vector<geobox>* geoboxes, Temporal* temporal, GeoPolygon* geoPolygon)
     {
         SuperGroupCoordinate* sgCoor = new SuperGroupCoordinate(groupname, geoboxes, temporal, geoPolygon);
         sgCoor->coordinateSize = 0;
         
-        cout << "superGroup getCoordinate" << endl;
-        map<string, vector<string>> datasets;
-        string superGroupname, latitudeName, longitudeName, timeName, otherName;
+        std::cout << "superGroup getCoordinate" << std::endl;
+        std::map<std::string, std::vector<std::string>> datasets;
+        std::string superGroupname, latitudeName, longitudeName, timeName, otherName;
         bool inconsistentCoorDatasets = false;
-        DataSet* data = NULL;
-        vector<string> superGroupnames;
+        H5::DataSet* data = NULL;
+        std::vector<std::string> superGroupnames;
         
         datasets = Configuration::getInstance()->getSuperCoordinates(shortname);
         Configuration::getInstance()->getSuperCoordinateGroupname(shortname, groupname, superGroupnames);
-        for(vector<string>::iterator it = superGroupnames.begin(); it != superGroupnames.end(); it++)
+        for(std::vector<std::string>::iterator it = superGroupnames.begin(); it != superGroupnames.end(); it++)
         {
-            Group group = root.openGroup(*it);
+            H5::Group group = root.openGroup(*it);
             sgCoor->superGroups.push_back(group);
         }
         superGroupname = superGroupnames[0].substr(0, superGroupnames[0].find_first_of("/\\", 1)+1);
         // if the Coordinate group already exists, return it, else, continue processing
         if (sgCoor->lookUp(superGroupname))
         {
-            cout << superGroupname << " already exists in lookUpMap" << endl;
+            std::cout << superGroupname << " already exists in lookUpMap" << std::endl;
             return lookUpMap[superGroupname];
         }
         
         // distinguish between latitude, longitude and delta_time datasets
         //while (!datasets.empty())
-        for (map<string, vector<string>>::iterator it = datasets.begin(); it != datasets.end(); it++)
+        for (std::map<std::string, std::vector<std::string>>::iterator it = datasets.begin(); it != datasets.end(); it++)
         {
             superGroupnames.push_back(it->first);
             while (!it->second.empty())
@@ -80,13 +80,13 @@ public:
                 if (!timeName.empty())
                 {
                     it->second.erase(std::remove(it->second.begin(), it->second.end(), timeName), it->second.end());
-                    for (vector<Group>::iterator it = sgCoor->superGroups.begin(); it != sgCoor->superGroups.end(); it++)
+                    for (std::vector<H5::Group>::iterator it = sgCoor->superGroups.begin(); it != sgCoor->superGroups.end(); it++)
                     {
                         if (!timeName.empty() && H5Lexists(it->getLocId(), timeName.c_str(), H5P_DEFAULT) > 0)
                         {
-                            data = new DataSet(it->openDataSet(timeName));
+                            data = new H5::DataSet(it->openDataSet(timeName));
                             sgCoor->checkCoorDatasetSize(data, inconsistentCoorDatasets);
-                            sgCoor->coorDatasets.insert(std::pair<string, DataSet*>("time",data));
+                            sgCoor->coorDatasets.insert(std::pair<std::string, H5::DataSet*>("time",data));
                         }
                     }
                     
@@ -100,22 +100,22 @@ public:
         // get coordinate datasets from input file if they exist
         for (int i = 0; i < sgCoor->latitudes.size(); i++)
         {
-            for (vector<Group>::iterator it = sgCoor->superGroups.begin(); it != sgCoor->superGroups.end(); it++)
+            for (std::vector<H5::Group>::iterator it = sgCoor->superGroups.begin(); it != sgCoor->superGroups.end(); it++)
             {
                 if (H5Lexists(it->getLocId(), sgCoor->latitudes[i].c_str(), H5P_DEFAULT) > 0)
                 {
-                    data = new DataSet(it->openDataSet(sgCoor->latitudes[i]));
+                    data = new H5::DataSet(it->openDataSet(sgCoor->latitudes[i]));
                     sgCoor->checkCoorDatasetSize(data, inconsistentCoorDatasets);
-                    sgCoor->coorDatasets.insert(std::pair<string, DataSet*>(sgCoor->latitudes[i],data));
+                    sgCoor->coorDatasets.insert(std::pair<std::string, H5::DataSet*>(sgCoor->latitudes[i],data));
                 }
             }
-            for (vector<Group>::iterator it = sgCoor->superGroups.begin(); it != sgCoor->superGroups.end(); it++)
+            for (std::vector<H5::Group>::iterator it = sgCoor->superGroups.begin(); it != sgCoor->superGroups.end(); it++)
             {
                 if (H5Lexists(it->getLocId(), sgCoor->longitudes[i].c_str(), H5P_DEFAULT) > 0)
                 {
-                    data = new DataSet(it->openDataSet(sgCoor->longitudes[i]));
+                    data = new H5::DataSet(it->openDataSet(sgCoor->longitudes[i]));
                     sgCoor->checkCoorDatasetSize(data, inconsistentCoorDatasets);
-                    sgCoor->coorDatasets.insert(std::pair<string, DataSet*>(sgCoor->longitudes[i],data));
+                    sgCoor->coorDatasets.insert(std::pair<std::string, H5::DataSet*>(sgCoor->longitudes[i],data));
                 }
             }
         }        
@@ -137,8 +137,8 @@ public:
     
     virtual IndexSelection* getIndexSelection()
     {
-        cout << "superGroup getIndexSelection" << endl;
-        DataSet* timeSet = NULL;
+        std::cout << "superGroup getIndexSelection" << std::endl;
+        H5::DataSet* timeSet = NULL;
         double* time = new double[coordinateSize];
         
         indexes = new IndexSelection(coordinateSize);
@@ -156,9 +156,9 @@ public:
             timeSet->read(time, timeSet->getDataType());
             temporalSubset(time);
         }
-        else cout << "temporal constraint or temporal coordinate not found" << endl;
+        else std::cout << "temporal constraint or temporal coordinate not found" << std::endl;
                 
-        //cout << "coorDatasets.size(): " << this->coorDatasets.size() << endl;
+        //std::cout << "coorDatasets.size(): " << this->coorDatasets.size() << std::endl;
         
         // read lat/lon datasets if spatial(bbox/polygon) constraints exist
         if ((geoboxes != NULL || geoPolygon != NULL) && this->coorDatasets.size() != 0)
@@ -168,17 +168,17 @@ public:
                 double* lat = new double[coordinateSize];
                 double* lon = new double[coordinateSize];
                 readLatLonDatasets(this->coorDatasets.find(this->latitudes[i])->second, this->coorDatasets.find(this->longitudes[i])->second, lat,lon);
-                this->coors.insert(std::pair<string, double*>(this->latitudes[i],lat));
-                this->coors.insert(std::pair<string, double*>(this->longitudes[i],lon));
+                this->coors.insert(std::pair<std::string, double*>(this->latitudes[i],lat));
+                this->coors.insert(std::pair<std::string, double*>(this->longitudes[i],lon));
             }
         }
         
         // limit the index by spatial constraint
         if (geoboxes != NULL && this->coorDatasets.size() != 0) spatialBboxSubset(); 
-        else cout << "spatial constraint or lat/lon coordinates not found" << endl;
+        else std::cout << "spatial constraint or lat/lon coordinates not found" << std::endl;
         // limit the index by polygon
         if (geoPolygon != NULL && this->coorDatasets.size() != 0) spatialPolygonSubset();
-        else cout << "polygon or lat/lon coordinates not found" << endl;
+        else std::cout << "polygon or lat/lon coordinates not found" << std::endl;
         
         indexesProcessed = true;
         
@@ -186,33 +186,33 @@ public:
     }
 private:
     
-    vector<Group> superGroups;
-    vector<string> latitudes;
-    vector<string> longitudes;
-    map<string, DataSet*> coorDatasets;
-    map<string, double*> coors;
+    std::vector<H5::Group> superGroups;
+    std::vector<std::string> latitudes;
+    std::vector<std::string> longitudes;
+    std::map<std::string, H5::DataSet*> coorDatasets;
+    std::map<std::string, double*> coors;
     
     // limit the index range by spatial constraints
     void spatialBboxSubset()
     {
-        cout << "superGroup spatialBboxSubset" << endl;
+        std::cout << "superGroup spatialBboxSubset" << std::endl;
         bool contains = false;
         
         long indexBegin = indexes->minIndexStart, indexEnd = indexes->maxIndexEnd - 1;
         long start = 0, length = 0;
         for (int i=indexBegin; i<=indexEnd; i++)
         {
-            vector<geobox>::iterator geobox_it = geoboxes->begin();
+            std::vector<geobox>::iterator geobox_it = geoboxes->begin();
             for (; geobox_it != geoboxes->end(); geobox_it++)
             {
                 for (int j = 0; j < latitudes.size(); j++)
                 {
-                    //cout << latitudes[j] << "," << longitudes[j] << " -- " << i << endl;
-                    //cout << coors[latitudes[j]][i] << ", " << coors[longitudes[j]][i] << endl;
+                    //std::cout << latitudes[j] << "," << longitudes[j] << " -- " << i << std::endl;
+                    //std::cout << coors[latitudes[j]][i] << ", " << coors[longitudes[j]][i] << std::endl;
                     if (geobox_it->contains(coors[latitudes[j]][i], coors[longitudes[j]][i]))
                     {
                         contains = true;
-                        //cout << "found " << coors[latitudes[j]][i] << ", " << coors[longitudes[j]][i] << " inside polygon" << endl;
+                        //std::cout << "found " << coors[latitudes[j]][i] << ", " << coors[longitudes[j]][i] << " inside polygon" << std::endl;
                         break;
                     }
                     else contains = false;
@@ -227,7 +227,7 @@ private:
             // not covered by the bbox
             if (geobox_it == geoboxes->end())
             {
-                //cout << "latitude " << lat[i] << " and longitude " << lon[i] << " was not in the polygon" << endl;
+                //std::cout << "latitude " << lat[i] << " and longitude " << lon[i] << " was not in the polygon" << std::endl;
                 if (length != 0)
                 {
                     indexes->addSegment(start, length);
@@ -246,17 +246,17 @@ private:
     // limit the index range by polygon
     void spatialPolygonSubset()
     {
-        cout << "superGroup spatialPolygonSubset" << endl;
+        std::cout << "superGroup spatialPolygonSubset" << std::endl;
         IndexSelection* newIndexes = new IndexSelection(coordinateSize);
         
         geobox g = geoPolygon->getBbox();
-        if (geoboxes == NULL) geoboxes = new vector<geobox>();
+        if (geoboxes == NULL) geoboxes = new std::vector<geobox>();
         geoboxes->push_back(g);
         
-        cout << "geoboxes.size(): " << geoboxes->size() << endl;
+        std::cout << "geoboxes.size(): " << geoboxes->size() << std::endl;
         
         spatialBboxSubset();
-        cout << "indexes->size(): " << indexes->size() << endl;
+        std::cout << "indexes->size(): " << indexes->size() << std::endl;
         
         if (indexes->size() == 0) return;
         //if (indexes->size() == 0 || geoPolygon->isBbox()) return;
@@ -264,7 +264,7 @@ private:
         long start = 0, length = 0;
         bool contains = false;
         
-        for (map<long, long>::iterator it = indexes->segments.begin(); it != indexes->segments.end(); it++)
+        for (std::map<long, long>::iterator it = indexes->segments.begin(); it != indexes->segments.end(); it++)
         {
             for (int i = it->first; i != it->second+it->first; i++)
             {                
@@ -275,7 +275,7 @@ private:
                     {
                         contains = true;
                         break;
-                        //cout << "point: (" << lat[i] << "," << lon[i] << ") is within the polygon" << endl;
+                        //std::cout << "point: (" << lat[i] << "," << lon[i] << ") is within the polygon" << std::endl;
                     }
                     else contains = false;
                 }
@@ -286,7 +286,7 @@ private:
                 }
                 else
                 {
-                    //cout << "point: (" << lat[i] << "," << lon[i] << ") is not within the polygon" << endl;
+                    //std::cout << "point: (" << lat[i] << "," << lon[i] << ") is not within the polygon" << std::endl;
                     if (length != 0)
                     {
                         newIndexes->addSegment(start, length);

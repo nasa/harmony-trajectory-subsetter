@@ -26,21 +26,21 @@
 namespace program_options = boost::program_options;
 namespace property_tree = boost::property_tree;
 
-string infilename;
-string outfilename;
-string configFile;
-string subsettype;
-string bounding_box;
-string startString;
-string endString;
-string boundingShape;
-string originalOutputFormat;
-string outputFormat;
-string datasetList;
+std::string infilename;
+std::string outfilename;
+std::string configFile;
+std::string subsettype;
+std::string bounding_box;
+std::string startString;
+std::string endString;
+std::string boundingShape;
+std::string originalOutputFormat;
+std::string outputFormat;
+std::string datasetList;
 bool reproject;
 
-vector<geobox>* geoboxes = NULL; // Multiple bounding boxes can be specified.
-vector<string> datasetsToInclude;
+std::vector<geobox>* geoboxes = NULL; // Multiple bounding boxes can be specified.
+std::vector<std::string> datasetsToInclude;
 property_tree::ptree boundingShapePt;
 
 int process_args(int argc, char* argv[])
@@ -52,13 +52,13 @@ int process_args(int argc, char* argv[])
             ("outfile,o", program_options::value<std::string>(), "Name of output file")
             ("configfile,c", program_options::value<std::string>(), "Configure file")
             ("subsettype,t", program_options::value<std::string>(), "Subset type (ICESAT, SMAP, GLAS)")
-            ("bbox,b", program_options::value<vector<string> >(), "Bounding Boxes (West,South,East,North) degrees")
+            ("bbox,b", program_options::value<std::vector<std::string> >(), "Bounding Boxes (West,South,East,North) degrees")
             ("start,s", program_options::value<std::string>(), "Temporal search start")
             ("end,e", program_options::value<std::string>(), "Temporal search end")
             ("includedataset,i", program_options::value<std::string>(), "Only include the specified datasets to include in output product")
-            ("boundingshape,p", program_options::value<string>(), "Bounding shape(polygon)")
-            ("reformat,r", program_options::value<string>(), "Change the output format (-r GeoTIFF)")
-            ("crs,j", program_options::value<string>(), "Reproject to the coordinate reference system (e.g. EPSG:4326");
+            ("boundingshape,p", program_options::value<std::string>(), "Bounding shape(polygon)")
+            ("reformat,r", program_options::value<std::string>(), "Change the output format (-r GeoTIFF)")
+            ("crs,j", program_options::value<std::string>(), "Reproject to the coordinate reference system (e.g. EPSG:4326");
 
     program_options::variables_map variables_map;
     program_options::store(program_options::command_line_parser(argc, argv).options(description).run(), variables_map);
@@ -75,7 +75,7 @@ int process_args(int argc, char* argv[])
     // Access filename from the input command, if specified.
     infilename = variables_map["filename"].as<std::string>();
     std::cout << "filename: " << infilename << std::endl;
-    if (!ifstream(infilename.c_str()))
+    if (!std::ifstream(infilename.c_str()))
     {
         std::cout << "ERROR: Could not open input file " << infilename << std::endl;
         return 1;
@@ -83,7 +83,7 @@ int process_args(int argc, char* argv[])
 
     // Access output file from the input command, if specfied.
     if (variables_map.count("outfile")) outfilename = variables_map["outfile"].as<std::string>();
-    if (outfilename.find("--") == 0 || !ofstream(outfilename.c_str()))
+    if (outfilename.find("--") == 0 || !std::ofstream(outfilename.c_str()))
     {
         std::cout << "ERROR: Could not open output file " << outfilename << std::endl;
         return 1;
@@ -95,13 +95,13 @@ int process_args(int argc, char* argv[])
     configFile = (variables_map.count("configfile"))? variables_map["configfile"].as<std::string>() : "";
 
     // Access bounding box from the input command, if specified.
-    match_results<std::string::const_iterator> regex_results;
+    boost::match_results<std::string::const_iterator> regex_results;
     if (variables_map.count("bbox"))
     {
-        vector<string> boxes = variables_map["bbox"].as<vector<string> >();
-        regex bbox_format("[']?[-]?[.\\d]+,[-]?[.\\d]+,[-]?[.\\d]+,[-]?[.\\d]+[']?");
+        std::vector<std::string> boxes = variables_map["bbox"].as<std::vector<std::string> >();
+        boost::regex bbox_format("[']?[-]?[.\\d]+,[-]?[.\\d]+,[-]?[.\\d]+,[-]?[.\\d]+[']?");
 
-        for (vector<string>::iterator it = boxes.begin(); it != boxes.end(); it++)
+        for (std::vector<std::string>::iterator it = boxes.begin(); it != boxes.end(); it++)
         {
             if (!regex_match((*it), regex_results, bbox_format))
             {
@@ -111,16 +111,16 @@ int process_args(int argc, char* argv[])
 
             std::cout << "Adding bounding box " << *it << std::endl;
             bounding_box += *it;
-            char_separator<char> sep(",");
-            tokenizer<char_separator<char> > tokens(*it, sep);
-            tokenizer<char_separator<char> >::iterator iter = tokens.begin();
+            boost::char_separator<char> sep(",");
+            boost::tokenizer<boost::char_separator<char> > tokens(*it, sep);
+            boost::tokenizer<boost::char_separator<char> >::iterator iter = tokens.begin();
             double w = atof(iter->c_str());
             double s = atof((++iter)->c_str());
             double e = atof((++iter)->c_str());
             double n = atof((++iter)->c_str());
             if (geoboxes == NULL)
             {
-                geoboxes = new vector<geobox>();
+                geoboxes = new std::vector<geobox>();
             }
             geoboxes->push_back(geobox(w, s, e, n));
         }
@@ -132,7 +132,7 @@ int process_args(int argc, char* argv[])
     {
         startString = variables_map["start"].as<std::string>();
         endString = variables_map["end"].as<std::string>();
-        regex date_format("[']?[\\d]{4}-[\\d]{2}-[\\d]{2}(T[\\d]{2}:[\\d]{2}:[\\d]{2}[\\.[\\d]*]?)?[']?");
+        boost::regex date_format("[']?[\\d]{4}-[\\d]{2}-[\\d]{2}(T[\\d]{2}:[\\d]{2}:[\\d]{2}[\\.[\\d]*]?)?[']?");
         if (!regex_match(startString, regex_results, date_format) || !regex_match(endString, regex_results, date_format))
         {
             std::cout << "ERROR: Invalid start or end parameter " << std::endl;
@@ -156,7 +156,7 @@ int process_args(int argc, char* argv[])
     if (variables_map.count("boundingshape"))
     {
         boundingShape = variables_map["boundingshape"].as<std::string>();
-        if (boundingShape.find("geojson") != string::npos)
+        if (boundingShape.find("geojson") != std::string::npos)
         {
             property_tree::read_json(boundingShape, boundingShapePt);
         }
@@ -229,7 +229,7 @@ int main(int argc, char* argv[])
         
         // Read in a json file if one is provided for the
         // requested datasets.
-        if (datasetList.find("json") != string::npos)
+        if (datasetList.find("json") != std::string::npos)
         {
             subsetDataLayers = new SubsetDataLayers(datasetList);
         }
@@ -237,9 +237,9 @@ int main(int argc, char* argv[])
         // line request via --includedatasets.
         else
         {
-            string dataset;
-            char_separator<char> delim(" ,");
-            tokenizer<char_separator<char> > datasets(datasetList, delim);
+            std::string dataset;
+            boost::char_separator<char> delim(" ,");
+            boost::tokenizer<boost::char_separator<char> > datasets(datasetList, delim);
             BOOST_FOREACH(dataset, datasets)
             {
                 datasetsToInclude.push_back(dataset);
@@ -265,9 +265,9 @@ int main(int argc, char* argv[])
         // Extract the granule mission by passing the short name returned by 
         // a Subsetter class function into a Configuration instance function.
         Subsetter* getMission = new Subsetter(subsetDataLayers, geoboxes, temporal, geoPolygon, outputFormat);
-        H5File infile = H5File(infilename,H5F_ACC_RDONLY);
-        string shortname = getMission->retrieveShortName(infile);
-        string mission = Configuration::getInstance()->getMissionFromShortName(shortname);
+        H5::H5File infile = H5::H5File(infilename,H5F_ACC_RDONLY);
+        std::string shortname = getMission->retrieveShortName(infile);
+        std::string mission = Configuration::getInstance()->getMissionFromShortName(shortname);
         delete getMission;
 
         // Select which subsetter is needed for the mission.
@@ -309,18 +309,18 @@ int main(int argc, char* argv[])
     }
     catch (H5::Exception e)
     {
-        cerr << "ERROR: caught H5 Exception " << e.getDetailMsg() << std::endl;
+        std::cerr << "ERROR: caught H5 Exception " << e.getDetailMsg() << std::endl;
         e.printErrorStack();
         return -1;
     }
     catch (std::exception &e)
     {
-        cerr << "ERROR: caught std::exception " << e.what() << std::endl;
+        std::cerr << "ERROR: caught std::exception " << e.what() << std::endl;
         return -1;
     }
     catch (...)
     {
-        cerr << "ERROR: unknown exception occurred";
+        std::cerr << "ERROR: unknown exception occurred";
         return -1;
     }
     return ErrorCode;

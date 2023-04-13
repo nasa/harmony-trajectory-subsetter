@@ -17,14 +17,13 @@
 
 #include "geobox.h"
 
-using namespace std;
-using namespace boost;
-namespace pt = boost::property_tree;
 
-typedef geometry::model::d2::point_xy<double> point_type;
-typedef geometry::model::polygon<point_type> polygon_type;
-typedef geometry::model::multi_polygon<polygon_type> multi_polygon_type;
-typedef geometry::model::box<point_type> box_type;
+namespace property_tree = boost::property_tree;
+
+typedef boost::geometry::model::d2::point_xy<double> point_type;
+typedef boost::geometry::model::polygon<point_type> polygon_type;
+typedef boost::geometry::model::multi_polygon<polygon_type> multi_polygon_type;
+typedef boost::geometry::model::box<point_type> box_type;
 
 
 class GeoPolygon
@@ -36,14 +35,14 @@ public:
     bool crossedEast;
     bool crossedWest;
     
-    GeoPolygon(pt::ptree root):crossedEast(false),crossedWest(false)
+    GeoPolygon(property_tree::ptree root):crossedEast(false),crossedWest(false)
     {
-        //cout << "GeoPolygon" << endl;
+        //std::cout << "GeoPolygon" << std::endl;
         readPolygon(root);
-        //cout << geometry::dsv(polygons) << endl;
+        //std::cout << boost::geometry::dsv(polygons) << std::endl;
     };
     
-    //vector<vector<vector<vector<double>>>> getVertices() { return vertices;};
+    //std::vector<std::vector<std::vector<std::vector<double>>>> getVertices() { return vertices;};
     
      /**
      * get a minimal bounding box surrounding the polygon
@@ -53,9 +52,9 @@ public:
     {
         double w, s, e, n;
         
-        geometry::envelope(polygons, box);
+        boost::geometry::envelope(polygons, box);
         
-        cout << "box: " << geometry::dsv(box) << endl;
+        std::cout << "box: " << boost::geometry::dsv(box) << std::endl;
         
         w = box.min_corner().get<0>();
         s = box.min_corner().get<1>();
@@ -66,10 +65,10 @@ public:
         if (w < -180) crossedWest = true;
         else if (e > 180) crossedEast = true;
         
-        /*cout << "west: " << w << endl;
-        cout << "south: " << s << endl;
-        cout << "east: " << e << endl;
-        cout << "north: " << n << endl;*/
+        /*std::cout << "west: " << w << std::endl;
+        std::cout << "south: " << s << std::endl;
+        std::cout << "east: " << e << std::endl;
+        std::cout << "north: " << n << std::endl;*/
         
         return geobox(w, s, e, n);
     }
@@ -95,16 +94,16 @@ public:
             lon = lon + -360;
         }
         
-        point_type pt(lon, lat);
+        point_type property_tree(lon, lat);
         
-        if (boost::geometry::within(pt, polygons))
+        if (boost::geometry::within(property_tree, polygons))
         {
-            //cout << "point: " << geometry::dsv(pt) << " is within the polygon" << endl;
+            //std::cout << "point: " << boost::geometry::dsv(property_tree) << " is within the polygon" << std::endl;
             return true;
         }
         else
         {
-            //cout << "point: " << geometry::dsv(pt) << " is not within the polygon" << endl;
+            //std::cout << "point: " << boost::geometry::dsv(property_tree) << " is not within the polygon" << std::endl;
             return false;
         }
     }
@@ -124,12 +123,12 @@ public:
 private:
     
     /* stores polygon/multi-polygon vertices
-     * vector<double> - one vertex of the polygon
-     * vector<vector<double>> - vertices of a polygon
-     * vector<vector<vector<double>>> - polygon with inner rings
-     * vector<<vector<vector<vector<double>>>> - multi-polygon
+     * std::vector<double> - one vertex of the polygon
+     * std::vector<std::vector<double>> - vertices of a polygon
+     * std::vector<std::vector<std::vector<double>>> - polygon with inner rings
+     * std::vector<<std::vector<std::vector<std::vector<double>>>> - multi-polygon
      */
-    vector<vector<vector<vector<double>>>> vertices;
+    std::vector<std::vector<std::vector<std::vector<double>>>> vertices;
         
     /**
      * extract polygon from the GeoJSON content
@@ -148,11 +147,11 @@ private:
      * |       |    |
      * +-------+----+- Polygon      # 3D Array (of linear rings of points of [x,y])
      */
-    void readPolygon(pt::ptree tree)
+    void readPolygon(property_tree::ptree tree)
     {        
-        vector<string> objTypes = {"Polygon", "MultiPolygon"};
+        std::vector<std::string> objTypes = {"Polygon", "MultiPolygon"};
         
-        string objType = getType(tree);
+        std::string objType = getType(tree);
         
         // found Polygon or MultiPolygon
         if (std::find(objTypes.begin(), objTypes.end(), objType) != objTypes.end())
@@ -161,7 +160,7 @@ private:
         }
         else if (objType == "FeatureCollection" && tree.get_child_optional("features"))
         {
-            BOOST_FOREACH(pt::ptree::value_type &nodei, tree.get_child("features"))
+            BOOST_FOREACH(property_tree::ptree::value_type &nodei, tree.get_child("features"))
             {
                 readPolygon(nodei.second);
             }
@@ -172,7 +171,7 @@ private:
         }
         else if (objType == "GeometryCollection" && tree.get_child_optional("geometries"))
         {
-            BOOST_FOREACH(pt::ptree::value_type &nodei, tree.get_child("geometries"))
+            BOOST_FOREACH(property_tree::ptree::value_type &nodei, tree.get_child("geometries"))
             {
                 readPolygon(nodei.second);
             }
@@ -184,9 +183,9 @@ private:
      * extract polygon vertices from the tree
      * @param tree GeoJSON content
      */
-    void getCoordinatesFromGeoJSON(pt::ptree tree)
+    void getCoordinatesFromGeoJSON(property_tree::ptree tree)
     {                
-        //cout << "getCooordinatesFromGeoJSON" << endl;
+        //std::cout << "getCooordinatesFromGeoJSON" << std::endl;
         bool isPolygon = (getType(tree) == "Polygon") ? true : false;
         bool isMultiPolygon = (getType(tree) == "MultiPolygon") ? true : false;
         
@@ -197,7 +196,7 @@ private:
         int inner = 0;
         polygon_type poly;
         
-        BOOST_FOREACH(pt::ptree::value_type nodei, tree.get_child("coordinates"))
+        BOOST_FOREACH(property_tree::ptree::value_type nodei, tree.get_child("coordinates"))
         {
             if (isPolygon)
             {
@@ -218,28 +217,28 @@ private:
      * extract polygon from the tree
      * @param tree GeoJSON content
      */
-    void getPolygon(polygon_type &poly, pt::ptree tree, bool outer, int inner)
+    void getPolygon(polygon_type &poly, property_tree::ptree tree, bool outer, int inner)
     {
-        //cout << "getPolygon: " << inner << endl;
-        vector<double> point;
+        //std::cout << "getPolygon: " << inner << std::endl;
+        std::vector<double> point;
         
-        BOOST_FOREACH(pt::ptree::value_type &nodei, tree)
+        BOOST_FOREACH(property_tree::ptree::value_type &nodei, tree)
         {
-            BOOST_FOREACH(pt::ptree::value_type &nodej, nodei.second)
+            BOOST_FOREACH(property_tree::ptree::value_type &nodej, nodei.second)
             {
                 point.push_back(nodej.second.get_value<double>());
                 if (point.size() == 2) break;
             }
-            point_type pt(point[0], point[1]);
+            point_type property_tree(point[0], point[1]);
             point.clear();
-            //cout << geometry::dsv(pt) << endl;
+            //std::cout << boost::geometry::dsv(property_tree) << std::endl;
             if (outer) 
             {
-                poly.outer().push_back(pt);
+                poly.outer().push_back(property_tree);
             }
             else
             {
-                poly.inners()[inner-1].push_back(pt);
+                poly.inners()[inner-1].push_back(property_tree);
             }
         }
     }
@@ -248,13 +247,13 @@ private:
      * extract multi-polygon from the tree
      * @param tree GeoJSON content
      */
-    void getMultiPolygon(pt::ptree tree, polygon_type &poly)
+    void getMultiPolygon(property_tree::ptree tree, polygon_type &poly)
     {
-        //cout << "getMultiPolygon" << endl;
+        //std::cout << "getMultiPolygon" << std::endl;
         bool outer = true;
         int inner = 0;
         int counter = 1;
-        BOOST_FOREACH(pt::ptree::value_type &nodei, tree)
+        BOOST_FOREACH(property_tree::ptree::value_type &nodei, tree)
         {
             if (!outer)
             {
@@ -273,12 +272,12 @@ private:
      * @param tree GeoJSON content
      * @return objType type of the object
      */
-    string getType(pt::ptree tree)
+    std::string getType(property_tree::ptree tree)
     {
-        string objType = "";
+        std::string objType = "";
         if (tree.get_child_optional("type"))
         {
-            objType = tree.get<string>("type");
+            objType = tree.get<std::string>("type");
         }
         
         return objType;
