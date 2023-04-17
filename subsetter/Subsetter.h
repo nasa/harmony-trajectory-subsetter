@@ -31,7 +31,7 @@
 
 
 /**
- * This class subsets the HDF5 file 
+ * This is the base class for subsetting an HDF5 file.
  */
 class Subsetter
 {
@@ -50,53 +50,57 @@ public:
     }
 
     /**
-     * subsets
-     * return code 0: successful, 3: no matching data
-     * exception should be caught in calling function
+     * This function performs the subset, calling .
+     * A successful subset returns 0, and an 
+     * unsuccessful subset means no matching data was
+     * found and returns 3.
      */
     int subset(std::string infilename, std::string outfilename)
     {
         int returnCode = 0;
         
+        // Open the input HDF5 file.
         std::cout << "Opening " << infilename << std::endl;
         this->infile = H5::H5File( infilename, H5F_ACC_RDONLY );
-        std::cout << "Opening " << outfilename << std::endl;
 
-        hid_t fapl = H5Pcreate(H5P_FILE_ACCESS);
-        H5Pset_libver_bounds(fapl, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST);
-        H5::FileAccPropList faplObj(fapl);
-        this->outfile = H5::H5File(outfilename, H5F_ACC_TRUNC, infile.getCreatePlist(), faplObj);
-        H5Pclose(fapl);
+        // Create (or overwrite the existing) output file with 
+        // the creation properties of the input file and with 
+        // the default access property list of the latest HDF5 
+        // library release version.
+        std::cout << "Opening " << outfilename << std::endl;
+        hid_t fileAccessPropList = H5Pcreate(H5P_FILE_ACCESS);
+        H5Pset_libver_bounds(fileAccessPropList, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST);
+        H5::FileAccPropList fileAccessPropListObj(fileAccessPropList);
+        this->outfile = H5::H5File(outfilename, H5F_ACC_TRUNC, infile.getCreatePlist(), fileAccessPropListObj);
+        H5Pclose(fileAccessPropList);
         
         this->shortName = retrieveShortName(infile);
-        // update epoch time if configured for this product
+
+        // Update epoch time if it's configured for this product,
+        // otherwise return an empty string.
         std::string epochTime = Configuration::getInstance()->getProductEpoch(shortName);
         if (!epochTime.empty() && this->temporal != NULL)
         {
             this->temporal->updateReferenceTime(epochTime);
         }
 
+        // Open the top level/root group in both in the input and
+        // output file.
         H5::Group ingroup = this->infile.openGroup("/");
         H5::Group outgroup = this->outfile.openGroup("/");
 
-        // copy top level attributes
+        // Copy the top level/root attributes to the output.
         copyAttributes(ingroup, outgroup, "/");
 
-        // convert and write group and its datasets recursively 
+        // Convert and write group and its datasets recursively
+        // to the root group. 
         copyH5(ingroup, ingroup, outgroup, "/");
 
-        // recreate and re-attach dimension scales in the output file
+        // Recreate and re-attach dimension scales in the output file.
         dimensionScales->recreateDimensionScales(outfile);
         
-        // check if the matching data found
+        // Check if matching data is found.
         matchingDataFound = isMatchingDataFound();
-
-        // adding warning attribute
-        addProcessingParameterAttribute(outgroup, infilename);
-        
-        std::cout << "WRITING " << std::endl;
-        outfile.flush(H5F_SCOPE_GLOBAL);
-        std::cout << "datasets size: " << subsetDataLayers->getDatasets().size() << std::endl;
 
         if (!matchingDataFound)
         {
@@ -106,18 +110,28 @@ public:
             else
                 std::cout << "Removed output file " << outfilename << " because there was no matching data for the constraints specified." << std::endl;    
         }
+
+        // Add an attribute that contains the specified parameters,
+        // including the dataset list and the temporal and spatial bounds,
+        // if specified. 
+        addProcessingParameterAttribute(outgroup, infilename);
         
+        std::cout << "WRITING " << std::endl;
+        outfile.flush(H5F_SCOPE_GLOBAL);
+        std::cout << "datasets size: " << subsetDataLayers->getDatasets().size() << std::endl;
+       
+        // If the specified output format is a GeoTIFF, call the GeoTIFF converter.
         if (outputFormat == "GeoTIFF")
         {
             std::cout << "Outputting to GeoTIFF" << std::endl;
-            //createGeoTIFFOutput(outfilename);
             geotiff_converter geotiff = geotiff_converter(outfilename, shortName, outgroup, subsetDataLayers);
         }
         
         return returnCode;
     }
     
-    /* gets short name from the metadata
+    /** 
+     * Retrieve the mission short name from an HDF5 file's metadata.
      */
     virtual std::string retrieveShortName(const H5::H5File& file)
     {
@@ -195,38 +209,48 @@ protected:
     GeoPolygon* getGeoPolygon() { return this->geoPolygon; }
     
     /**
-     * copy the attributes
+     * Copy the attributes from the input file to the output file.
      */
-    void copyAttributes(const H5::H5Object& inobj, H5::H5Object& outobj, const std::string& groupname)
+    void copyAttributes(const H5::H5Object& inputFile, H5::H5Object& outputFile, const std::string& groupname)
     {
-        for (int k = 0; k < inobj.getNumAttrs(); k++)
+        for (int k = 0; k < inputFile.getNumAttrs(); k++)
         {
-            H5::Attribute attr = inobj.openAttribute(k);
-            if (outobj.attrExists(attr.getName())) continue;
-            H5::DataType datatype = attr.getDataType();
-            //std::cout << "attr name: " << attr.getName() << std::endl;
-            // assume the attribute with datatype H5T_COMPOUND and H5T_VLEN are for dimension scales,
-            // dimension scales are handled separately
-            if (attr.getDataType().getClass() == H5T_COMPOUND)
+            H5::Attribute attribute = inputFile.openAttribute(k);
+            if (outputFile.attrExists(attribute.getName())) 
             {
-                if (attr.getName() != "REFERENCE_LIST")
-                    std::cout << "Could not handle attribute " << attr.getName()
-                    << " with type " << attr.getDataType().getClass() << std::endl; 
+                continue;
             }
-            else if (attr.getDataType().getClass() == H5T_VLEN)
+            H5::DataType datatype = attribute.getDataType();
+
+            // The attribute with datatype H5T_COMPOUND and H5T_VLEN 
+            // are for dimension scales which are handled separately.
+            if (attribute.getDataType().getClass() == H5T_COMPOUND)
             {
-                if (attr.getName() != "DIMENSION_LIST")
-                    std::cout << "Could not handle attribute " << attr.getName()
-                    << " with type " << attr.getDataType().getClass() << std::endl; 
+                if (attribute.getName() != "REFERENCE_LIST")
+                {
+                    std::cout << "Could not handle attribute " << attribute.getName()
+                    << " with type " << attribute.getDataType().getClass() << std::endl; 
+                }
             }
+            else if (attribute.getDataType().getClass() == H5T_VLEN)
+            {
+                if (attribute.getName() != "DIMENSION_LIST")
+                {
+                    std::cout << "Could not handle attribute " << attribute.getName()
+                    << " with type " << attribute.getDataType().getClass() << std::endl;
+                } 
+            }
+            // Otherwise, copy over the attribute to the output file.
             else
             {
-                void* buf = malloc(attr.getInMemDataSize());
-                attr.read(attr.getDataType(), buf);
-                // if the attribute is coordinates, need to verify it's still valid              
-                if (attr.getName() != "coordinates" || isCoordinatesAttributeValid(attr, groupname))
+                void* buf = malloc(attribute.getInMemDataSize());
+                attribute.read(attribute.getDataType(), buf);
+                // If the attribute is coordinates, we need to verify 
+                // it's still valid since datasets which the attribute 
+                // points to may not exist anymore.       
+                if (attribute.getName() != "coordinates" || isCoordinatesAttributeValid(attribute, groupname))
                 {
-                    H5::Attribute outattr = outobj.createAttribute(attr.getName(), datatype, attr.getSpace());
+                    H5::Attribute outattr = outputFile.createAttribute(attribute.getName(), datatype, attribute.getSpace());
                     outattr.write(outattr.getDataType(), buf);
                 }
                 free(buf);
@@ -281,7 +305,6 @@ protected:
         H5::DSetCreatPropList plist = indataset.getCreatePlist();
         if (indataset.getCreatePlist().getLayout() == H5D_CONTIGUOUS)
         {
-            //std::cout << "contiguous" << std::endl;
             plist.setLayout(H5D_CHUNKED);
             plist.setChunk(dimnum, olddims);
             plist.setAllocTime(H5D_ALLOC_TIME_INCR);
@@ -307,14 +330,12 @@ protected:
                     if (j!=dim) offset[j]=0;
                 }
                 count[dim] = it->second;                
-                //std::cout << "selecting " << count[0] << " from inspace with offset: " << offset[0] << std::endl;
                 for (int j=0;j<dimnum;j++)
                 {
                     if  (j!=dim) count[j]=newdims[j];
                 }
                 inspace.selectHyperslab(H5S_SELECT_OR, count, offset);
             }
-            //std::cout << "Total spatially selected is " << inspace.getSelectNpoints() << std::endl;
     
             // adding temporal if no spatial subsetting
             if (indexes->segments.empty())
@@ -325,19 +346,16 @@ protected:
                     if (j!=dim) offset[j]=0;
                 }
                 count[dim] = indexes->maxIndexEnd - indexes->minIndexStart;
-                //std::cout << "selecting " << count[0] << " temporal match inspace with offset " << offset[0] << std::endl;
                 for (int j=0;j<dimnum;j++)
                 {
                     if (j!=dim) count[j]=newdims[j];
                 }
                 inspace.selectHyperslab(H5S_SELECT_OR, count, offset);
             }
-            //std::cout << "Total selected is " << inspace.getSelectNpoints() << std::endl;
         }
         
         void* buf = malloc(inspace.getSelectNpoints() * datatype.getSize());        
         indataset.read(buf, datatype, outspace, inspace);        
-        //std::cout << "writing " << objname << std::endl;
         outdataset.write(buf, datatype, H5::DataSpace::ALL, outspace);
         free(buf);
     }
@@ -483,7 +501,6 @@ private:
         boost::char_separator<char> delim(" ,");
         attr.read(attr.getDataType(), attrValue);
         boost::tokenizer<boost::char_separator<char>> datasets(attrValue, delim);
-        //std::cout << "groupname: " << groupname << " coordinates: " << attrValue << std::endl;
         BOOST_FOREACH(std::string dataset, datasets)
         {            
             // if the dataset doesn't start with /, it has relative path,
@@ -508,10 +525,8 @@ private:
                         it = find(paths.begin(), paths.end(), doublePeriods);
                     }
                     dataset = boost::join(paths, pathDelim);
-                    //std::cout << "normalized dataset std::string " << dataset << std::endl;
                 }
             }
-            //std::cout << "isCoordinatesAttributeValid dataset: " << dataset << std::endl;
             // if any of the dataset is not included, 
             // then the Coordinates attribute is not valid
             if (!subsetDataLayers->is_dataset_included(dataset))
@@ -589,7 +604,7 @@ private:
      * Check if matching data found in the output.
      * If the result has only one group and that group is
      * the metadata group, return false.
-     * Otherwise return true in the following cases:
+     * Otherwise the following cases are considered:
      * (1). Only parameter subsetting.
      * (2). Spatial/temporal subsetting, user request only contains unsubsettable datasets.
      * (3). Spatial/temporal subsetting, user request contains subsettable datasets, and output has subsettable datasets.
@@ -666,7 +681,6 @@ private:
             while (set_iter != it->end())
             {
                 std::string datasetName = *set_iter;
-                //std::cout << "datasetName: " << datasetName << std::endl;
                 bool isMetadataGroup =
                 (boost::to_upper_copy<std::string>(datasetName).compare(0, metadataGroup.length(), metadataGroup) == 0) ?
                 true : false;
