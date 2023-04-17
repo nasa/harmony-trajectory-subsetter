@@ -1,3 +1,8 @@
+[version 0.1.9] 2023-04-17
+
+- **DAS-1806**
+  - Refactoring: Removed global namespaces and updated Subset.cpp and Subsetter.h to incorporate modern coding standards.
+
 [version 0.1.8] 2023-03-22
 
 - **DAS-1773**
