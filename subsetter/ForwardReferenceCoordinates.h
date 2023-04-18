@@ -7,14 +7,13 @@
 
 #include <boost/algorithm/string/find.hpp>
 
-using namespace std;
 
 class ForwardReferenceCoordinates: public Coordinate
 {
 public:
     IndexSelection* segIndexes;
     
-    ForwardReferenceCoordinates(string groupname, vector<geobox>* geoboxes, Temporal* temporal, GeoPolygon* geoPolygon)
+    ForwardReferenceCoordinates(std::string groupname, std::vector<geobox>* geoboxes, Temporal* temporal, GeoPolygon* geoPolygon)
     : Coordinate(groupname, geoboxes, temporal, geoPolygon)
     {
     }
@@ -33,23 +32,23 @@ public:
      * @param string shortName: product short name
      * @param SubsetDataLayers subsetDataLayers: dataset name to include in the output
      */
-    static Coordinate* getCoordinate(Group& root, Group& ingroup, const string& shortName, SubsetDataLayers* subsetDataLayers,
-                    const string& groupname, vector<geobox>* geoboxes, Temporal* temporal, GeoPolygon* geoPolygon)
+    static Coordinate* getCoordinate(H5::Group& root, H5::Group& ingroup, const std::string& shortName, SubsetDataLayers* subsetDataLayers,
+                    const std::string& groupname, std::vector<geobox>* geoboxes, Temporal* temporal, GeoPolygon* geoPolygon)
     {
-        cout << "groupname: " << groupname << endl;
+        std::cout << "groupname: " << groupname << std::endl;
         if (Coordinate::lookUp(groupname))
         {
-            cout << groupname << " already exists in lookUpMap(ForwardReferenceCoordinate)" << endl;
+            std::cout << groupname << " already exists in lookUpMap(ForwardReferenceCoordinate)" << std::endl;
             return lookUpMap[groupname];
         }
         
         ForwardReferenceCoordinates* forCoor = new ForwardReferenceCoordinates(groupname, geoboxes, temporal, geoPolygon);
-        cout << "getSegIndexSelection " << groupname << endl;
+        std::cout << "getSegIndexSelection " << groupname << std::endl;
         forCoor->coordinateSize = 0;
         if (Configuration::getInstance()->isPhotonDataset(shortName,groupname))
         {
-            DataSet data = root.openDataSet(groupname);
-            DataSpace inspace = data.getSpace();
+            H5::DataSet data = root.openDataSet(groupname);
+            H5::DataSpace inspace = data.getSpace();
             int dim = inspace.getSimpleExtentNdims();
             hsize_t olddims[dim];
             inspace.getSimpleExtentDims(olddims);
@@ -60,10 +59,10 @@ public:
             forCoor->setCoordinateSize(ingroup);
         }
         forCoor->shortname = shortName;
-        //cout << "shotName: " << shortName << endl;
+        //std::cout << "shotName: " << shortName << std::endl;
       
         // get the segment group name 
-        string segGroupname = Configuration::getInstance()->getReferencedGroupname(shortName, groupname);
+        std::string segGroupname = Configuration::getInstance()->getReferencedGroupname(shortName, groupname);
         
         // if segment group does not exist, return everything
         if (H5Lexists(root.getLocId(), segGroupname.c_str(), H5P_DEFAULT) == 0)
@@ -99,33 +98,33 @@ public:
      */
     virtual IndexSelection* getIndexSelection()
     {        
-        cout << " ForwardReferenceCoordinates getIndexSelection" << endl;
+        std::cout << " ForwardReferenceCoordinates getIndexSelection" << std::endl;
         
         // if both temporal and spatial constraints don't exist,
         // return null to include all in the output
         if (geoboxes == NULL && temporal == NULL && geoPolygon == NULL) return NULL;
         
-        DataSet *indexBegSet = NULL, *countSet = NULL;
+        H5::DataSet *indexBegSet = NULL, *countSet = NULL;
                 
         indexes = new IndexSelection(coordinateSize);
         
-        string indexBegName, countName;
+        std::string indexBegName, countName;
         
         // get dataset names for the datasets that provides the the starting index in the photon group (indexBeg)
         // and number of photons in the segment follow in sequence from this index value (segmentPnCnt)
         Configuration::getInstance()->getDatasetNames(shortname, groupname, indexBegName, countName);
         if (!indexBegName.empty() && H5Lexists(segGroup.getLocId(), indexBegName.c_str(), H5P_DEFAULT) > 0)
         {
-            indexBegSet = new DataSet(segGroup.openDataSet(indexBegName));
+            indexBegSet = new H5::DataSet(segGroup.openDataSet(indexBegName));
         }
         else
         {
             // if fbswath_lead_ndx_gt<1l,1r....> doesn't exist, try fbswath_lead_ndx_gt<1...6> for ATL10
             Configuration::getInstance()->groundTrackRename(groupname, indexBegName, countName);
-            indexBegSet = new DataSet(segGroup.openDataSet(indexBegName));
+            indexBegSet = new H5::DataSet(segGroup.openDataSet(indexBegName));
         }
         if (!countName.empty() && H5Lexists(segGroup.getLocId(), countName.c_str(), H5P_DEFAULT) > 0)
-            countSet = new DataSet(segGroup.openDataSet(countName));
+            countSet = new H5::DataSet(segGroup.openDataSet(countName));
 
         photonSubset(indexBegSet, countSet);
                 
@@ -136,23 +135,23 @@ public:
     
 private:
     
-    Group segGroup;
-    string shortname;
+    H5::Group segGroup;
+    std::string shortname;
     
     /*
      * limit the index range by indexBeg and count datasets
      * @param DataSet indexBegSet: index begin dataset
      * @param DataSet countSet: index count dataset
      */
-    void photonSubset(DataSet* indexBegSet, DataSet* countSet)
+    void photonSubset(H5::DataSet* indexBegSet, H5::DataSet* countSet)
     {
-        cout << "photonSubset" << endl;
+        std::cout << "photonSubset" << std::endl;
                 
         long start = 0, length = 0, segStart = 0, segLength = 0;
         
-        DataSet* nonNullDataset = (indexBegSet != NULL)? indexBegSet : countSet;
+        H5::DataSet* nonNullDataset = (indexBegSet != NULL)? indexBegSet : countSet;
         size_t coordinateSize = nonNullDataset->getSpace().getSimpleExtentNpoints();
-        //cout << "coordinateSize: " << coordinateSize << endl;
+        //std::cout << "coordinateSize: " << coordinateSize << std::endl;
         
         // index begin datasets for ATL03 and ATL08 are 64-bit and 32-bit for ATL10
         hid_t indexBeg_native_type = H5Tget_native_type(H5Dget_type(indexBegSet->getId()), H5T_DIR_ASCEND);
@@ -202,7 +201,7 @@ private:
         // set start and length for the photon level subsetting
         // start = first non-zero indexBeg - 1
         // length = last non-zero indexBeg - 1 + last non-zero count - start;
-        for (map<long, long>::iterator it = segIndexes->segments.begin(); it != segIndexes->segments.end(); it++)
+        for (std::map<long, long>::iterator it = segIndexes->segments.begin(); it != segIndexes->segments.end(); it++)
         {
             start = 0, length = 0;
             segStart = it->first;
