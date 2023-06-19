@@ -1,3 +1,8 @@
+[version 0.1.10] 2023-06-19
+
+- **DAS-1731**
+  - Bug fix: Updated FwdRefBeginDataset.h to correctly calculate index begin datasets for ATL03.
+
 [version 0.1.9] 2023-04-17
 
 - **DAS-1806**
