@@ -311,6 +311,11 @@ int main(int argc, char* argv[])
     {
         std::cerr << "ERROR: caught H5 Exception " << e.getDetailMsg() << std::endl;
         e.printErrorStack();
+        
+        if (e.getDetailMsg().compare("HFcreate") != 0)
+        {
+            std::cerr << "\nOutput file could not be created, check if it's currently open in another application.\n" << std::endl;
+        }
         return -1;
     }
     catch (std::exception &e)
