@@ -202,6 +202,8 @@ int process_args(int argc, char* argv[])
 */
 int main(int argc, char* argv[])
 {
+    std::cout << "Here there be dragons\n"; // DEBUG JSL
+
     // If process_args() returns a non-zero value,
     // then the arguments were unable to be processed.
     if (int processArgsErrorCode = process_args(argc, argv))
