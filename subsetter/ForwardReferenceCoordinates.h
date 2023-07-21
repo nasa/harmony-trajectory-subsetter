@@ -9,7 +9,10 @@
 
 /*
  * Subclass of Coordinate for forward-reference segment-begin + count coordinates
- * Includes getIndexSelection and Segmented Trajectory Subset operations
+ * These coordinates are associated with a target dataset (segmented trajectory),
+ * but refer to segment-control datasets (begin, count) typically in a
+ * separate segment group. This class Includes getIndexSelection and
+ * Segmented Trajectory Subset operations.
  * 
  * The count dataset is not used in the forward-reference calculation, 
  * due to the existence of data collections whose count dataset is not
@@ -20,6 +23,7 @@ class ForwardReferenceCoordinates: public Coordinate
 {
 public:
     IndexSelection* segIndexes;
+    // Selected Segments - computed in SegmentedTrajectorySubset method
     
     ForwardReferenceCoordinates   // main constructor for class
         (std::string groupname, std::vector<geobox>* geoboxes, 
@@ -34,14 +38,15 @@ public:
     }
     
     /*
-     * get the coordinate and IndexSelection object for ATL03 photon level subsetting based on segment group
-     * get the coordinate and indexSelection object for ATL10 leads group based on freeboard swath segment
+     * Get/populate the coordinate and IndexSelection object for ATL03
+     * photon level subsetting based on segment group and for ATL10
+     * leads group based on freeboard swath segment.
      * ex. /gt1l/geolocation
      * ex. /freeboard_swath_segment
      * @param Group root: root group
      * @param Group ingroup: input group
      * @param string shortName: product short name
-     * @param SubsetDataLayers subsetDataLayers: dataset name to include in the output
+     * @param SubsetDataLayers subsetDataLayers: dataset names to include in the output
      */
     static Coordinate* getCoordinate
         ( H5::Group&           root,     
@@ -117,16 +122,12 @@ public:
                       temporal, geoPolygon );
         }
         
-        // if the IndexSelection object for the segment group has already been processed, use it
-        // otherwise, process it
+        // if the IndexSelection object for the segment group has
+        // already been processed, use it. Otherwise, process it
         if (coor->indexesProcessed)
-        {
             forCoor->segIndexes = coor->indexes;
-        }
         else 
-        {
             forCoor->segIndexes = coor->getIndexSelection();
-        }
         
         // insert new coordinate object (forCoor) in lookup map
         // (coordinates have been established, and can be reused)
@@ -151,13 +152,16 @@ public:
         H5::DataSet *indexBegSet = NULL;
                 
         indexes = new IndexSelection(coordinateSize);
+            // self.coordinateSize = target segmented trajectory size
         
-        std::string indexBegName, countName;  // The count name is required for accessing dataset names.
+        std::string indexBegName, countName;  
+            // The count name is required for accessing dataset names.
         
-        // get dataset names for the datasets that provides the starting index 
-        // (indexBeg) in the target (segmented trajectory, photon) group and the 
-        // number of elements (photons, segmentPnCnt) in the segment that follow 
-        // in sequence from this start index 
+        // Get dataset names for the datasets that provides the 
+        // starting index. (indexBeg) in the target (segmented
+        // trajectory, photon) group and the number of elements
+        // (photons, segmentPnCnt) in the segment that follow in
+        // sequence from this start index.
         Configuration::getInstance()
             -> getDatasetNames(shortname, groupname, indexBegName, countName);
 
@@ -260,12 +264,14 @@ private:
      * @param trajSegLength    The length of the trajectory segment.
      * @param maxIndexBegIdx   The final index of the entire indexBeg
      *                         dataset.
+     * @param maxTrajSegRef    The final index of the entire trajectory
+     *                         dataset.
      * @param indexBegDataset  The input indexBeg dataset array.
      */
     void defineOneSegment( long selectedStartIdx, long selectedCount, 
-                           long &firstTrajSeg,  long &trajSegLength, 
-                           long maxIndexBegIdx,   int64_t indexBegDataset[] )
-        __attribute__ ((optnone)) // MacOS specific for debug
+                           long &firstTrajSeg,    long &trajSegLength, 
+                           long maxIndexBegIdx,   long maxTrajSegRef,
+                           int64_t indexBegDataset[] )
     {
 
 
@@ -300,7 +306,7 @@ private:
         // the padding that is present in the waveform (segmented trajectory) data.
 
         // Step forwards to find the next non-fill segment begin, using segment
-        // group coordinate size as last segment begin reference to look at.
+        // group max index as last segment begin reference to look at.
         long nextBegIdx = 0;     // non-fill begin index after the last
                                  // selected index begin segment
         long nextTrajRef = 0;    // trajectory value associated with the 
@@ -311,10 +317,8 @@ private:
 
         // If no segment is found after the last index begin segment:
         if (nextTrajRef <= 0)
-        { 
-            nextTrajRef = coordinateSize; // this is segmented trajectory
-                                          // group/dataset size
-        }
+            nextTrajRef = maxTrajSegRef; 
+                // this is segmented trajectory group/dataset size
 
         long length_to_here = lastTrajSeg - firstTrajSeg - 1;
         long lastTrajSize = nextTrajRef - lastTrajSeg; 
@@ -323,23 +327,24 @@ private:
     
     /*
      * Subset the segmented trajectory dataset - define the index 
-     * selection sets.
-     * Limit the index range by indexBeg starting value and last 
-     * index of last selected segment.
+     * selection sets, limiting the index range by indexBeg starting
+     * value and last index of last selected segment.
+     * 
+     * We use (next non-fill indexBegin) to compute segment sizes.
+     * 
      * @param indexBegSet: index begin dataset
      */
-    void segmentedTrajectorySubset( H5::DataSet* indexBegSet) 
-        __attribute__ ((optnone))
+    void segmentedTrajectorySubset( H5::DataSet* indexBegSet ) 
     {
         std::cout << "SegmentedTrajectorySubset" << std::endl;
                 
-        size_t idxBegCoordinateSize = indexBegSet->getSpace().getSimpleExtentNpoints();
+        size_t idxBegSize = indexBegSet->getSpace().getSimpleExtentNpoints();
         
         // Index begin datasets for ATL03 and ATL08 are 64-bit and 32-bit for ATL10.
         hid_t indexBeg_native_type 
                 = H5Tget_native_type(H5Dget_type(indexBegSet->getId()), H5T_DIR_ASCEND);
 
-        int64_t* indexBeg = new int64_t[idxBegCoordinateSize];
+        int64_t* indexBeg = new int64_t[idxBegSize];
 
         // Load index begin dataset.
         // Reading in the source data is data-type size specific:
@@ -349,9 +354,9 @@ private:
         }
         else if(H5Tequal(indexBeg_native_type, H5T_NATIVE_INT)) // 32-bit int
         {
-            int32_t* data = new int32_t[idxBegCoordinateSize];
+            int32_t* data = new int32_t[idxBegSize];
             indexBegSet->read(data, indexBegSet->getDataType());
-            for (int i = 0; i < idxBegCoordinateSize; i++)
+            for (int i = 0; i < idxBegSize; i++)
             {
                 indexBeg[i] = data[i];
             }
@@ -359,9 +364,9 @@ private:
         }
         else if(H5Tequal(indexBeg_native_type, H5T_NATIVE_ULLONG)) // unsigned 64-bit int
         {
-            uint64_t* data = new uint64_t[idxBegCoordinateSize];
+            uint64_t* data = new uint64_t[idxBegSize];
             indexBegSet->read(data, indexBegSet->getDataType());
-            for (int i = 0; i < idxBegCoordinateSize; i++)
+            for (int i = 0; i < idxBegSize; i++)
             { 
                 indexBeg[i] = data[i];
                 delete[] data;
@@ -385,15 +390,15 @@ private:
                 long start = 0, length = 0;
 
                 defineOneSegment(selectedStart, selectedCount, 
-                                start, length, idxBegCoordinateSize, indexBeg);
+                                start, length, idxBegSize,
+                                coordinateSize, indexBeg);
 
-                // Note: index-selection start is zero based indexing, whereas
-                // trajectory start index pulled from indexBegin datasets is 
-                // one based indexing.
+                // Note: index-selection start is true to datasets,
+                // zero based indexing, whereas start index pulled from
+                // indexBegin datasets is one based indexing one based
+                // indexing.
                 if (start > 0)
-                {
                     indexes->addSegment(start-1, length);
-                }
             }
             
             // If no spatial subsetting, include all segments.
@@ -405,15 +410,13 @@ private:
                 long selectedCount = segIndexes->maxIndexEnd - selectedStart - 1;
 
                 defineOneSegment( selectedStart, selectedCount,
-                                start, length, idxBegCoordinateSize, indexBeg );
+                                start, length, idxBegSize,
+                                coordinateSize, indexBeg );
 
-                // Note: index-selection start is zero based indexing, whereas
-                // trajectory start index pulled from indexBegin datasets is 
-                // one based indexing.
+               // Note: index-selection start is true to datasets, zero based indexing, whereas
+                // start index pulled from indexBegin datasets is one based indexing
                 if (start > 0) 
-                {
                     indexes->addSegment(start-1, length);
-                }
             }
             
             // No data found matched the spatial/temporal constraints, return no data.
