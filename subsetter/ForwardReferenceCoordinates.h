@@ -125,9 +125,13 @@ public:
         // if the IndexSelection object for the segment group has
         // already been processed, use it. Otherwise, process it
         if (coor->indexesProcessed)
+        {
             forCoor->segIndexes = coor->indexes;
+        }
         else 
+        {
             forCoor->segIndexes = coor->getIndexSelection();
+        }
         
         // insert new coordinate object (forCoor) in lookup map
         // (coordinates have been established, and can be reused)
@@ -147,7 +151,7 @@ public:
         
         // if both temporal and spatial constraints don't exist,
         // return null to include all in the output
-        if (geoboxes == NULL && temporal == NULL && geoPolygon == NULL) return NULL;
+        if (geoboxes == NULL && temporal == NULL && geoPolygon == NULL) { return NULL;}
         
         H5::DataSet *indexBegSet = NULL;
                 
@@ -206,7 +210,7 @@ private:
     void scanFwdNonFill( long segStartIdx, long segEndIdx,
                          long &found,      long &foundIdx, 
                          int64_t indexBegDataset[] )
-        __attribute__ ((optnone)) // MacOS specific for debug
+        // __attribute__ ((optnone)) // MacOS specific for debug
     {
         // skip over segment-begin (start) fill values
         for (long i = segStartIdx; i <= segEndIdx; i++)
@@ -233,7 +237,7 @@ private:
     void scanBackNonFill( long segEndIdx, long segStartIdx, 
                          long &found,    long &foundIdx, 
                          int64_t indexBegDataset[] ) 
-        __attribute__ ((optnone)) // MacOS specific for debug
+        // __attribute__ ((optnone)) // MacOS specific for debug
     {
         // skip over segment-begin (start) fill values
         for (long i = segEndIdx; i >= segStartIdx; i--)
@@ -278,7 +282,6 @@ private:
         long startIdxNonFill = 0;  // first non-fill indexBeg value in
                                    // selected segment
 
-
         // The end index of input segment.
         long lastSelectedIdx = selectedStartIdx + selectedCount - 1;
         
@@ -317,8 +320,9 @@ private:
 
         // If no segment is found after the last index begin segment:
         if (nextTrajRef <= 0)
-            nextTrajRef = maxTrajSegRef; 
-                // this is segmented trajectory group/dataset size
+        {
+            nextTrajRef = maxTrajSegRef; // Segmented trajectory group/dataset size
+        }
 
         long length_to_here = lastTrajSeg - firstTrajSeg - 1;
         long lastTrajSize = nextTrajRef - lastTrajSeg; 
@@ -369,8 +373,8 @@ private:
             for (int i = 0; i < idxBegSize; i++)
             { 
                 indexBeg[i] = data[i];
-                delete[] data;
             }
+            delete[] data;
         }
             // Create Segment reference - start index and length 
             // ** avoiding selected segment references that are fill values **
@@ -398,7 +402,9 @@ private:
                 // indexBegin datasets is one based indexing one based
                 // indexing.
                 if (start > 0)
+                {
                     indexes->addSegment(start-1, length);
+                }
             }
             
             // If no spatial subsetting, include all segments.
@@ -416,7 +422,9 @@ private:
                // Note: index-selection start is true to datasets, zero based indexing, whereas
                 // start index pulled from indexBegin datasets is one based indexing
                 if (start > 0) 
+                {
                     indexes->addSegment(start-1, length);
+                }
             }
             
             // No data found matched the spatial/temporal constraints, return no data.
