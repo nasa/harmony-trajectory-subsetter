@@ -7,45 +7,76 @@
 
 #include <boost/algorithm/string/find.hpp>
 
-
+/*
+ * Subclass of Coordinate for forward-reference segment-begin + count coordinates
+ * These coordinates are associated with a target dataset (segmented trajectory),
+ * but refer to segment-control datasets (begin, count) typically in a
+ * separate segment group. This class Includes getIndexSelection and
+ * Segmented Trajectory Subset operations.
+ * 
+ * The count dataset is not used in the forward-reference calculation, 
+ * due to the existence of data collections whose count dataset is not
+ * representative of the non-fill value size of an index begin segment (e.g., GEDI).
+ * So, a more generalized index scanning approach is used here. 
+ */
 class ForwardReferenceCoordinates: public Coordinate
 {
 public:
     IndexSelection* segIndexes;
+    // Selected Segments - computed in SegmentedTrajectorySubset method
     
-    ForwardReferenceCoordinates(std::string groupname, std::vector<geobox>* geoboxes, Temporal* temporal, GeoPolygon* geoPolygon)
+    ForwardReferenceCoordinates   // main constructor for class
+        (std::string groupname, std::vector<geobox>* geoboxes, 
+         Temporal* temporal,    GeoPolygon* geoPolygon)
     : Coordinate(groupname, geoboxes, temporal, geoPolygon)
     {
     }
-    ~ForwardReferenceCoordinates()
+
+    ~ForwardReferenceCoordinates() // destructor
     {
         delete segIndexes;
     }
     
     /*
-     * get the IndexSelection object for ATL03 photon level subsetting based on segment group
-     * get the IndexSelection object for ATL10 leads group based on freeboard swath segment
+     * Get/populate the coordinate and IndexSelection object for ATL03
+     * photon level subsetting based on segment group and for ATL10
+     * leads group based on freeboard swath segment.
      * ex. /gt1l/geolocation
      * ex. /freeboard_swath_segment
      * @param Group root: root group
      * @param Group ingroup: input group
      * @param string shortName: product short name
-     * @param SubsetDataLayers subsetDataLayers: dataset name to include in the output
+     * @param SubsetDataLayers subsetDataLayers: dataset names to include in the output
      */
-    static Coordinate* getCoordinate(H5::Group& root, H5::Group& ingroup, const std::string& shortName, SubsetDataLayers* subsetDataLayers,
-                    const std::string& groupname, std::vector<geobox>* geoboxes, Temporal* temporal, GeoPolygon* geoPolygon)
+    static Coordinate* getCoordinate
+        ( H5::Group&           root,     
+          H5::Group&           ingroup,
+          const std::string&   shortName, 
+          SubsetDataLayers*    subsetDataLayers, 
+          const std::string&   groupname, 
+          std::vector<geobox>* geoboxes,
+          Temporal*            temporal, 
+          GeoPolygon*          geoPolygon )
     {
         std::cout << "groupname: " << groupname << std::endl;
         if (Coordinate::lookUp(groupname))
         {
-            std::cout << groupname << " already exists in lookUpMap(ForwardReferenceCoordinate)" << std::endl;
+            std::cout << groupname 
+                << " already exists in lookUpMap(ForwardReferenceCoordinate)" 
+                << std::endl;
             return lookUpMap[groupname];
         }
         
-        ForwardReferenceCoordinates* forCoor = new ForwardReferenceCoordinates(groupname, geoboxes, temporal, geoPolygon);
+        ForwardReferenceCoordinates* forCoor 
+            = new ForwardReferenceCoordinates
+                    (groupname, geoboxes, temporal, geoPolygon);
         std::cout << "getSegIndexSelection " << groupname << std::endl;
+
         forCoor->coordinateSize = 0;
-        if (Configuration::getInstance()->isPhotonDataset(shortName,groupname))
+        forCoor->shortname = shortName;
+
+        // get the size of the target (segmented trajectory) dataset for this group
+        if (Configuration::getInstance()->isPhotonDataset(shortName, groupname))
         {
             H5::DataSet data = root.openDataSet(groupname);
             H5::DataSpace inspace = data.getSpace();
@@ -58,35 +89,52 @@ public:
         {
             forCoor->setCoordinateSize(ingroup);
         }
-        forCoor->shortname = shortName;
-        //std::cout << "shotName: " << shortName << std::endl;
       
-        // get the segment group name 
-        std::string segGroupname = Configuration::getInstance()->getReferencedGroupname(shortName, groupname);
+        // get the segment control group name 
+        std::string segGroupname 
+            = Configuration::getInstance()
+                -> getReferencedGroupname(shortName, groupname);
         
-        // if segment group does not exist, return everything
+        // if segment control group does not exist, return everything
         if (H5Lexists(root.getLocId(), segGroupname.c_str(), H5P_DEFAULT) == 0)
         {
             forCoor->indexesProcessed = true;
             return forCoor;
         }
         
+        // open segment control group and retrieve the segment control group
+        // coordinate object
         forCoor->segGroup = root.openGroup(segGroupname);
         Coordinate* coor;
-        if (Configuration::getInstance()->subsetBySuperGroup(shortName, segGroupname))
+        if (Configuration::getInstance()
+                -> subsetBySuperGroup(shortName, segGroupname))
         {
-            coor = SuperGroupCoordinate::getCoordinate(root, forCoor->segGroup, shortName, subsetDataLayers, segGroupname, geoboxes, temporal, geoPolygon);
+            coor = SuperGroupCoordinate::getCoordinate
+                    ( root, forCoor->segGroup, shortName, 
+                      subsetDataLayers, segGroupname, geoboxes, 
+                      temporal, geoPolygon );
         }
         else
         {
-            coor = Coordinate::getCoordinate(root, forCoor->segGroup, segGroupname, shortName, subsetDataLayers, geoboxes, temporal, geoPolygon);
+            coor = Coordinate::getCoordinate
+                    ( root, forCoor->segGroup, segGroupname, 
+                      shortName, subsetDataLayers, geoboxes, 
+                      temporal, geoPolygon );
         }
         
-        // if the IndexSelection object for the segment group has already been processed, use it
-        // otherwise, process it
-        if (coor->indexesProcessed) forCoor->segIndexes = coor->indexes;
-        else forCoor->segIndexes = coor->getIndexSelection();
+        // if the IndexSelection object for the segment group has
+        // already been processed, use it. Otherwise, process it
+        if (coor->indexesProcessed)
+        {
+            forCoor->segIndexes = coor->indexes;
+        }
+        else 
+        {
+            forCoor->segIndexes = coor->getIndexSelection();
+        }
         
+        // insert new coordinate object (forCoor) in lookup map
+        // (coordinates have been established, and can be reused)
         Coordinate::lookUpMap.insert(std::make_pair(groupname, forCoor));
         
         return forCoor;
@@ -94,7 +142,8 @@ public:
     }
     
     /*
-     * get/create IndexSelection object for photon/leads level subsetting (i.e. /gt1l/heights group, /gt1l/leads)
+     * get/create IndexSelection object for forward reference target (photon/leads)
+     * level subsetting (i.e. /gt1l/heights group, /gt1l/leads)
      */
     virtual IndexSelection* getIndexSelection()
     {        
@@ -102,31 +151,40 @@ public:
         
         // if both temporal and spatial constraints don't exist,
         // return null to include all in the output
-        if (geoboxes == NULL && temporal == NULL && geoPolygon == NULL) return NULL;
+        if (geoboxes == NULL && temporal == NULL && geoPolygon == NULL) { return NULL;}
         
-        H5::DataSet *indexBegSet = NULL, *countSet = NULL;
+        H5::DataSet *indexBegSet = NULL;
                 
         indexes = new IndexSelection(coordinateSize);
+            // self.coordinateSize = target segmented trajectory size
         
-        std::string indexBegName, countName;
+        std::string indexBegName, countName;  
+            // The count name is required for accessing dataset names.
         
-        // get dataset names for the datasets that provides the the starting index in the photon group (indexBeg)
-        // and number of photons in the segment follow in sequence from this index value (segmentPnCnt)
-        Configuration::getInstance()->getDatasetNames(shortname, groupname, indexBegName, countName);
-        if (!indexBegName.empty() && H5Lexists(segGroup.getLocId(), indexBegName.c_str(), H5P_DEFAULT) > 0)
+        // Get dataset names for the datasets that provides the 
+        // starting index. (indexBeg) in the target (segmented
+        // trajectory, photon) group and the number of elements
+        // (photons, segmentPnCnt) in the segment that follow in
+        // sequence from this start index.
+        Configuration::getInstance()
+            -> getDatasetNames(shortname, groupname, indexBegName, countName);
+
+        if (!indexBegName.empty() 
+              && H5Lexists(segGroup.getLocId(), indexBegName.c_str(), H5P_DEFAULT) > 0)
         {
             indexBegSet = new H5::DataSet(segGroup.openDataSet(indexBegName));
         }
         else
         {
-            // if fbswath_lead_ndx_gt<1l,1r....> doesn't exist, try fbswath_lead_ndx_gt<1...6> for ATL10
-            Configuration::getInstance()->groundTrackRename(groupname, indexBegName, countName);
+            // if fbswath_lead_ndx_gt<1l,1r....> doesn't exist, 
+            // try fbswath_lead_ndx_gt<1...6> for ATL10
+            Configuration::getInstance()
+                -> groundTrackRename(groupname, indexBegName, countName);
             indexBegSet = new H5::DataSet(segGroup.openDataSet(indexBegName));
         }
-        if (!countName.empty() && H5Lexists(segGroup.getLocId(), countName.c_str(), H5P_DEFAULT) > 0)
-            countSet = new H5::DataSet(segGroup.openDataSet(countName));
 
-        photonSubset(indexBegSet, countSet);
+        // Compute the index-selection object for this coordinates - do the subset
+        segmentedTrajectorySubset(indexBegSet);
                 
         indexesProcessed = true;
         
@@ -138,125 +196,247 @@ private:
     H5::Group segGroup;
     std::string shortname;
     
-    /*
-     * limit the index range by indexBeg and count datasets
-     * @param DataSet indexBegSet: index begin dataset
-     * @param DataSet countSet: index count dataset
-     */
-    void photonSubset(H5::DataSet* indexBegSet, H5::DataSet* countSet)
+   /**
+    * Scan forwards, from segStart to segEnd in indexBeg array
+    * for a non-fill value. 
+    * 
+    * @param segStartIdx    The start index of the input segment.
+    * @param segEndIdx      The end index of the input segment.
+    * @param found          The trajectory value with the first non-fill
+    *                       indexBeg value.
+    * @param foundIdx       The first non-fill indexBeg index.
+    * @param indexBegDatset The input indexBeg dataset array.
+    */ 
+    void scanFwdNonFill( long segStartIdx, long segEndIdx,
+                         long &found,      long &foundIdx, 
+                         int64_t indexBegDataset[] )
+        // __attribute__ ((optnone)) // MacOS specific for debug
     {
-        std::cout << "photonSubset" << std::endl;
+        // skip over segment-begin (start) fill values
+        for (long i = segStartIdx; i <= segEndIdx; i++)
+        {
+            if (indexBegDataset[i] > 0 )
+            {
+                foundIdx = i;
+                found    = indexBegDataset[foundIdx];
+                break;
+            }
+        }
+    }
+
+    /** Scan backwards, from segEnd to segStart in indexBeg array
+    * for a non-fill value.
+    *  
+    * @param segStartIdx    The start index of the input segment.
+    * @param segEndIdx      The end index of input segment.
+    * @param found          The trajectory value with the first non-fill
+    *                       indexBeg value.
+    * @param foundIdx       The first non-fill indexBeg index.
+    * @param indexBegDatset The input indexBeg dataset array.
+    */ 
+    void scanBackNonFill( long segEndIdx, long segStartIdx, 
+                         long &found,    long &foundIdx, 
+                         int64_t indexBegDataset[] ) 
+        // __attribute__ ((optnone)) // MacOS specific for debug
+    {
+        // skip over segment-begin (start) fill values
+        for (long i = segEndIdx; i >= segStartIdx; i--)
+        {
+            if (indexBegDataset[i] > 0 )
+            {
+                foundIdx = i;
+                found    = indexBegDataset[foundIdx];
+                break;
+            }
+        } 
+    }
+
+    /**
+     * Find the begin index reference for the selected segment data 
+     * (defined by selected segment's starting index and count). 
+     * Note that the last segment in the selected set has a segment-begin
+     * reference, but to find the length of that last segment we need to 
+     * use the next segment-begin reference and subtract 1.
+     *
+     * @param selectedStartIdx The start index of the selected segment in the
+     *                         index begin dataset.
+     * @param selectedCount    The length of the selected segment in the
+     *                         index begin dataset.
+     * @param firstTrajSeg     The trajectory value associated with the first
+     *                         non-fill selectedStartIdx value.
+     *                         non-fill indexBeg value.
+     * @param trajSegLength    The length of the trajectory segment.
+     * @param maxIndexBegIdx   The final index of the entire indexBeg
+     *                         dataset.
+     * @param maxTrajSegRef    The final index of the entire trajectory
+     *                         dataset.
+     * @param indexBegDataset  The input indexBeg dataset array.
+     */
+    void defineOneSegment( long selectedStartIdx, long selectedCount, 
+                           long &firstTrajSeg,    long &trajSegLength, 
+                           long maxIndexBegIdx,   long maxTrajSegRef,
+                           int64_t indexBegDataset[] )
+    {
+
+
+        long startIdxNonFill = 0;  // first non-fill indexBeg value in
+                                   // selected segment
+
+        // The end index of input segment.
+        long lastSelectedIdx = selectedStartIdx + selectedCount - 1;
+        
+        // Step forwards to find first non-fill index begin segment.
+        scanFwdNonFill( selectedStartIdx, lastSelectedIdx,
+                        firstTrajSeg, startIdxNonFill, indexBegDataset );
+
+        // Step backwards to find last non-fill index begin segment.
+        long lastTrajSeg = 0;   // trajectory value with the first non-fill
+                                // indexBeg value.
+        long lastBegIdx = 0;   // last non-fill indexBeg index.
+        scanBackNonFill( lastSelectedIdx, startIdxNonFill, 
+                        lastTrajSeg, lastBegIdx, indexBegDataset );
+
+        // if not found - skip this selected segment group
+        if (lastTrajSeg <= 0) 
+        {
+            firstTrajSeg = 0;
+            trajSegLength = 0;
+            return;
+        }
+
+        // Need to find end of this segment. Unfortunately, in GEDI data, the count
+        // dataset does not define the end of the full segment. It does not include
+        // the padding that is present in the waveform (segmented trajectory) data.
+
+        // Step forwards to find the next non-fill segment begin, using segment
+        // group max index as last segment begin reference to look at.
+        long nextBegIdx = 0;     // non-fill begin index after the last
+                                 // selected index begin segment
+        long nextTrajRef = 0;    // trajectory value associated with the 
+                                 // index begin segment after the last
+                                 // selected segment.
+        scanFwdNonFill( lastBegIdx+1, maxIndexBegIdx, 
+                        nextTrajRef, nextBegIdx, indexBegDataset );
+
+        // If no segment is found after the last index begin segment:
+        if (nextTrajRef <= 0)
+        {
+            nextTrajRef = maxTrajSegRef; // Segmented trajectory group/dataset size
+        }
+
+        long length_to_here = lastTrajSeg - firstTrajSeg - 1;
+        long lastTrajSize = nextTrajRef - lastTrajSeg; 
+        trajSegLength = length_to_here + lastTrajSize;
+    }
+    
+    /*
+     * Subset the segmented trajectory dataset - define the index 
+     * selection sets, limiting the index range by indexBeg starting
+     * value and last index of last selected segment.
+     * 
+     * We use (next non-fill indexBegin) to compute segment sizes.
+     * 
+     * @param indexBegSet: index begin dataset
+     */
+    void segmentedTrajectorySubset( H5::DataSet* indexBegSet ) 
+    {
+        std::cout << "SegmentedTrajectorySubset" << std::endl;
                 
-        long start = 0, length = 0, segStart = 0, segLength = 0;
+        size_t idxBegSize = indexBegSet->getSpace().getSimpleExtentNpoints();
         
-        H5::DataSet* nonNullDataset = (indexBegSet != NULL)? indexBegSet : countSet;
-        size_t coordinateSize = nonNullDataset->getSpace().getSimpleExtentNpoints();
-        //std::cout << "coordinateSize: " << coordinateSize << std::endl;
-        
-        // index begin datasets for ATL03 and ATL08 are 64-bit and 32-bit for ATL10
-        hid_t indexBeg_native_type = H5Tget_native_type(H5Dget_type(indexBegSet->getId()), H5T_DIR_ASCEND);
-        hid_t count_native_type = H5Tget_native_type(H5Dget_type(countSet->getId()), H5T_DIR_ASCEND);
+        // Index begin datasets for ATL03 and ATL08 are 64-bit and 32-bit for ATL10.
+        hid_t indexBeg_native_type 
+                = H5Tget_native_type(H5Dget_type(indexBegSet->getId()), H5T_DIR_ASCEND);
 
-        int64_t* indexBeg = new int64_t[coordinateSize];
-        int32_t* count = new int32_t[coordinateSize];
+        int64_t* indexBeg = new int64_t[idxBegSize];
 
+        // Load index begin dataset.
+        // Reading in the source data is data-type size specific:
         if (H5Tequal(indexBeg_native_type, H5T_NATIVE_LLONG)) // 64-bit int
         {
             indexBegSet->read(indexBeg, indexBegSet->getDataType());
         }
         else if(H5Tequal(indexBeg_native_type, H5T_NATIVE_INT)) // 32-bit int
         {
-            int32_t* data = new int32_t[coordinateSize];
+            int32_t* data = new int32_t[idxBegSize];
             indexBegSet->read(data, indexBegSet->getDataType());
-            for (int i = 0; i < coordinateSize; i++) indexBeg[i] = data[i];
+            for (int i = 0; i < idxBegSize; i++)
+            {
+                indexBeg[i] = data[i];
+            }
             delete[] data;
         }
         else if(H5Tequal(indexBeg_native_type, H5T_NATIVE_ULLONG)) // unsigned 64-bit int
         {
-            uint64_t* data = new uint64_t[coordinateSize];
+            uint64_t* data = new uint64_t[idxBegSize];
             indexBegSet->read(data, indexBegSet->getDataType());
-            for (int i = 0; i < coordinateSize; i++) indexBeg[i] = data[i];
+            for (int i = 0; i < idxBegSize; i++)
+            { 
+                indexBeg[i] = data[i];
+            }
             delete[] data;
         }
+            // Create Segment reference - start index and length 
+            // ** avoiding selected segment references that are fill values **
+            // 
+            // start = first selected non-fill indexBeg - 1
+            //    (indexBegin values are 1 based indexing, 
+            //     selection start is 0 based indexing)
+            //
+            // length = last selected non-fill indexBeg - start  
+            //             - 1 + size-last-selected-segment;
+            for (std::map<long, long>::iterator it = segIndexes->segments.begin(); 
+                it != segIndexes->segments.end(); 
+                it++)
+            {
+                long selectedStart = it->first;
+                long selectedCount = it->second;
+                long start = 0, length = 0;
 
-        if (H5Tequal(count_native_type, H5T_NATIVE_INT)) // 32-bit int
-        {
-            countSet->read(count, countSet->getDataType());
-        }
-        else if(H5Tequal(count_native_type, H5T_NATIVE_USHORT)) // unsigend 16-bit int
-        {
-            uint16_t* data = new uint16_t[coordinateSize];
-            countSet->read(data, countSet->getDataType());
-            for (int i = 0; i < coordinateSize; i++) count[i] = data[i];
-            delete[] data;
-        }
-        else if(H5Tequal(count_native_type, H5T_NATIVE_LLONG)) // 64-bit int
-        {
-            int64_t* data = new int64_t[coordinateSize];
-            countSet->read(data, countSet->getDataType());
-            for (int i = 0; i < coordinateSize; i++) count[i] = data[i];
-            delete[] data;
-        }
-                
-        // set start and length for the photon level subsetting
-        // start = first non-zero indexBeg - 1
-        // length = last non-zero indexBeg - 1 + last non-zero count - start;
-        for (std::map<long, long>::iterator it = segIndexes->segments.begin(); it != segIndexes->segments.end(); it++)
-        {
-            start = 0, length = 0;
-            segStart = it->first;
-            segLength = it->second;
+                defineOneSegment(selectedStart, selectedCount, 
+                                start, length, idxBegSize,
+                                coordinateSize, indexBeg);
 
-            for (int i = 0; i < segLength; i++)
-            {
-                if (indexBeg[segStart+i] > 0 )
+                // Note: index-selection start is true to datasets,
+                // zero based indexing, whereas start index pulled from
+                // indexBegin datasets is one based indexing one based
+                // indexing.
+                if (start > 0)
                 {
-                    start = indexBeg[segStart+i] - 1;
-                    break;
+                    indexes->addSegment(start-1, length);
                 }
             }
+            
+            // If no spatial subsetting, include all segments.
+            if (segIndexes->segments.empty())
+            {
+                long start = 0, length = 0;
 
-            for (int i = segLength-1; i >= 0; i--)
-            {
-                if (indexBeg[segStart+i] > 0)
+                long selectedStart = segIndexes->minIndexStart;
+                long selectedCount = segIndexes->maxIndexEnd - selectedStart - 1;
+
+                defineOneSegment( selectedStart, selectedCount,
+                                start, length, idxBegSize,
+                                coordinateSize, indexBeg );
+
+               // Note: index-selection start is true to datasets, zero based indexing, whereas
+                // start index pulled from indexBegin datasets is one based indexing
+                if (start > 0) 
                 {
-                    long countFull = indexBeg[segStart+i+1] - indexBeg[segStart+i]; // This includes data padding, if it exists.
-                    length = indexBeg[segStart+i] - 1 + countFull - start;
-                    indexes->addSegment(start, length);
-                    break;
+                    indexes->addSegment(start-1, length);
                 }
             }
-        }
-        
-        // if no spatial subsetting
-        if (segIndexes->segments.empty())
-        {
-            // index selection end is excluded
-            for (int i = segIndexes->minIndexStart; i < segIndexes->maxIndexEnd; i++)
+            
+            // No data found matched the spatial/temporal constraints, return no data.
+            if (indexes->segments.empty())
             {
-                if (indexBeg[i] > 0)
-                {
-                    start = indexBeg[i] - 1;
-                    break;
-                }
-            }
-            for (int i = segIndexes->maxIndexEnd - 1; i >= segIndexes->minIndexStart; i--)
-            {
-                if (indexBeg[i] > 0)
-                {
-                    length = indexBeg[i] - 1 + count[i] - start;
-                    indexes->addSegment(start, length);
-                    break;
-                }
-            }
-        }
-        
-        // no data found matched the spatial/temporal constraints, return no data
-        if (indexes->segments.empty()) indexes->addRestriction(0, 0);
-        
-        delete [] indexBeg;
-        delete [] count;
-    }   
+                indexes->addRestriction(0, 0);
+                std::cout << "No data found in trajectory subset that matched the spatial/temporal constraints.\n";
+            } 
+            
+            delete [] indexBeg;
+    }
 };
-#endif
+
+ #endif
 

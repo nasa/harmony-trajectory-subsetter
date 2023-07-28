@@ -1,3 +1,8 @@
+[version 0.1.11] 2023-07-20
+
+- **DAS-1887**
+  - Bug fix: Updated ForwardRefCoordinates.h to use forward and backward scanning methods to ensure that the fill values in the index begin dataset are skipped.
+
 [version 0.1.10] 2023-06-19
 
 - **DAS-1731**

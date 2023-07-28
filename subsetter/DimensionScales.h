@@ -197,7 +197,7 @@ private:
         size_t len = H5Iget_name(objId, NULL, 0);
         if (len > 0)
         {
-            char buffer[len];
+            char buffer[len+1];
             H5Iget_name(objId, buffer, len + 1);
             name = buffer;
         }

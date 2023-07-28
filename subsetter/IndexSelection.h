@@ -17,12 +17,11 @@ class IndexSelection
         // Ordered list of non-overlapping start/length pairs
         std::map<long, long> segments;
 
-        // Begin and end are used to limit the addition of segments to a specified
-        // constraint. They are typically determined by the temporal constraints.
+        // It is commonly used to add constraints for temporal subsetting, 
+        // when a temporal constraint is defined, which always establish a 
+        // singular, bounding, first and last constraint for the subset.
         long minIndexStart;
-        long maxIndexEnd; // = start+length = ending index+1
-
-
+        long maxIndexEnd; // start+length = ending index+1
 
         // Initialization, typically with the length of 1-d array for dimension scale
         IndexSelection(long maxlength) :
@@ -47,14 +46,15 @@ class IndexSelection
             return size;
         }
 
-        // Add temporal restriction, assume the data is temporally continuous
+        // Add restriction - assume the data is continuous, so update the
+        // subset constraints using the input start and length.
         void addRestriction(long newStart, long newLength)
         {
             std::cout << "IndexSelection.addRestriction changing from (" << minIndexStart << "," << maxIndexEnd << ") to ("
                  << newStart << "," << newStart+newLength << ")" << std::endl;
             minIndexStart = newStart;
             maxIndexEnd = newStart + newLength;
-            // reset the segments map with the new temporal constraints in place
+            // Reset the segments map with the new constraints in place.
             std::map<long,long> original_segments = segments;
             segments.erase(segments.begin(), segments.end());
             std::map<long, long>::iterator it;
@@ -69,7 +69,9 @@ class IndexSelection
         {
             std::map<long, long>::reverse_iterator it;
 
-            // Limit bounding segment to temporal region
+            // Check if segment start and length are within the bounds
+            // of the photon dataset.
+            // If they aren't, adjust start and/length so they are within bounds.
             if (newStart < minIndexStart)
             {
                 newLength = newLength - (minIndexStart - newStart);
@@ -80,7 +82,7 @@ class IndexSelection
                 newLength = maxIndexEnd - newStart;
             }
 
-            // If bounding segment does not exist in temporal selection do nothing
+            // If bounding segment does not exist in subset selection do nothing.
             if (newLength <= 0)
             {
                 return;
