@@ -17,9 +17,9 @@ class IndexSelection
         // Ordered list of non-overlapping start/length pairs
         std::map<long, long> segments;
 
-        // These constraints represent the lowest and highest possible index
-        // value in the dataset - essentially it constrains the subset segments 
-        // to the size of the dataset.
+        // It is commonly used to add constraints for temporal subsetting, 
+        // when a temporal constraint is defined, which always establish a 
+        // singular, bounding, first and last constraint for the subset.
         long minIndexStart;
         long maxIndexEnd; // start+length = ending index+1
 
