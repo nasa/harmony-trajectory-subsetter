@@ -17,9 +17,10 @@ class IndexSelection
         // Ordered list of non-overlapping start/length pairs
         std::map<long, long> segments;
 
-        // It is commonly used to add constraints for temporal subsetting, 
-        // when a temporal constraint is defined, which always establish a 
-        // singular, bounding, first and last constraint for the subset.
+        //Map "Begin" to "End" index values.  Begin and End establish 
+        // constraints, either set to the index range of the dataset or 
+        // used to add interior bounding constraints, e.g. for temporal
+        // subsetting.
         long minIndexStart;
         long maxIndexEnd; // start+length = ending index+1
 
@@ -46,8 +47,8 @@ class IndexSelection
             return size;
         }
 
-        // Add restriction - assume the data is continuous, so update the
-        // subset constraints using the input start and length.
+        // Begin and end are used to limit the addition of segments to a specified
+        // constraint. They are typically determined by the temporal constraints.
         void addRestriction(long newStart, long newLength)
         {
             std::cout << "IndexSelection.addRestriction changing from (" << minIndexStart << "," << maxIndexEnd << ") to ("
