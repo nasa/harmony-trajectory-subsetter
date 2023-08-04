@@ -1,3 +1,9 @@
+[version 0.1.12] 2023-08-03
+
+- **DAS-1931**
+  - Bug fix: Added the required format output argument to an instantiation of the Subsetter class. 
+
+
 [version 0.1.11] 2023-07-20
 
 - **DAS-1887**
