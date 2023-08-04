@@ -282,7 +282,7 @@ int main(int argc, char* argv[])
         }
         else // Use the base Subsetter if the mission isn't GEDI or ICESAT.
         {
-            subsetter = new Subsetter(subsetDataLayers, geoboxes, temporal, geoPolygon);
+            subsetter = new Subsetter(subsetDataLayers, geoboxes, temporal, geoPolygon, outputFormat);
         }
         ErrorCode = subsetter->subset(infilename, outfilename);
 
