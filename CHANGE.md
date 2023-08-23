@@ -1,3 +1,8 @@
+[version 0.1.13] 2023-08-17
+
+- **DAS-1945**
+  - Update Python dependencies to use earthdata-varinfo instead of sds-varinfo.
+
 [version 0.1.12] 2023-08-03
 
 - **DAS-1931**

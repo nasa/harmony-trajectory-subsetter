@@ -263,7 +263,6 @@ class TestIncludeSupportVariables(TestCase):
 
     @classmethod
     def setUp(self):
-        self.logger = Mock(spec=Logger)
         self.binary_parameters = {
             '--configfile': '/home/harmony_service/subsetter_config.json',
             '--filename': '/tmp/tmprnxav3hs/86019ac37c24f47f.h5',
@@ -285,9 +284,8 @@ class TestIncludeSupportVariables(TestCase):
         varinfo_mock.return_value = var_info_object_mock
         var_info_object_mock.get_required_variables.return_value = {input_var}
 
-        actual_params = include_support_variables(test_params, 
-                                                  self.short_name,
-                                                  self.logger)
+        actual_params = include_support_variables(test_params,
+                                                  self.short_name)
 
         self.assertDictEqual(actual_params, expected_params)
 
@@ -307,10 +305,9 @@ class TestIncludeSupportVariables(TestCase):
         varinfo_mock.return_value = var_info_object_mock
         var_info_object_mock.get_required_variables.return_value = {input_var}
 
-        actual_params = include_support_variables(test_params, 
-                                                  self.short_name,
-                                                  self.logger)
-        
+        actual_params = include_support_variables(test_params,
+                                                  self.short_name)
+
         self.assertDictEqual(actual_params, expected_params)
         var_info_object_mock.get_required_variables.assert_called_once_with(
             {'/BEAM0000/agbd', '/BEAM0000/delta_time'})
@@ -334,9 +331,8 @@ class TestIncludeSupportVariables(TestCase):
             returned_vars
         }
 
-        actual_params = include_support_variables(test_params, 
-                                                  self.short_name,
-                                                  self.logger)
+        actual_params = include_support_variables(test_params,
+                                                  self.short_name)
 
         self.assertDictEqual(actual_params, expected_params)
         var_info_object_mock.get_required_variables.assert_called_once_with(
@@ -363,9 +359,8 @@ class TestIncludeSupportVariables(TestCase):
             returned_vars
         }
 
-        actual_params = include_support_variables(test_params, 
-                                                  self.short_name,
-                                                  self.logger) 
+        actual_params = include_support_variables(test_params,
+                                                  self.short_name)
 
         self.assertDictEqual(actual_params, expected_params)
         var_info_object_mock.get_required_variables.assert_called_once_with(
@@ -393,8 +388,7 @@ class TestIncludeSupportVariables(TestCase):
         var_info_object_mock.get_required_variables.return_value = required_variables
 
         actual_parameters = include_support_variables(input_parameters,
-                                                      self.short_name,
-                                                      self.logger)
+                                                      self.short_name)
         self.assertSetEqual(
             set(actual_parameters['--includedataset'].split(',')),
             required_variables

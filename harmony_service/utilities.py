@@ -161,8 +161,7 @@ def convert_harmony_datetime(harmony_datetime_str: str) -> str:
 
 
 def include_support_variables(binary_parameters: Dict,
-                              short_name: str,
-                              logger: Logger) -> Dict:
+                              short_name: str) -> Dict:
     """ Get support variables needed for a viable subset.
 
         Parse the variable list, ensuring all variable names have a leading
@@ -173,7 +172,6 @@ def include_support_variables(binary_parameters: Dict,
     """
     var_info = VarInfoFromNetCDF4(
         binary_parameters.get('--filename', None),
-        logger,
         short_name=short_name,
         config_file=TRAJECTORY_SUBSETTER_VARINFO_CONFIG
     )
