@@ -97,7 +97,7 @@ below:
 There are two versions associated with the Trajectory Subsetter: the SDPS
 release version and the Harmony service Docker image version.
 
-#### SDPS versioning:
+### SDPS versioning:
 
 The SDPS release version is managed via the `VERSION` file in the root
 directory of this repository. Bamboo reads this file during the build plan,
@@ -117,7 +117,7 @@ as follows:
   been placed in the [Trajectory Subsetter part of Nexus](https://maven.earthdata.nasa.gov/#browse/browse:trajectorysubsetter).
 * Merge back from `master` into `dev`, to ensure the `dev` branch is up to date.
 
-#### Harmony versioning:
+### Harmony versioning:
 
 Harmony releases occur every time changes are made to the code and merged into
 the `dev` branch. The versions use semantic version numbers
@@ -135,3 +135,9 @@ The general rules for which version number to increment are:
 
 When the Docker image is built, it will be tagged with the semantic version
 number as stored in `docker/service_version.txt`.
+
+### Best Coding Practices:
+
+On-going development incorporates updates to new and existing code that will better adhere the Trajectory Subsetter source code to modern C++ best practices. The core guidelines are extracted from the [C++ Core Guidelines](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#c-core-guidelines), written in part by Bjarne Stroustrup, the creator of the C++ programming language.
+
+The code is not expected to completely and entirely adhere to these guidelines, as implementing every guideline is not time efficient. There is a general rule for maintaining consistency within the existing code as long as it is safe, efficicient, not error prone, or particularly convoluted. 

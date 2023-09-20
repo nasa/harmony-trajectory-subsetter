@@ -7,7 +7,7 @@
 #include <H5DataSpace.h>
 #include <H5DataType.h>
 #include <H5Exception.h>
-using namespace H5;
+
 
 //libgeotiff
 #include "tiff.h"
@@ -27,7 +27,7 @@ extern "C" {
 #include <iostream>
 #include <vector>
 #include <map>
-using namespace std;
+
 
 #include <boost/lexical_cast.hpp>
 
@@ -57,8 +57,6 @@ using namespace std;
     }
 
 
-
-
 class geotiff_converter
 {
 public: 
@@ -71,24 +69,24 @@ public:
         num_cols = col_max - col_min + 1;
     }
     
-    geotiff_converter(string outfilename, string shortName, Group& outgroup, SubsetDataLayers* subsetDataLayers)
+    geotiff_converter(std::string outfilename, std::string shortName, H5::Group& outgroup, SubsetDataLayers* subsetDataLayers)
     {
-        SubsetDataLayers* osub = new SubsetDataLayers(vector<string>());
+        SubsetDataLayers* osub = new SubsetDataLayers(std::vector<std::string>());
         osub->expand_group(outgroup, "");
-        vector<set<string>> datasets = osub->getDatasets();
-        string tifFileName, datasetName, groupname, fileDatasetName;
-        string rowName, colName, latName, lonName;
+        std::vector<std::set<std::string>> datasets = osub->getDatasets();
+        std::string tifFileName, datasetName, groupname, fileDatasetName;
+        std::string rowName, colName, latName, lonName;
         short resolution;
-        string projection;
+        std::string projection;
         bool crop = false;
-        string outputFormat = "GeoTIFF";
+        std::string outputFormat = "GeoTIFF";
 
-        for (vector<set<string>>::iterator set_it = datasets.begin(); set_it != datasets.end(); set_it++)
+        for (std::vector<std::set<std::string>>::iterator set_it = datasets.begin(); set_it != datasets.end(); set_it++)
         {
-            for (set<string>::iterator it = set_it->begin(); it != set_it->end(); it++)
+            for (std::set<std::string>::iterator it = set_it->begin(); it != set_it->end(); it++)
             {
                 datasetName = *it;
-                cout << "converting " << datasetName << " to GeoTIFF" << endl;
+                std::cout << "converting " << datasetName << " to GeoTIFF" << std::endl;
                 
                 if (subsetDataLayers->is_dataset_included(datasetName))
                 {
@@ -102,8 +100,8 @@ public:
                     fileDatasetName = datasetName.substr(1);
                     std::replace(fileDatasetName.begin(), fileDatasetName.end(), '/', '.');
                     //std::replace(tifFileName.find_last_of("/\\"), tifFileName.end(), '/', '.');
-                    cout << "tifFileName: " << tifFileName << endl;
-                    cout << "fileDatasetName: " << fileDatasetName << endl;
+                    std::cout << "tifFileName: " << tifFileName << std::endl;
+                    std::cout << "fileDatasetName: " << fileDatasetName << std::endl;
                     tifFileName += fileDatasetName + "tif";
 
                     // ToDo: need to refactor this to get lat/lon/row/col and resolution once for the whole group
@@ -116,11 +114,11 @@ public:
                         latName = groupname + latName;
                         lonName = groupname + lonName;
                     }
-                    DataSet row = outgroup.openDataSet(rowName);
-                    DataSet col = outgroup.openDataSet(colName);
-                    DataSet lat = outgroup.openDataSet(latName);
-                    DataSet lon = outgroup.openDataSet(lonName);
-                    DataSet ds = outgroup.openDataSet(datasetName);
+                    H5::DataSet row = outgroup.openDataSet(rowName);
+                    H5::DataSet col = outgroup.openDataSet(colName);
+                    H5::DataSet lat = outgroup.openDataSet(latName);
+                    H5::DataSet lon = outgroup.openDataSet(lonName);
+                    H5::DataSet ds = outgroup.openDataSet(datasetName);
                     projection = Configuration::getInstance()->getProjection(groupname);
                     convert_to_geotiff(tifFileName.c_str(), "not used", row, col, ds, outputFormat.c_str(), projection.c_str(), resolution, crop, &lat, &lon);
                 }
@@ -129,15 +127,15 @@ public:
         
     }
     
-    void convert_to_geotiff(const char* outfilename, const char* ds_name, DataSet& row, DataSet& col, DataSet& ds, 
-        const char* outputformat, const char* projection, short resolution=36, bool crop = false, DataSet* lat=0, DataSet* lon=0)
+    void convert_to_geotiff(const char* outfilename, const char* ds_name, H5::DataSet& row, H5::DataSet& col, H5::DataSet& ds, 
+        const char* outputformat, const char* projection, short resolution=36, bool crop = false, H5::DataSet* lat=0, H5::DataSet* lon=0)
     {
-        vector<TIFF*> tifs;
-        vector<GTIF*> gtifs;
+        std::vector<TIFF*> tifs;
+        std::vector<GTIF*> gtifs;
         
         if (get_data_type(ds)==0 || get_size(row)==0)
         {
-            cout << "Skipping " << outfilename << " because it is a type that can not be output to GeoTIFF or it has no matching data" << endl;
+            std::cout << "Skipping " << outfilename << " because it is a type that can not be output to GeoTIFF or it has no matching data" << std::endl;
             return;  //no data
         }
 
@@ -146,10 +144,10 @@ public:
 
         for (int i=0;i<numfiles;i++)
         {
-            string filename = outfilename;
+            std::string filename = outfilename;
             // multiple bands 
-            if (numfiles > 1) filename = filename.erase(filename.length()-4) + "_" + boost::lexical_cast<string>(i+1) + ".tif";
-            cout << "geotiff_converter processing : " << filename << endl;
+            if (numfiles > 1) filename = filename.erase(filename.length()-4) + "_" + boost::lexical_cast<std::string>(i+1) + ".tif";
+            std::cout << "geotiff_converter processing : " << filename << std::endl;
             tifs.push_back(XTIFFOpen(filename.c_str(),"w"));
             gtifs.push_back(GTIFNew(tifs[i]));
             assert(gtifs.back());
@@ -159,7 +157,7 @@ public:
         void* off_earth_fill_value = get_off_earth_fill_value(ds, outputformat);
 
         // Tag the custom field as "ECS data units" along with the value
-        string units = "ECS data units: " + get_units(ds);
+        std::string units = "ECS data units: " + get_units(ds);
         short* row_data = new short[get_size(row)];
         row.read(row_data, row.getDataType());
         short* col_data = new short[get_size(col)];
@@ -177,7 +175,7 @@ public:
         short num_col_pixels = 964 * 36 / resolution;
         
         // recalculate row/col for polar bands
-        if (string(outfilename).find("Polar") != std::string::npos)
+        if (std::string(outfilename).find("Polar") != std::string::npos)
         {
             num_row_pixels = 500 * 36 / resolution;
             num_col_pixels = 500 * 36 / resolution;
@@ -210,14 +208,14 @@ public:
             //geographic projection is required for KML conversion
 
             assert(crop==false);
-            map<short, double> lat_resolution_ratio; //number of rows in geographic projection vs. EASE-Grid2
+            std::map<short, double> lat_resolution_ratio; //number of rows in geographic projection vs. EASE-Grid2
             lat_resolution_ratio[36] = 586.0/406.0;
             lat_resolution_ratio[9] = 2382.0/1624.0;
             lat_resolution_ratio[3] = 7198.0/4872.0;
 
             num_rows = num_rows*lat_resolution_ratio[resolution];
             num_cols = col_max - col_min + 1;
-            //cout << "Using num rows: " << num_rows << endl;
+            //std::cout << "Using num rows: " << num_rows << std::endl;
             lat_pixel_size = fabs((ul_lat_meters - lr_lat_meters) / num_rows);
             // Corner-Points of Geographic Projection are just the lon/lat values
             geotiepoints[3]=-180.0;
@@ -257,8 +255,8 @@ public:
         delete [] row_data;
         delete [] col_data;
         delete [] lat_data;
-        //DataSpace space(ds.getSpace());
-        //DataSpace outspace(dimnum, dims, maxdims);
+        //H5::DataSpace space(ds.getSpace());
+        //H5::DataSpace outspace(dimnum, dims, maxdims);
 
         void* dataset_data = (void*)malloc(get_dataset_size(ds)*data_type_size);
         ds.read(dataset_data,ds.getDataType()); //), outspace, space);
@@ -297,7 +295,7 @@ public:
         }
     }
 
-    hsize_t get_size(DataSet& ds)
+    hsize_t get_size(H5::DataSet& ds)
     {
         coordinate_size = 1;
         int ndims = ds.getSpace().getSimpleExtentNdims();
@@ -310,17 +308,17 @@ public:
 
     // fill values are dependent on the size of the datatype
     //   This fill value is used for off-earth points outside the swath
-    void* get_off_earth_fill_value(DataSet& ds, const char* outputformat)
+    void* get_off_earth_fill_value(H5::DataSet& ds, const char* outputformat)
     {
         size_t size = ds.getDataType().getSize();
         void* buf = malloc(size);
         if (ds.attrExists("_FillValue"))
         {
-            Attribute attr = ds.openAttribute("_FillValue");
+            H5::Attribute attr = ds.openAttribute("_FillValue");
             attr.read(attr.getDataType(), buf);
         } else
         {
-            cout << "Fill Value not found in dataset setting to 0" << endl;
+            std::cout << "Fill Value not found in dataset setting to 0" << std::endl;
             memset(buf, 0, size);
         }
 
@@ -360,7 +358,7 @@ public:
         }
         else
         {
-            cout << "Unknown data type size when calculating off earth fill value. Defaulting to float";
+            std::cout << "Unknown data type size when calculating off earth fill value. Defaulting to float";
             float fill = -9997;
             memcpy(buf, &fill, size);
         }
@@ -369,7 +367,7 @@ public:
 
     // fill values are dependent on the size of the datatype
     //   This fill value is used for on-earth points outside the swath
-    void* get_fill_value(DataSet& ds, const char* outputformat)
+    void* get_fill_value(H5::DataSet& ds, const char* outputformat)
     {
         size_t size = ds.getDataType().getSize();
         void* buf = malloc(size);
@@ -377,7 +375,7 @@ public:
         // Get Default Fill Value
         if (ds.attrExists("_FillValue"))
         {
-            Attribute attr = ds.openAttribute("_FillValue");
+            H5::Attribute attr = ds.openAttribute("_FillValue");
             attr.read(attr.getDataType(), buf);
         }
         else if (size == 4) //cell_lat and cell_lon don't have _FillValue defined, so default to -9999
@@ -423,7 +421,7 @@ public:
         }
         else
         {
-            cout << "Unknown data type size when calculating fill value defaulting to flaot";
+            std::cout << "Unknown data type size when calculating fill value defaulting to flaot";
             float fill = -9998;
             memcpy(buf, &fill, size);
         }
@@ -441,25 +439,25 @@ public:
         return;
     }
 
-    float get_float(DataSet& ds, hsize_t index)
+    float get_float(H5::DataSet& ds, hsize_t index)
     {
         hsize_t count[1];
         count[0]=1;
         hsize_t offset[1];
         offset[0]=index;
 
-        DataSpace dataspace = ds.getSpace();
+        H5::DataSpace dataspace = ds.getSpace();
         dataspace.selectHyperslab( H5S_SELECT_SET, count, offset);
         hsize_t dimsm[1];
         dimsm[0]=get_size(ds);
-        DataSpace memspace(1, dimsm);
+        H5::DataSpace memspace(1, dimsm);
         memspace.selectHyperslab(H5S_SELECT_SET, count, offset);
 
         float data_out[dimsm[0]]; //need to fix so we only need a single float
-        ds.read(data_out, PredType::IEEE_F32LE, memspace, dataspace);
+        ds.read(data_out, H5::PredType::IEEE_F32LE, memspace, dataspace);
         return data_out[offset[0]];
     }
-    int get_numfiles(DataSet& ds)
+    int get_numfiles(H5::DataSet& ds)
     {
         int numfiles = 1;
         int dimnum = ds.getSpace().getSimpleExtentNdims();
@@ -471,13 +469,13 @@ public:
             numfiles *= dims[k];
         return numfiles;
     }
-    hsize_t get_data_type_size(DataSet& ds)
+    hsize_t get_data_type_size(H5::DataSet& ds)
     {
         hid_t mem_type_id = H5Dget_type(ds.getId());
         hid_t native_type = H5Tget_native_type(mem_type_id, H5T_DIR_DEFAULT);
         return H5Tget_size(native_type);
     }
-    size_t get_dataset_size(DataSet& ds)
+    size_t get_dataset_size(H5::DataSet& ds)
     {
         int dataset_size=1;
         int dimnum = ds.getSpace().getSimpleExtentNdims();
@@ -487,7 +485,7 @@ public:
         for (int i=0;i<dimnum;i++) dataset_size *= dims[i];
         return dataset_size;
     }
-    int get_data_type(DataSet& ds)
+    int get_data_type(H5::DataSet& ds)
     {
         hid_t mem_type_id = H5Dget_type(ds.getId());
         hid_t native_type = H5Tget_native_type(mem_type_id, H5T_DIR_DEFAULT);
@@ -520,19 +518,19 @@ public:
         }
     }
 
-    string get_units(DataSet& ds)
+    std::string get_units(H5::DataSet& ds)
     {
-        string buf;
+        std::string buf;
         if (ds.attrExists("units"))
         {
-            Attribute attr = ds.openAttribute("units");
+            H5::Attribute attr = ds.openAttribute("units");
             attr.read(attr.getDataType(), buf);
-            cout << "Attribute units exists:" << buf << endl;
+            std::cout << "Attribute units exists:" << buf << std::endl;
             return buf;
         }
     }
 
-    void set_tiff_keys(TIFF* tif, size_t data_type_size, int data_type, int num_rows, int num_cols, double* geotiepoints, double* pixelscale, string units)
+    void set_tiff_keys(TIFF* tif, size_t data_type_size, int data_type, int num_rows, int num_cols, double* geotiepoints, double* pixelscale, std::string units)
     {
         TIFFSetField(tif, TIFFTAG_SOFTWARE,  "EED custom geotiff conversion for SMAP version 1.0");
         TIFFSetField(tif, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_MINISBLACK);
@@ -629,7 +627,7 @@ public:
             if ((row_data[i] >= row_min && col_data[i] >= col_min) &&
                 (row_data[i] - row_min <= row_max && col_data[i] - col_min <= col_max))
             {
-                //cout << row_data[i] << "," << row_min << ", " << col_data[i] << ", " << col_min << endl;
+                //std::cout << row_data[i] << "," << row_min << ", " << col_data[i] << ", " << col_min << std::endl;
                 array_index_map[row_data[i]-row_min][col_data[i]-col_min] = i;
             }
         }
@@ -641,8 +639,8 @@ public:
         delete [] array_index_map;
     }    
     protected:
-        /*vector<TIFF*> tifs;
-        vector<GTIF*> gtifs;*/
+        /*std::vector<TIFF*> tifs;
+        std::vector<GTIF*> gtifs;*/
         int coordinate_size;
         int row_min;
         int row_max;

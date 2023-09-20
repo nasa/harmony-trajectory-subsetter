@@ -1,3 +1,39 @@
+[version 0.1.13] 2023-08-17
+
+- **DAS-1945**
+  - Update Python dependencies to use earthdata-varinfo instead of sds-varinfo.
+
+[version 0.1.12] 2023-08-03
+
+- **DAS-1931**
+  - Bug fix: Added the required format output argument to an instantiation of the Subsetter class. 
+
+
+[version 0.1.11] 2023-07-20
+
+- **DAS-1887**
+  - Bug fix: Updated ForwardRefCoordinates.h to use forward and backward scanning methods to ensure that the fill values in the index begin dataset are skipped.
+
+[version 0.1.10] 2023-06-19
+
+- **DAS-1731**
+  - Bug fix: Updated FwdRefBeginDataset.h to correctly calculate index begin datasets for ATL03.
+
+[version 0.1.9] 2023-04-17
+
+- **DAS-1806**
+  - Refactoring: Removed global namespaces and updated Subset.cpp and Subsetter.h to incorporate modern coding standards.
+
+[version 0.1.8] 2023-03-22
+
+- **DAS-1773**
+  - Removed metadata dataset assumption/requirements.
+
+[version 0.1.7] 2023-03-13
+
+- **DAS-1772**
+  - Update to extract the collection short name from the input Source object.
+
 [version 0.1.6] 2022-12-19
 
 - **DAS-1726**

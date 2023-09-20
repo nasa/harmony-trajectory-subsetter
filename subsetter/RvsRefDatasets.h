@@ -3,8 +3,6 @@
 
 #include <stdlib.h>
 
-using namespace std;
-
 
 /**
  * class to write index datasets for ATL10
@@ -13,10 +11,10 @@ class RvsRefDatasets
 {
 public:
     
-    string shortname;
-    string datasetName;
+    std::string shortname;
+    std::string datasetName;
 
-    RvsRefDatasets(string shortname, string objname)
+    RvsRefDatasets(std::string shortname, std::string objname)
     : shortname(shortname), datasetName(objname)
     {
     }
@@ -32,7 +30,7 @@ public:
      *          (i.e., for /freeboard_swath_segment/fbswath_lead_ndx_gt1, 
      *           targetIndexes will be the IndexSelection from /gt1l/leads group)
      */
-    void mapWriteDataset(Group& outgroup, const string&groupname, const DataSet& indataset, IndexSelection* indexes, IndexSelection* targetIndexes, SubsetDataLayers* subsetDataLayers)
+    void mapWriteDataset(H5::Group& outgroup, const std::string&groupname, const H5::DataSet& indataset, IndexSelection* indexes, IndexSelection* targetIndexes, SubsetDataLayers* subsetDataLayers)
     {
         size_t inDatasetSize = indataset.getSpace().getSimpleExtentNpoints(); // input dataset size
         size_t subsettedSize = indexes->size(); // subsetted dataset size
@@ -54,7 +52,7 @@ public:
         }
         else
         {
-            for (map<long, long>::iterator it = indexes->segments.begin(); it != indexes->segments.end(); it++)
+            for (std::map<long, long>::iterator it = indexes->segments.begin(); it != indexes->segments.end(); it++)
             {
                 for (int i = it->first; i < (it->first+it->second); i++)
                 {
@@ -81,7 +79,7 @@ public:
             length = end - start;
         }
         
-        map<long, long>::iterator startIter = targetIndexes->segments.begin();
+        std::map<long, long>::iterator startIter = targetIndexes->segments.begin();
         
         // walk through the subsetted index and targetIndexes
         for (int i = 0; i < subsettedSize; i++)
@@ -96,7 +94,7 @@ public:
             // if spatial constraint is specified
             if (!targetIndexes->segments.empty())
             {
-                for (map<long, long>::iterator it = startIter; it != targetIndexes->segments.end(); it++)
+                for (std::map<long, long>::iterator it = startIter; it != targetIndexes->segments.end(); it++)
                 {
                     if (indexRef[i] > it->first && indexRef[i] <= (it->first + it->second+1))
                     {
@@ -153,10 +151,10 @@ public:
         newdims[0] = subsettedSize;
         for (int d = 1; d < dimnum; d++) newdims[d] = olddims[d];
 
-        DataSpace outspace(dimnum, newdims, maxdims);
-        DataType datatype(indataset.getDataType());
-        DataSet outdataset(outgroup.createDataSet(datasetName, datatype, outspace, indataset.getCreatePlist()));
-        outdataset.write(newIndexRef, datatype, DataSpace::ALL, outspace);
+        H5::DataSpace outspace(dimnum, newdims, maxdims);
+        H5::DataType datatype(indataset.getDataType());
+        H5::DataSet outdataset(outgroup.createDataSet(datasetName, datatype, outspace, indataset.getCreatePlist()));
+        outdataset.write(newIndexRef, datatype, H5::DataSpace::ALL, outspace);
         
         delete [] indexRef;
         delete [] inData;

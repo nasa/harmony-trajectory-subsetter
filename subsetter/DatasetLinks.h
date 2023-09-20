@@ -13,8 +13,8 @@ class DatasetLinks
 public:    
     DatasetLinks()
     {
-        links = new map<haddr_t, string>();
-        hardlinks = new map<string, string>();
+        links = new std::map<haddr_t, std::string>();
+        hardlinks = new std::map<std::string, std::string>();
     }
 
     ~DatasetLinks()
@@ -35,8 +35,8 @@ public:
     static herr_t linkCallback(hid_t groupId, const char *name, const H5L_info_t *linfo, void *opdata)
     {
         DatasetLinks* datasetlinks = (DatasetLinks*) opdata;
-        map<haddr_t, string>* links = datasetlinks->links;
-        map<string, string>* hardlinks = datasetlinks->hardlinks;
+        std::map<haddr_t, std::string>* links = datasetlinks->links;
+        std::map<std::string, std::string>* hardlinks = datasetlinks->hardlinks;
 
         // save off the mapping for new address
         if (linfo->type == 0) // hardlink
@@ -45,14 +45,14 @@ public:
             // if the address not already in the map, save it
             if (links->find(address) == links->end())
             {
-                links->insert(pair<haddr_t, string>(address, name));
-                //cout << "links address:" << address << ", name=" << name << endl;
+                links->insert(std::pair<haddr_t, std::string>(address, name));
+                //std::cout << "links address:" << address << ", name=" << name << std::endl;
             }
             else // the address has a dataset, the current dataset can then point to that dataset
             {
-                string sourceDataset = links->find(address)->second;
-                cout << "LINK found: type=" << linfo->type << " target " << name << " source " << sourceDataset << endl;
-                hardlinks->insert(pair<string, string>(name, sourceDataset));
+                std::string sourceDataset = links->find(address)->second;
+                std::cout << "LINK found: type=" << linfo->type << " target " << name << " source " << sourceDataset << std::endl;
+                hardlinks->insert(std::pair<std::string, std::string>(name, sourceDataset));
             }
         }
         return 0;
@@ -62,7 +62,7 @@ public:
      * track link information within a group
      * @param group group to visit
      */
-    void trackDatasetLinks(const Group& group)
+    void trackDatasetLinks(const H5::Group& group)
     {
         H5Literate(group.getLocId(), H5_INDEX_NAME, H5_ITER_INC, NULL, DatasetLinks::linkCallback, (void*)this);
     }
@@ -72,9 +72,9 @@ public:
      * @param objname 
      * @return true if the object is a hard link
      */
-    bool isHardLink(const string& objname)
+    bool isHardLink(const std::string& objname)
     {
-        map<string, string>::iterator it = hardlinks->find(objname);
+        std::map<std::string, std::string>::iterator it = hardlinks->find(objname);
         if (it != hardlinks->end()) return true;
     }
     
@@ -83,10 +83,10 @@ public:
      * @param objname
      * @return 
      */
-    string getHardLinkSource(const string& objname)
+    std::string getHardLinkSource(const std::string& objname)
     {
-        map<string, string>::iterator it = hardlinks->find(objname);
-        return (it != hardlinks->end())? it->second : string();
+        std::map<std::string, std::string>::iterator it = hardlinks->find(objname);
+        return (it != hardlinks->end())? it->second : std::string();
     }
         
 private:
@@ -95,13 +95,13 @@ private:
      * could contain objects other than dataset
      * key: address, value: dataset
      */
-    map<haddr_t, string>* links;
+    std::map<haddr_t, std::string>* links;
 
     /** 
      * keep track of the dataset names that point to a previous dataset in a group,
      * we haven't seen dataset link to dataset in different group
      *key: target dataset, value: source dataset
      */
-    map<string, string>* hardlinks;
+    std::map<std::string, std::string>* hardlinks;
 };
 #endif

@@ -6,13 +6,12 @@
 
 #include <boost/algorithm/string/find.hpp>
 
-using namespace std;
 
 class HeightSegmentCoordinates: public Coordinate
 {
 public:
         
-    HeightSegmentCoordinates(string groupname, vector<geobox>* geoboxes, Temporal* temporal, GeoPolygon* geoPolygon)
+    HeightSegmentCoordinates(std::string groupname, std::vector<geobox>* geoboxes, Temporal* temporal, GeoPolygon* geoPolygon)
     : Coordinate(groupname, geoboxes, temporal, geoPolygon)
     {
     }
@@ -32,14 +31,14 @@ public:
      * @param string shortName: product short name
      * @param SubsetDataLayers subsetDataLayers: dataset name to include in the output
      */
-     static Coordinate* getCoordinate(Group& root, Group& ingroup, const string& shortName, SubsetDataLayers* subsetDataLayers,
-            const string& groupname, vector<geobox>* geoboxes, Temporal* temporal, GeoPolygon* geoPolygon)
+     static Coordinate* getCoordinate(H5::Group& root, H5::Group& ingroup, const std::string& shortName, SubsetDataLayers* subsetDataLayers,
+            const std::string& groupname, std::vector<geobox>* geoboxes, Temporal* temporal, GeoPolygon* geoPolygon)
     {
-        cout << "HeightSegmentCoordinates" << endl;
+        std::cout << "HeightSegmentCoordinates" << std::endl;
 
         if (Coordinate::lookUp(groupname))
         {
-            cout << groupname << " already exists in lookUpMap(HeightSegmentCoordinate)" << endl;
+            std::cout << groupname << " already exists in lookUpMap(HeightSegmentCoordinate)" << std::endl;
             return lookUpMap["HeightSegmentRate"];
         }
         
@@ -56,8 +55,8 @@ public:
         else hgtSegCoor->localIndexes = coor->getIndexSelection();
         
         // get forward coordinate reference from leads group
-        string leadsGroupname = Configuration::getInstance()->getLeadsGroup(shortName, groupname);
-        //cout << "leadsGroup: " << leadsGroupname << endl;
+        std::string leadsGroupname = Configuration::getInstance()->getLeadsGroup(shortName, groupname);
+        //std::cout << "leadsGroup: " << leadsGroupname << std::endl;
         Coordinate* leadsCoor;
         hgtSegCoor->leadsGroup = root.openGroup(leadsGroupname);
         if (Coordinate::lookUp(leadsGroupname)) leadsCoor = lookUpMap[leadsGroupname];
@@ -78,19 +77,19 @@ public:
     {
         indexes = new IndexSelection(coordinateSize);
 
-        DataSet *indexBegSet = NULL, *countSet = NULL;
+        H5::DataSet *indexBegSet = NULL, *countSet = NULL;
 
-        string indexBegName, countName;
+        std::string indexBegName, countName;
 
 	Configuration::getInstance()->getDatasetNames(shortname, groupname, indexBegName, countName);
-        //cout << "indexBegin: " << indexBegName << endl;
-        //cout << "countName: " << countName << endl;
+        //std::cout << "indexBegin: " << indexBegName << std::endl;
+        //std::cout << "countName: " << countName << std::endl;
         if (!indexBegName.empty() && H5Lexists(leadsGroup.getLocId(), indexBegName.c_str(), H5P_DEFAULT) > 0)
-            indexBegSet = new DataSet(leadsGroup.openDataSet(indexBegName));
+            indexBegSet = new H5::DataSet(leadsGroup.openDataSet(indexBegName));
         if (!countName.empty() && H5Lexists(leadsGroup.getLocId(), countName.c_str(), H5P_DEFAULT) > 0)
-            countSet = new DataSet(leadsGroup.openDataSet(countName));
+            countSet = new H5::DataSet(leadsGroup.openDataSet(countName));
 
-	DataSet* nonNullDataset = (indexBegSet != NULL)? indexBegSet : countSet;
+	H5::DataSet* nonNullDataset = (indexBegSet != NULL)? indexBegSet : countSet;
         size_t coordinateSize = nonNullDataset->getSpace().getSimpleExtentNpoints();
 	hid_t native_type = H5Tget_native_type(H5Dget_type(indexBegSet->getId()), H5T_DIR_ASCEND);
 
@@ -112,23 +111,23 @@ public:
 
         countSet->read(count, countSet->getDataType());
 
-        //cout << "localIndexes" << endl; 
+        //std::cout << "localIndexes" << std::endl; 
         // add (start, length) pairs in the local coordinate reference
-        for (map<long, long>::iterator it = localIndexes->segments.begin(); it != localIndexes->segments.end(); it++)
+        for (std::map<long, long>::iterator it = localIndexes->segments.begin(); it != localIndexes->segments.end(); it++)
         {
             indexes->addSegment(it->first, it->second);
         }
 
-        //cout << "leadsIndexes" << endl;
+        //std::cout << "leadsIndexes" << std::endl;
         // add (start, length) pairs in the leads IndexSelection
         long start, length;
-        for (map<long, long>::iterator it = leadsIndexes->segments.begin(); it != leadsIndexes->segments.end(); it++)
+        for (std::map<long, long>::iterator it = leadsIndexes->segments.begin(); it != leadsIndexes->segments.end(); it++)
         {
             start = it->first;
             length = it->second;
             for (int i = start; i < length+start; i++)
             {
-		//cout << i << " - " << "indexBegin: " << indexBeg[i] << "; count: " << count[i] << endl;
+		//std::cout << i << " - " << "indexBegin: " << indexBeg[i] << "; count: " << count[i] << std::endl;
 		indexes->addSegment(indexBeg[i] - 1, count[i]);
             }
         }
@@ -140,7 +139,7 @@ private:
     IndexSelection* leadsIndexes;
     //ForwardReferenceCoordinates* leadsCoor;
     IndexSelection* localIndexes;
-    Group leadsGroup;
-    string shortname;
+    H5::Group leadsGroup;
+    std::string shortname;
 };
 #endif
