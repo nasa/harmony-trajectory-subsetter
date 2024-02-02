@@ -1,4 +1,4 @@
-# Trajectory Subsetter Sequence sequenceDiagram
+# Trajectory Subsetter Sequence Diagram
 
 ```mermaid
 
