@@ -136,8 +136,51 @@ The general rules for which version number to increment are:
 When the Docker image is built, it will be tagged with the semantic version
 number as stored in `docker/service_version.txt`.
 
+### Local development:
+
+A local Conda development environment can be configured using `./subsetter/environment.yaml` and a customized `makeit` file. In the `./subsetter` directory:
+```
+conda env create -f environment.yaml
+```
+
+And create `makeit_local_conda`:
+```
+/Path/to/conda run -n trajectory-subsetter-local-dev \
+/Path/to/conda/env/trajectory-subsetter-local-dev/bin/h5c++ -v -std=c++20 -g ./Subset.cpp \
+-DSDPS \
+-Og \
+-lgeotiff -ltiff -lGctp -ljpeg -llzma \
+-lboost_program_options -lboost_filesystem \
+-lboost_date_time       -lboost_regex \
+-o subset
+```
+A debug environment can be configured in Visual Studio Code using the `launch.json` file in the top-level `.vscode` directory. To create this file, go to the Debug Console, click "create a launch.json file", and add the following configurations, including only relevant `args`. Remember to replace file paths as needed.
+```
+    "configurations": [
+        {
+            "name": "<Name of debug environment>",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/Path/to/subset",
+            "args": [
+              "--configfile","../harmony_service/subsetter_config.json",
+              "--filename","/Path/to/input/file",
+              "--outfile","/Path/to/output/file",
+              "--includedataset","/Path/to/variable1,/Path/to/variable2",
+              "--bbox","W,S,E,N",
+              "--start","YYYY-MM-DDTHH:MM:SS",
+              "--end","YYYY-MM-DDTHH:MM:SS"
+              ],
+            "cwd": "/Path/to/subset/directory",
+            "environment": [],
+            "MIMode": "lldb",
+        }
+    ]
+```
+Now navigate to any source file to place a breakpoint, and hit "Start debugging" in the Debug Console. Refer to the [Visual Studio Code Debugging](https://code.visualstudio.com/docs/editor/debugging) documentation for how to further use the VSCode debugger.
+
 ### Best Coding Practices:
 
 On-going development incorporates updates to new and existing code that will better adhere the Trajectory Subsetter source code to modern C++ best practices. The core guidelines are extracted from the [C++ Core Guidelines](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#c-core-guidelines), written in part by Bjarne Stroustrup, the creator of the C++ programming language.
 
-The code is not expected to completely and entirely adhere to these guidelines, as implementing every guideline is not time efficient. There is a general rule for maintaining consistency within the existing code as long as it is safe, efficicient, not error prone, or particularly convoluted. 
+The code is not expected to completely and entirely adhere to these guidelines, as implementing every guideline is not time efficient. There is a general rule for maintaining consistency within the existing code as long as it is safe, efficicient, not error prone, or particularly convoluted.
