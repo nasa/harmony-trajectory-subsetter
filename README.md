@@ -154,6 +154,12 @@ And create `makeit_local_conda`:
 -lboost_date_time       -lboost_regex \
 -o subset
 ```
+Build the source code:
+```
+./makeit_local_conda
+```
+
+
 A debug environment can be configured in Visual Studio Code using the `launch.json` file in the top-level `.vscode` directory. To create this file, go to the Debug Console, click "create a launch.json file", and add the following configurations, including only relevant `args`. Remember to replace file paths as needed.
 ```
     "configurations": [
