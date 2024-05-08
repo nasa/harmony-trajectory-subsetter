@@ -154,11 +154,10 @@ and create a `makeit_local_conda` file. Remember to replace the conda file paths
 -lboost_date_time       -lboost_regex \
 -o subset
 ```
-Now add `../sdps_local_development/HE5_GctpFunc.h` to `/usr/local/include` on
+Now add the files `.HE5_GctpFunc.h` and `libGctp.la` from `../sdps_local_development/` to `/usr/local/include` and `/usr/local/lib`, respectively, on
 your local machine. This step can be removed when the latest version of the
-`hdfeos2` (newer than 5.1.16) package has been released to conda. Then `hdfeos5` can be added
-to the `environment.yaml` and the`../sdps_local_development/HE5_GctpFunc.h`
-file can be deleted.
+`hdfeos5` package (newer than 5.1.16) has been released to conda. Then `hdfeos5` can be added
+to the `environment.yaml` and the files can be removed.
 
 Build the source code:
 ```
