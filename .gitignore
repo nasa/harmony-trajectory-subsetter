@@ -137,3 +137,6 @@ modules.xml
 swotrepr.iml
 .idea/
 *.iml
+
+# Local conda build file
+**makeit_local_conda

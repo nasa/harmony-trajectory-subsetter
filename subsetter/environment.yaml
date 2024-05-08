@@ -1,9 +1,0 @@
-name: trajectory-subsetter-local-dev
-channels:
-  - conda-forge
-  - defaults
-dependencies:
-  - hdf5==1.8.18
-  - boost-cpp==1.84.0
-  - geotiff==1.7.1
-  - hdfeos2==2.20

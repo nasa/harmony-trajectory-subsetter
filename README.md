@@ -138,12 +138,12 @@ number as stored in `docker/service_version.txt`.
 
 ### Local development:
 
-A local Conda development environment can be configured using `./subsetter/environment.yaml` and a customized `makeit` file. In the `./subsetter` directory:
+A local Conda development environment can be configured using the following Conda environment and a customized `makeit` file. In the `./subsetter` directory:
 ```
-conda env create -f environment.yaml
+conda env create -f ../sdps_local_development/environment.yaml
 ```
 
-And create `makeit_local_conda`:
+and create a `makeit_local_conda` file. Remember to replace the conda file paths:
 ```
 /Path/to/conda run -n trajectory-subsetter-local-dev \
 /Path/to/conda/env/trajectory-subsetter-local-dev/bin/h5c++ -v -std=c++20 -g ./Subset.cpp \
@@ -154,6 +154,12 @@ And create `makeit_local_conda`:
 -lboost_date_time       -lboost_regex \
 -o subset
 ```
+Now add `../sdps_local_development/HE5_GctpFunc.h` to `/usr/local/include` on
+your local machine. This step can be removed when the latest version of the
+`hdfeos2` (newer than 5.1.16) package has been released to conda. Then `hdfeos5` can be added
+to the `environment.yaml` and the`../sdps_local_development/HE5_GctpFunc.h`
+file can be deleted.
+
 Build the source code:
 ```
 ./makeit_local_conda
