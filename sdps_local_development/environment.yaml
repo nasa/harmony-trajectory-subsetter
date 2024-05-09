@@ -1,0 +1,12 @@
+################################################################
+# This file contains the conda requirements for developing the
+# SDPS source code locally. See README.md for more information.
+################################################################
+name: trajectory-subsetter-local-dev
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - hdf5==1.8.18
+  - boost-cpp==1.84.0
+  - geotiff==1.7.1
