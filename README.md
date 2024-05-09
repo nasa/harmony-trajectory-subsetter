@@ -143,22 +143,23 @@ A local Conda development environment can be configured using the following Cond
 conda env create -f ../sdps_local_development/environment.yaml
 ```
 
-and create a `makeit_local_conda` file. Remember to replace the conda file paths:
+and create a `makeit_local_conda` file here. Remember to replace the file paths as needed.
 ```
 /Path/to/conda run -n trajectory-subsetter-local-dev \
 /Path/to/conda/env/trajectory-subsetter-local-dev/bin/h5c++ -v -std=c++20 -g ./Subset.cpp \
 -DSDPS \
 -Og \
+-I/Path/to/trajectorysubsetter/sdps_local_development \
 -lgeotiff -ltiff -lGctp -ljpeg -llzma \
 -lboost_program_options -lboost_filesystem \
 -lboost_date_time       -lboost_regex \
 -o subset
 ```
-Now add `../sdps_local_development/HE5_GctpFunc.h` to `/usr/local/include` on
-your local machine. This step can be removed when the latest version of the
-`hdfeos5` (newer than 5.1.16) package has been released to conda. Then `hdfeos5` can be added
-to the `environment.yaml` and the `../sdps_local_development/HE5_GctpFunc.h`
-file can be deleted.
+
+Note: The include path to `sdps_local_development` solely exists to include
+`HE5_GctpFunc.h` in the build. This line can be removed when the latest
+version of the `hdfeos5` package (newer than 5.1.16) has been released
+to conda, and `hdfeos5` can then be added to `environment.yaml`.
 
 Build the source code:
 ```
@@ -166,7 +167,7 @@ Build the source code:
 ```
 
 
-A debug environment can be configured in Visual Studio Code using the `launch.json` file in the top-level `.vscode` directory. To create this file, go to the Debug Console, click "create a launch.json file", and add the following configurations, including only relevant `args`. Remember to replace file paths as needed.
+A debug environment can be configured in Visual Studio Code using the `launch.json` file in the top-level `.vscode` directory. To create this file, go to "Run and Debug" in the left panel, click "create a launch.json file", and add the following configurations, including only relevant `args`. Remember to replace file paths as needed.
 ```
     "configurations": [
         {
