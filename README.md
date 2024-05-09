@@ -190,7 +190,9 @@ A debug environment can be configured in Visual Studio Code using the `launch.js
         }
     ]
 ```
-Now navigate to any source file to place a breakpoint, and hit "Start debugging" in the Debug Console. Refer to the [Visual Studio Code Debugging](https://code.visualstudio.com/docs/editor/debugging) documentation for how to further use the VSCode debugger.
+Now navigate to any source file to place a breakpoint, and hit "Start debugging" in the Debug Console. Refer to the [Visual Studio Code Debugging](https://code.visualstudio.com/docs/editor/debugging) documentation for how to further use the VSCode debugger. <br><br>
+Note 1: A pop-up window may appear called "Developer Tools Access" that requires elevated privileges.<br>
+Note 2: Additional required variables are not yet included as `earthdata-varinfo` is not linked.
 
 ### Best Coding Practices:
 
