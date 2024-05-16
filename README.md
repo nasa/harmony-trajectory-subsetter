@@ -193,6 +193,16 @@ A debug environment can be configured in Visual Studio Code using the `launch.js
         }
     ]
 ```
+**Temporal subsetting issue**: VScode mysteriously converts the `--start` and `--stop` arguments to `YYYY/MM/DD HH:MM:SS`. To work around this, note the addition of single quotes within the time arguments in `launch.json`, and go to `Subset.cpp` and add these two lines of code in the temporal argument processing section. <br>
+**BEWARE**: You must remember to delete these two lines before committing.
+```
+startString = variables_map["start"].as<std::string>();
+endString = variables_map["end"].as<std::string>();
+boost::erase_all(startString, "'");     <----- New code
+boost::erase_all(endString, "'");       <----- New code
+boost::regex date_format(...
+```
+
 Now navigate to any source file to place a breakpoint, and hit "Start debugging" in the Debug Console. Refer to the [Visual Studio Code Debugging](https://code.visualstudio.com/docs/editor/debugging) documentation for how to further use the VSCode debugger. <br><br>
 Note 1: A pop-up window may appear called "Developer Tools Access" that requires elevated privileges.<br>
 Note 2: Additional required variables are not yet included as `earthdata-varinfo` is not linked.
