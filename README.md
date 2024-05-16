@@ -140,32 +140,35 @@ number as stored in `docker/service_version.txt`.
 
 A local Conda development environment can be configured using the following Conda environment and a customized `makeit` file. In the `./subsetter` directory:
 ```
-conda env create -f ../sdps_local_development/environment.yaml
+conda env create -f ../environment.yaml && conda activate trajectory-subsetter-local-dev
 ```
 
-and create a `makeit_local_conda` file here. Remember to replace the file paths as needed.
+and create a `makeit_local_conda` file here. Remember to replace the file path to h5c++. Note that the first build may take longer.
+
 ```
-/Path/to/conda run -n trajectory-subsetter-local-dev \
+#!/bin/bash
+
+if [ ! -f "./hdfeos5/include/HE5_GctpFunc.h" ] || [ ! -f "./hdfeos5/gctp/src/libGctp.la" ]; then
+    echo "The required header and library files do not exit - building  hdfeos5 library..."
+    git clone https://git.earthdata.nasa.gov/scm/sitc/hdfeos5.git && cd hdfeos5
+    ./configure && make && make install
+    cd ../
+fi
+
 /Path/to/conda/env/trajectory-subsetter-local-dev/bin/h5c++ -v -std=c++20 -g ./Subset.cpp \
 -DSDPS \
+-DH5_USE_18_API \
 -Og \
--I/Path/to/trajectorysubsetter/sdps_local_development \
--lgeotiff -ltiff -lGctp -ljpeg -llzma \
+-lgeotiff -ltiff -ljpeg -lGctp -llzma \
 -lboost_program_options -lboost_filesystem \
 -lboost_date_time       -lboost_regex \
 -o subset
 ```
 
-Note: The include path to `sdps_local_development` solely exists to include
-`HE5_GctpFunc.h` in the build. This line can be removed when the latest
-version of the `hdfeos5` package (newer than 5.1.16) has been released
-to conda, and `hdfeos5` can then be added to `environment.yaml`.
-
-Build the source code:
+Build the source code (you may have to make it executable via `chmod 755 makeit_local_conda`):
 ```
 ./makeit_local_conda
 ```
-
 
 A debug environment can be configured in Visual Studio Code using the `launch.json` file in the top-level `.vscode` directory. To create this file, go to "Run and Debug" in the left panel, click "create a launch.json file", and add the following configurations, including only relevant `args`. Remember to replace file paths as needed.
 ```

@@ -140,3 +140,6 @@ swotrepr.iml
 
 # Local conda build file
 **makeit_local_conda
+
+# Cloned and built library for hdfeos5 for local conda build.
+**hdfeos5/
