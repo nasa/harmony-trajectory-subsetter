@@ -143,16 +143,18 @@ A local Conda development environment can be configured using the following Cond
 conda env create -f ../environment.yaml && conda activate trajectory-subsetter-local-dev
 ```
 
-and create a `makeit_local_conda` file here. Remember to replace the file paths as needed. Note that the first build may take longer.<br>
+and create a `makeit_local_conda` file and place in it the code below. Remember to replace the file path to h5c++. Note that the first build may take longer.<br>
 Note: When the latest version of `hdfeos5` is available in conda (newer than 5.1.16), the if statement may be removed.
 
 ```
 #!/bin/bash
 
-if [ ! -f "./hdfeos5/include/HE5_GctpFunc.h" ] || [ ! -f "./hdfeos5/lib/libGctp.a" ]; then
+CURDIR=$(pwd)
+
+if [ ! -f "${CURDIR}/hdfeos5/include/HE5_GctpFunc.h" ] || [ ! -f "${CURDIR}/hdfeos5/lib/libGctp.a" ]; then
     echo "The required header and library files do not exist - building  hdfeos5 library..."
     git clone https://git.earthdata.nasa.gov/scm/sitc/hdfeos5.git && cd hdfeos5
-    ./configure --prefix=/Path/to/trajectorysubsetter/subsetter/hdfeos5 && make && make install
+    ./configure --prefix=${CURDIR}/hdfeos5 && make && make install
     cd ../
 fi
 
