@@ -152,7 +152,7 @@ Note: When the latest version of `hdfeos5` is available in conda (newer than 5.1
 if [ ! -f "./hdfeos5/include/HE5_GctpFunc.h" ] || [ ! -f "./hdfeos5/lib/libGctp.a" ]; then
     echo "The required header and library files do not exist - building  hdfeos5 library..."
     git clone https://git.earthdata.nasa.gov/scm/sitc/hdfeos5.git && cd hdfeos5
-    ./configure prefix=/Path/to/trajectorysubsetter/subsetter/hdfeos5 && make && make install
+    ./configure --prefix=/Path/to/trajectorysubsetter/subsetter/hdfeos5 && make && make install
     cd ../
 fi
 
