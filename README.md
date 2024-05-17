@@ -143,15 +143,16 @@ A local Conda development environment can be configured using the following Cond
 conda env create -f ../environment.yaml && conda activate trajectory-subsetter-local-dev
 ```
 
-and create a `makeit_local_conda` file here. Remember to replace the file path to h5c++. Note that the first build may take longer.
+and create a `makeit_local_conda` file here. Remember to replace the file paths as needed. Note that the first build may take longer.<br>
+Note: When the latest version of `hdfeos5` is available in conda (newer than 5.1.16), the if statement may be removed.
 
 ```
 #!/bin/bash
 
-if [ ! -f "./hdfeos5/include/HE5_GctpFunc.h" ] || [ ! -f "./hdfeos5/gctp/src/libGctp.la" ]; then
-    echo "The required header and library files do not exit - building  hdfeos5 library..."
+if [ ! -f "./hdfeos5/include/HE5_GctpFunc.h" ] || [ ! -f "./hdfeos5/lib/libGctp.a" ]; then
+    echo "The required header and library files do not exist - building  hdfeos5 library..."
     git clone https://git.earthdata.nasa.gov/scm/sitc/hdfeos5.git && cd hdfeos5
-    ./configure && make && make install
+    ./configure prefix=/Path/to/trajectorysubsetter/subsetter/hdfeos5 && make && make install
     cd ../
 fi
 
@@ -193,7 +194,7 @@ A debug environment can be configured in Visual Studio Code using the `launch.js
         }
     ]
 ```
-**Temporal subsetting issue**: VScode mysteriously converts the `--start` and `--stop` arguments to `YYYY/MM/DD HH:MM:SS`. To work around this, note the addition of single quotes within the time arguments in `launch.json`, and go to `Subset.cpp` and add these two lines of code in the temporal argument processing section. <br>
+**Temporal subsetting issue**: VScode mysteriously converts the `--start` and `--end` arguments to `YYYY/MM/DD HH:MM:SS`. To work around this, note the addition of single quotes within the time arguments in `launch.json`, and go to `Subset.cpp` and add these two lines of code in the temporal argument processing section. <br>
 **BEWARE**: You must remember to delete these two lines before committing.
 ```
 startString = variables_map["start"].as<std::string>();
@@ -211,4 +212,4 @@ Note 2: Additional required variables are not yet included as `earthdata-varinfo
 
 On-going development incorporates updates to new and existing code that will better adhere the Trajectory Subsetter source code to modern C++ best practices. The core guidelines are extracted from the [C++ Core Guidelines](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#c-core-guidelines), written in part by Bjarne Stroustrup, the creator of the C++ programming language.
 
-The code is not expected to completely and entirely adhere to these guidelines, as implementing every guideline is not time efficient. There is a general rule for maintaining consistency within the existing code as long as it is safe, efficicient, not error prone, or particularly convoluted.
+The code is not expected to completely and entirely adhere to these guidelines, as implementing every guideline is not time efficient. There is a general rule for maintaining consistency within the existing code as long as it is safe, efficient, not error prone, or particularly convoluted.
