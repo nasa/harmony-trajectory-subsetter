@@ -162,6 +162,8 @@ fi
 -DSDPS \
 -DH5_USE_18_API \
 -Og \
+-I${CURDIR}/hdfeos5/include \
+-L${CURDIR}/hdfeos5/lib \
 -lgeotiff -ltiff -ljpeg -lGctp -llzma \
 -lboost_program_options -lboost_filesystem \
 -lboost_date_time       -lboost_regex \
