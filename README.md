@@ -140,32 +140,38 @@ number as stored in `docker/service_version.txt`.
 
 A local Conda development environment can be configured using the following Conda environment and a customized `makeit` file. In the `./subsetter` directory:
 ```
-conda env create -f ../sdps_local_development/environment.yaml
+conda env create -f ../environment.yaml && conda activate trajectory-subsetter-local-dev
 ```
 
-and create a `makeit_local_conda` file here. Remember to replace the file paths as needed.
+and create a `makeit_local_conda` file and place in it the code below. Remember to replace the file path to h5c++. Note that the first build may take longer.<br>
+Note: When the latest version of `hdfeos5` is available in conda (newer than 5.1.16), the if statement may be removed.
+
 ```
-/Path/to/conda run -n trajectory-subsetter-local-dev \
+#!/bin/bash
+
+CURDIR=$(pwd)
+
+if [ ! -f "${CURDIR}/hdfeos5/include/HE5_GctpFunc.h" ] || [ ! -f "${CURDIR}/hdfeos5/lib/libGctp.a" ]; then
+    echo "The required header and library files do not exist - building  hdfeos5 library..."
+    git clone https://git.earthdata.nasa.gov/scm/sitc/hdfeos5.git && cd hdfeos5
+    ./configure --prefix=${CURDIR}/hdfeos5 && make && make install
+    cd ../
+fi
+
 /Path/to/conda/env/trajectory-subsetter-local-dev/bin/h5c++ -v -std=c++20 -g ./Subset.cpp \
 -DSDPS \
+-DH5_USE_18_API \
 -Og \
--I/Path/to/trajectorysubsetter/sdps_local_development \
--lgeotiff -ltiff -lGctp -ljpeg -llzma \
+-lgeotiff -ltiff -ljpeg -lGctp -llzma \
 -lboost_program_options -lboost_filesystem \
 -lboost_date_time       -lboost_regex \
 -o subset
 ```
 
-Note: The include path to `sdps_local_development` solely exists to include
-`HE5_GctpFunc.h` in the build. This line can be removed when the latest
-version of the `hdfeos5` package (newer than 5.1.16) has been released
-to conda, and `hdfeos5` can then be added to `environment.yaml`.
-
-Build the source code:
+Build the source code (you may have to make it executable via `chmod 755 makeit_local_conda`):
 ```
 ./makeit_local_conda
 ```
-
 
 A debug environment can be configured in Visual Studio Code using the `launch.json` file in the top-level `.vscode` directory. To create this file, go to "Run and Debug" in the left panel, click "create a launch.json file", and add the following configurations, including only relevant `args`. Remember to replace file paths as needed.
 ```
@@ -190,6 +196,16 @@ A debug environment can be configured in Visual Studio Code using the `launch.js
         }
     ]
 ```
+**Temporal subsetting issue**: VScode mysteriously converts the `--start` and `--end` arguments to `YYYY/MM/DD HH:MM:SS`. To work around this, note the addition of single quotes within the time arguments in `launch.json`, and go to `Subset.cpp` and add these two lines of code in the temporal argument processing section. <br>
+**BEWARE**: You must remember to delete these two lines before committing.
+```
+startString = variables_map["start"].as<std::string>();
+endString = variables_map["end"].as<std::string>();
+boost::erase_all(startString, "'");     <----- New code
+boost::erase_all(endString, "'");       <----- New code
+boost::regex date_format(...
+```
+
 Now navigate to any source file to place a breakpoint, and hit "Start debugging" in the Debug Console. Refer to the [Visual Studio Code Debugging](https://code.visualstudio.com/docs/editor/debugging) documentation for how to further use the VSCode debugger. <br><br>
 Note 1: A pop-up window may appear called "Developer Tools Access" that requires elevated privileges.<br>
 Note 2: Additional required variables are not yet included as `earthdata-varinfo` is not linked.
@@ -198,4 +214,4 @@ Note 2: Additional required variables are not yet included as `earthdata-varinfo
 
 On-going development incorporates updates to new and existing code that will better adhere the Trajectory Subsetter source code to modern C++ best practices. The core guidelines are extracted from the [C++ Core Guidelines](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#c-core-guidelines), written in part by Bjarne Stroustrup, the creator of the C++ programming language.
 
-The code is not expected to completely and entirely adhere to these guidelines, as implementing every guideline is not time efficient. There is a general rule for maintaining consistency within the existing code as long as it is safe, efficicient, not error prone, or particularly convoluted.
+The code is not expected to completely and entirely adhere to these guidelines, as implementing every guideline is not time efficient. There is a general rule for maintaining consistency within the existing code as long as it is safe, efficient, not error prone, or particularly convoluted.
