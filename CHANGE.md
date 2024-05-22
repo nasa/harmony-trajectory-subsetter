@@ -1,3 +1,8 @@
+[version 0.1.14] 2024-05-20
+
+- **DAS-2173**
+  - Update harmony-service-library-py to ~1.0.27.
+
 [version 0.1.13] 2023-08-17
 
 - **DAS-1945**
@@ -6,7 +11,7 @@
 [version 0.1.12] 2023-08-03
 
 - **DAS-1931**
-  - Bug fix: Added the required format output argument to an instantiation of the Subsetter class. 
+  - Bug fix: Added the required format output argument to an instantiation of the Subsetter class.
 
 
 [version 0.1.11] 2023-07-20
