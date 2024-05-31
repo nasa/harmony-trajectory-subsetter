@@ -1,3 +1,11 @@
+[version 0.1.15] 2024-05-24
+
+- **DAS-2149**
+  - Add functionality to track the largest time range of all the subset time
+    coordinates in a request. This change also includes removing commented
+    out code across the binary source code and improves comments in
+    `Subsetter.h`.
+
 [version 0.1.14] 2024-05-20
 
 - **DAS-2173**

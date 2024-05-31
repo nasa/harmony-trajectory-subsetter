@@ -1,5 +1,5 @@
 #ifndef SuperGroupSubsetter_H
-#define SuperGroupSubsetter_H 
+#define SuperGroupSubsetter_H
 
 #include "SuperGroupCoordinate.h"
 
@@ -9,13 +9,13 @@ class SuperGroupSubsetter : public Subsetter
 {
 public:
     SuperGroupSubsetter(SubsetDataLayers* subsetDataLayers, std::vector<geobox>* geoboxes, Temporal* temporal, GeoPolygon* geoPolygon)
-    : Subsetter(subsetDataLayers, geoboxes, temporal, geoPolygon) 
+    : Subsetter(subsetDataLayers, geoboxes, temporal, geoPolygon)
     {
         std::cout << "SuperGroupSubsetter ctor" << std::endl;
     }
-    
+
 protected:
-    
+
     /**
      * subset and write dataset
      * @param objname string dataset object name
@@ -24,18 +24,16 @@ protected:
      * @param groupname string group name
      * @param indexes IndexSelection index selection object
      */
-    virtual void writeDataset(const std::string& objname, const H5::DataSet& indataset, H5::Group& outgroup, 
+    virtual void writeDataset(const std::string& objname, const H5::DataSet& indataset, H5::Group& outgroup,
                         const std::string& groupname, IndexSelection* indexes)
     {
-        //std::cout << "superGroupSubsetter::writeDataset" << std::endl;
         H5::H5File infile = getInputFile();
         if (indexes != NULL && indexes->getMaxSize() != indexes->size() && indexes->size() != 0 &&
-            Configuration::getInstance()->isSegmentGroup(this->getShortName(), groupname) && 
+            Configuration::getInstance()->isSegmentGroup(this->getShortName(), groupname) &&
             Configuration::getInstance()->getIndexBeginDatasetName(this->getShortName(), groupname, objname) ==objname)
         {
             // need to make sure count dataset exists
             std::string countName = Configuration::getInstance()->getCountDatasetName(this->getShortName(), groupname, objname);
-            //std::cout << "groupname+countName: " << groupname+countName << std::endl;
             // if the count dataset is not in the output file, create it
             if (H5Lexists(outgroup.getLocId(), countName.c_str(), H5P_DEFAULT) <= 0)
             {
@@ -56,8 +54,8 @@ protected:
             // write index begin dataset
             FwdRefBeginDataset* photonDataset = new FwdRefBeginDataset(this->getShortName(), objname);
             photonDataset->writeDataset(outgroup, groupname, indataset, indexes, this->getSubsetDataLayers());
-            
-            
+
+
             // copy attributes
             H5::DataSet outdataset(outgroup.openDataSet(objname));
             copyAttributes(indataset, outdataset, groupname);
@@ -65,24 +63,23 @@ protected:
         else
         {
             Subsetter::writeDataset(objname, indataset, outgroup, groupname, indexes);
-        } 
+        }
     }
-    
+
 private:
-    virtual Coordinate* getCoordinate(H5::Group& root, H5::Group& ingroup, const std::string& groupname, 
+    virtual Coordinate* getCoordinate(H5::Group& root, H5::Group& ingroup, const std::string& groupname,
         SubsetDataLayers* subsetDataLayers, std::vector<geobox>* geoboxes, Temporal* temporal, GeoPolygon* geoPolygon, bool repair = false)
     {
-        //std::cout << "SuperGroup getCoordinate" << std::endl;
         bool hasPhotonSegmentDataset = Configuration::getInstance()->hasPhotonSegmentGroups(this->getShortName());
         bool isPhotonDataset = Configuration::getInstance()->isPhotonDataset(this->getShortName(), groupname);
         if (hasPhotonSegmentDataset && isPhotonDataset)
         {
-            return ForwardReferenceCoordinates::getCoordinate(root, ingroup, this->getShortName(), subsetDataLayers, 
+            return ForwardReferenceCoordinates::getCoordinate(root, ingroup, this->getShortName(), subsetDataLayers,
                     groupname, geoboxes, temporal, geoPolygon);
         }
         else if (groupname != "/")
         {
-            return SuperGroupCoordinate::getCoordinate(root, ingroup, this->getShortName(), subsetDataLayers, 
+            return SuperGroupCoordinate::getCoordinate(root, ingroup, this->getShortName(), subsetDataLayers,
                     groupname, geoboxes, temporal, geoPolygon);
         }
         else

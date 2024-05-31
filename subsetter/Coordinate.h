@@ -36,32 +36,32 @@
 class Coordinate
 {
 public:
-    
+
     // hash map that stores Coordinate instance references for later look up, so that
     // IndexSelection will not be computed multiple times
     // key: coordinate datasets group path; value: Coordinate instance reference
     static boost::unordered_map<std::string, Coordinate*> lookUpMap;
-    
+
     // IndexSelection instance created based on the coordinate datasets and temporal
     // and/or spatial constraints specified
     IndexSelection* indexes;
-    
+
     bool indexesProcessed;
-    
+
     std::string groupname;
-        
+
     Coordinate(std::string groupname, std::vector<geobox>* geoboxes, Temporal* temporal, GeoPolygon* geoPolygon)
     : groupname(groupname),geoboxes(geoboxes),temporal(temporal),geoPolygon(geoPolygon),indexes(NULL), indexesProcessed(false)
     {
     };
-    
+
     ~Coordinate()
     {
     }
-    
+
     // returns the Coordinate instance that is associated with the coordinate attribute value
     // if it does not exist, create it
-    static Coordinate* getCoordinate(H5::Group& root, H5::Group& ingroup, const std::string& groupname, const std::string& shortname, 
+    static Coordinate* getCoordinate(H5::Group& root, H5::Group& ingroup, const std::string& groupname, const std::string& shortname,
         SubsetDataLayers* subsetDataLayers, std::vector<geobox>* geoboxes, Temporal* temporal, GeoPolygon* geoPolygon)
     {
         std::string typeName, objName;
@@ -71,22 +71,20 @@ public:
         bool inconsistentCoorDatasets = false;
         std::vector<std::string> allDatasets;
         std::string timeNameInGroup, latitudeNameInGroup, longitudeNameInGroup, ignoreNameInGroup;
-                        
+
         numOfObjs = ingroup.getNumObjs();
         int i = 0;
-        //coordinateSize = 0;
-        
+
         Coordinate* coor = new Coordinate(groupname, geoboxes, temporal, geoPolygon);
         coor->coordinateSize = 0;
-        
-        if (geoboxes == NULL && temporal == NULL && geoPolygon == NULL) 
+
+        if (geoboxes == NULL && temporal == NULL && geoPolygon == NULL)
         {
             coor->indexesProcessed = true;
             return coor;
         }
-        
-        //std::cout << "groupname: " << groupname << std::endl;
-        
+
+
         // loop through all datasets in a group
         // to get coordinate datasets from coordinate attributes
         for (i = 0; i < numOfObjs; i++)
@@ -94,10 +92,9 @@ public:
             ingroup.getObjTypeByIdx(i, typeName);
             objName = ingroup.getObjnameByIdx(i);
             bool inSubsetDataLayers = subsetDataLayers->is_included(groupname+objName+"/");
-            
+
             if (typeName == "dataset")
             {
-                //std::cout << objName << std::endl;
                 H5::DataSet data = ingroup.openDataSet(objName);
                 H5::DataSpace inspace = data.getSpace();
                 int dim = inspace.getSimpleExtentNdims();
@@ -111,20 +108,20 @@ public:
         // match datasets in the group with the coordinate dataset names in the configuration file
         Configuration::getInstance()->getMatchingCoordinateDatasetNames(shortname, allDatasets, timeNameInGroup, latitudeNameInGroup, longitudeNameInGroup,
                                                                         ignoreNameInGroup);
-        // use groupname as coorGroupname(key for lookup map) if the coordinate dataset names are 
+        // use groupname as coorGroupname(key for lookup map) if the coordinate dataset names are
         // retrieved by walking through the datasets in the group
         if (coorGroupname.empty()) coorGroupname = groupname;
-        
+
         // if the Coordinate group already exists, return it, else, continue processing
         if (coor->lookUp(coorGroupname))
         {
             std::cout << coorGroupname << " already exists in lookUpMap" << std::endl;
             return lookUpMap[coorGroupname];
         }
-        
+
         // if lat/lon/time datasets were found in the group and not in coordinates attribute,
         // use lat/lon/time datasets found in the group
-        if (timeName.empty() && !timeNameInGroup.empty()) 
+        if (timeName.empty() && !timeNameInGroup.empty())
         {
             timeName = timeNameInGroup;
             inGroupCount++;
@@ -139,7 +136,7 @@ public:
             longitudeName = longitudeNameInGroup;
             inGroupCount++;
         }
-        
+
         // if no coordinate references found in the group,
         // return null IndexSelection
         if (latitudeName.empty() && longitudeName.empty() && timeName.empty())
@@ -147,33 +144,30 @@ public:
             coor->indexesProcessed = true;
             return coor;
         }
-        
+
         H5::Group coorGroup = root.openGroup(coorGroupname);
-        
+
         H5::DataSet *data = NULL;
         if (!latitudeName.empty() && H5Lexists(coorGroup.getLocId(), latitudeName.c_str(), H5P_DEFAULT) > 0)
         {
-            //std::cout << "latitudeName: " << latitudeName << std::endl;
             data = new H5::DataSet(coorGroup.openDataSet(latitudeName));
             coor->checkCoorDatasetSize(data, inconsistentCoorDatasets);
             coor->coorDatasets.insert(std::pair<std::string, H5::DataSet*>("latitude", data));
         }
         if (!longitudeName.empty() && H5Lexists(coorGroup.getLocId(), longitudeName.c_str(), H5P_DEFAULT) > 0)
         {
-            //std::cout << "longitudeName: " << longitudeName << std::endl;
             data = new H5::DataSet(coorGroup.openDataSet(longitudeName));
             coor->checkCoorDatasetSize(data, inconsistentCoorDatasets);
             coor->coorDatasets.insert(std::pair<std::string, H5::DataSet*>("longitude", data));
         }
         if (!timeName.empty() && H5Lexists(coorGroup.getLocId(), timeName.c_str(), H5P_DEFAULT) > 0)
         {
-            //std::cout << "timeName: " << timeName << std::endl;
             data = new H5::DataSet(coorGroup.openDataSet(timeName));
             coor->checkCoorDatasetSize(data, inconsistentCoorDatasets);
             coor->coorDatasets.insert(std::pair<std::string, H5::DataSet*>("time", data));
         }
-        
-        // if lat/lon/time datasets do not exist in the group, 
+
+        // if lat/lon/time datasets do not exist in the group,
         // return IndexSelection with restriction, start=0, length=0
         //    (arraySize used to instantiate IndexSelection is from the datasets in the group,
         //     since the coordinate datasets do not exist)
@@ -187,7 +181,7 @@ public:
             coor->indexesProcessed = true;
             return coor;
         }
-        
+
         // if the coordinate datasets(lat/lon/time) have different dataset size,
         // return Index Selection with retstriction, start=0, length=0
         if (inconsistentCoorDatasets)
@@ -197,7 +191,7 @@ public:
             coor->indexesProcessed = true;
             return coor;
         }
-        
+
         // if the coordinate dataset names do not match with the configuration,
         // return IndexSelection with restriction, start=0, length=0
         int count = 0;
@@ -205,7 +199,7 @@ public:
         if (!longitudeName.empty()) count++;
         if (!latitudeName.empty()) count++;
         if (!ignoreName.empty()) count++;
-        
+
         if (count != (coor->datasetNames.size() + inGroupCount))
         {
             std::cout << "invalid coordinate reference" << std::endl;
@@ -214,19 +208,19 @@ public:
             coor->indexesProcessed = true;
             return coor;
         }
-        
+
         lookUpMap.insert(std::make_pair(coorGroupname, coor));
 
         return coor;
     }
-    
+
     // check if the Coordinate object already exists
     static bool lookUp(std::string coorGroupname)
     {
         if (lookUpMap.find(coorGroupname) == lookUpMap.end()) return false;
         else return true;
     }
-    
+
     /**
      * read lat/lon values from DataSet object to array
      * @param latSet latitude DataSet
@@ -247,7 +241,7 @@ public:
             for (int i = 0; i < coordinateSize; i++) lat[i] = data[i];
             delete [] data;
         }
-        
+
         if (lonSet->getDataType().getSize() == 8) //double
         {
             lonSet->read(lon, lonSet->getDataType());
@@ -260,7 +254,7 @@ public:
             delete [] data;
         }
     }
-    
+
     // return IndexSelection instance, if it exists
     // if it does not exist, create one
     virtual IndexSelection* getIndexSelection()
@@ -270,21 +264,21 @@ public:
         double* lat = new double[coordinateSize];
         double* lon = new double[coordinateSize];
         double* time = new double[coordinateSize];
-        
+
         indexes = new IndexSelection(coordinateSize);
-        
-        // if both spatial and temporal constraints don't exist 
+
+        // if both spatial and temporal constraints don't exist
         // or no coordinate datasets, return null
         if ((geoboxes == NULL && temporal == NULL && geoPolygon == NULL) || (this->coorDatasets.empty()))
         {
             indexesProcessed = true;
             return NULL;
         }
-        
+
         if (this->coorDatasets.find("latitude") != this->coorDatasets.end()) latSet = this->coorDatasets.find("latitude")->second;
         if (this->coorDatasets.find("longitude") != this->coorDatasets.end()) lonSet = this->coorDatasets.find("longitude")->second;
         if (this->coorDatasets.find("time") != this->coorDatasets.end()) timeSet = this->coorDatasets.find("time")->second;
-                
+
         //find index ranges
         // limit the index by temporal constraint
         if (temporal != NULL && timeSet != NULL)
@@ -294,39 +288,38 @@ public:
             temporalSubset(time);
         }
         else std::cout << "temporal constraint or temporal coordinate not found" << std::endl;
-        
+
         // read lat/lon datasets if spatial(bbox/polygon) constraints exist
         if ((geoboxes != NULL || geoPolygon != NULL) && (latSet != NULL && lonSet !=NULL)) readLatLonDatasets(latSet, lonSet, lat, lon);
-        
+
         // limit the index by spatial constraint
-        if (geoboxes != NULL && latSet != NULL && lonSet !=NULL) spatialBboxSubset(lat, lon); 
+        if (geoboxes != NULL && latSet != NULL && lonSet !=NULL) spatialBboxSubset(lat, lon);
         else std::cout << "spatial constraint or lat/lon coordinates not found" << std::endl;
         // limit the index by polygon
         if (geoPolygon != NULL && latSet != NULL && lonSet != NULL) spatialPolygonSubset(lat, lon);
         else std::cout << "polygon or lat/lon coordinates not found" << std::endl;
-        
+
         indexesProcessed = true;
-        
+
         delete lat;
         delete lon;
-        
+
         return indexes;
     }
-    
+
 protected:
-    
-    // temporal and spatial constraints 
+
+    // temporal and spatial constraints
     std::vector<geobox>* geoboxes;
-    Temporal* temporal; 
+    Temporal* temporal;
     GeoPolygon* geoPolygon;
-    
-    //std::string groupname;
+
     std::vector<std::string> datasetNames;
-        
+
     hsize_t coordinateSize;
-    
+
     virtual std::vector<std::string>* getCoordinateDatasetNames(){return NULL;}
-    
+
     virtual void getCoordinateByGroup(H5::Group ingroup)
     {
         std::cout << "retrieveCoordinateDatasets " << groupname << std::endl;
@@ -345,23 +338,23 @@ protected:
         }
         if (!coordinateSets->at(2).empty() && H5Lexists(group.getLocId(), coordinateSets->at(2).c_str(), H5P_DEFAULT) > 0)
         {
-            timeSet = new H5::DataSet(group.openDataSet(coordinateSets->at(2)));                
-        }        
-        group.close();        
+            timeSet = new H5::DataSet(group.openDataSet(coordinateSets->at(2)));
+        }
+        group.close();
         delete coordinateSets;
     }
-    
+
     // sets the maximum coordinate size for the output for photon groups
     void setCoordinateSize(H5::Group& group)
     {
         std::string objName, typeName;
         hsize_t arraySize = 0;
-        
+
         for (int i = 0; i < group.getNumObjs(); i++)
         {
             objName = group.getObjnameByIdx(i);
             group.getObjTypeByIdx(i, typeName);
-            
+
             if (typeName == "dataset")
             {
                 H5::DataSet data = group.openDataSet(objName);
@@ -374,12 +367,12 @@ protected:
             }
         }
     }
-    
+
     void temporalSubset(double* time)
     {
         std::cout << "temporalSubset" << std::endl;
         long start = 0, end = 0, length = 0;
-                
+
         // if data is within the temporal constraint range
         if ((time[0] <= temporal->getEnd()) && (time[coordinateSize-1] >= temporal->getStart()))
         {
@@ -394,7 +387,7 @@ protected:
                     break;
                 }
             }
-            
+
             // find the ending point
             for (int i = coordinateSize-1; i >=0; i--)
             {
@@ -409,21 +402,20 @@ protected:
         indexes->addRestriction(start, length);
         delete [] time;
     }
-    
+
     void updateEpochTime(H5::DataSet* time)
     {
-        //std::cout << "updateEpochTime" << std::endl;
-        
+
         H5::Attribute attr;
         std::string attrName, attrValue;
         std::string timeStr = "T00:00:00";
         std::string epoch;
-        
+
         for (int i = 0; i < time->getNumAttrs(); i++)
         {
             attr = time->openAttribute(i);
             attrName = attr.getName();
-            
+
             // get "units" attribute
             // parse the "units" attribute value to get the epoch
             // ex.) units = seconds since 2018-01-01, parse out "2018-01-01"
@@ -445,9 +437,9 @@ protected:
                 }
             }
         }
-        
+
     }
-    
+
     // check if all the coordinate datasets(lat/lon/time) have same coordinate size
     void checkCoorDatasetSize(H5::DataSet* data, bool& inconsistentCoorDatasets)
     {
@@ -456,31 +448,26 @@ protected:
         hsize_t olddims[dim];
         inspace.getSimpleExtentDims(olddims);
         if (coordinateSize == 0) coordinateSize = olddims[0];
-        if ((coordinateSize != olddims[0]) && (!inconsistentCoorDatasets)) inconsistentCoorDatasets = true;                
+        if ((coordinateSize != olddims[0]) && (!inconsistentCoorDatasets)) inconsistentCoorDatasets = true;
     }
 private:
-    
+
     // limit the index range by spatial constraints
     // lat/lon datasets for SMAP are 32-bit floating-point and 64-bit for ICESat
     void spatialBboxSubset(double* lat, double* lon)
-    {        
+    {
         std::cout << "spatialBboxSubset" << std::endl;
-        //double* lat = new double[coordinateSize];
-        //double* lon = new double[coordinateSize];
-        
-        //readLatLonDatasets(latSet, lonSet, lat, lon);
-        
+
         long indexBegin = indexes->minIndexStart, indexEnd = indexes->maxIndexEnd - 1;
         long start = 0, length = 0;
         for (int i=indexBegin; i<=indexEnd; i++)
         {
             std::vector<geobox>::iterator geobox_it = geoboxes->begin();
-            
+
             // count in the points with fill values
             if (lat[i] > 90 || lat[i] < -90 || lon[i] > 180 || lon[i] < -180)
             {
-                //std::cout << "***** found fill value in coordinate datasets lat lon: "
-                 //        << i << " " << lat[i] << " " << lon[i] << std::endl;
+
                 if (length != 0) length++;
             }
             // check if every point is within the spatial constraint
@@ -490,9 +477,8 @@ private:
                 {
                     if (geobox_it->contains(lat[i], lon[i]))
                     {
-                        //std::cout << "found " << lat[i] << ", " << lon[i] << " inside polygon" << std::endl;
                         // new index range found
-                        if (length == 0) start = i; 
+                        if (length == 0) start = i;
                         length++;
                         break;
                     }
@@ -500,7 +486,6 @@ private:
                 // not covered by the bbox
                 if (geobox_it == geoboxes->end())
                 {
-                    //std::cout << "latitude " << lat[i] << " and longitude " << lon[i] << " was not in the polygon" << std::endl;
                     if (length != 0)
                     {
                         indexes->addSegment(start, length);
@@ -509,43 +494,41 @@ private:
                 }
             }
         }
-        
+
         // if new index range found, but does not have an end point, add it
         if (length != 0) indexes->addSegment(start, length);
         // if no index range found, return no data
         if (indexes->segments.empty()) indexes->addRestriction(0, 0);
     }
-    
+
     // limit the index range by polygon
     void spatialPolygonSubset(double* lat, double* lon)
     {
         std::cout << "spatialPolygonSubset" << std::endl;
         IndexSelection* newIndexes = new IndexSelection(coordinateSize);
-        
+
         geobox g = geoPolygon->getBbox();
         if (geoboxes == NULL) geoboxes = new std::vector<geobox>();
         geoboxes->push_back(g);
-        
+
         spatialBboxSubset(lat, lon);
         std::cout << "indexes->size(): " << indexes->size() << std::endl;
-        
+
         if (indexes->size() == 0) return;
-        //if (indexes->size() == 0 || geoPolygon->isBbox()) return;
-        
+
         long start = 0, length = 0;
-        
-        //if (geoPolygon->crossedEast) std::cout << "crossedEast" << std::endl;
-        //else if (geoPolygon->crossedWest) std::cout << "crossedWest" << std::endl;
-        
+
+
+
+
         for (std::map<long, long>::iterator it = indexes->segments.begin(); it != indexes->segments.end(); it++)
         {
             for (int i = it->first; i != it->second+it->first; i++)
-            {                
+            {
                 // count in the points with fill values
                 if (lat[i] > 90 || lat[i] < -90 || lon[i] > 180 || lon[i] < -180)
                 {
-                    //std::cout << "***** found fill value in coordinate datasets lat lon: "
-                    //         << i << " " << lat[i] << " " << lon[i]<< std::endl;
+
                     if (length != 0) length++;
                 }
                 // check if every point is within the polygon
@@ -553,13 +536,11 @@ private:
                 {
                     if (geoPolygon->contains(lat[i], lon[i]))
                     {
-                        //std::cout << "point: (" << lat[i] << "," << lon[i] << ") is within the polygon" << std::endl;
                         if(length == 0) start = i;
                         length++;
                     }
                     else
                     {
-                        //std::cout << "point: (" << lat[i] << "," << lon[i] << ") is not within the polygon" << std::endl;
                         if (length != 0)
                         {
                             newIndexes->addSegment(start, length);
@@ -573,27 +554,27 @@ private:
                 newIndexes->addSegment(start, length);
                 length = 0;
             }
-            
+
         }
-        
+
         // if new index range found, but does not have an end point, add it
         if (length != 0) newIndexes->addSegment(start, length);
         // if no index range found, return no data
         if (newIndexes->segments.empty()) newIndexes->addRestriction(0, 0);
-        
+
         indexes = newIndexes;
     }
 
     // get coordinate dataset names from the "coordinates" attribute
     // and return false if the datasets are not consistent with any of the previously
     // defined datasets
-    void getCoordinateDatasetNames(H5::DataSet dataset, std::string shortname, std::string &latitudeName, std::string &longitudeName, std::string &timeName, 
+    void getCoordinateDatasetNames(H5::DataSet dataset, std::string shortname, std::string &latitudeName, std::string &longitudeName, std::string &timeName,
                                    std::string& ignoreName, std::string &coorGroupname)
     {
         H5::Attribute attr;
         std::string attrName, attrValue, attrDataset, absPath;
         boost::char_separator<char> delim(" ,");
-                
+
         // loop through all attributes for a dataset
         for (int i = 0; i < dataset.getNumAttrs(); i++)
         {
@@ -637,7 +618,7 @@ private:
                     }
                     attrDataset = attrDataset.substr(attrDataset.find_last_of("/\\")+1);
                     coorGroupname = absPath.substr(0, absPath.find_last_of("/\\")+1);
-                    if (std::find(datasetNames.begin(),datasetNames.end(), attrDataset) == datasetNames.end()) 
+                    if (std::find(datasetNames.begin(),datasetNames.end(), attrDataset) == datasetNames.end())
                     {
                         std::cout << "adding " << attrDataset << std::endl;
                         datasetNames.push_back(attrDataset);
@@ -650,7 +631,7 @@ private:
             }
         }
     }
-    
+
     // check if all the coordinate datasets(lat/lon/time) have same coordinate size
     /*void checkCoorDatasetSize(H5::DataSet* data, bool& inconsistentCoorDatasets)
     {
@@ -659,24 +640,23 @@ private:
         hsize_t olddims[dim];
         inspace.getSimpleExtentDims(olddims);
         if (coordinateSize == 0) coordinateSize = olddims[0];
-        if ((coordinateSize != olddims[0]) && (!inconsistentCoorDatasets)) inconsistentCoorDatasets = true;                
+        if ((coordinateSize != olddims[0]) && (!inconsistentCoorDatasets)) inconsistentCoorDatasets = true;
     }*/
 
     // update epoch time if different with existing product epoch
     /*void updateEpochTime(H5::DataSet* time)
     {
-        //std::cout << "updateEpochTime" << std::endl;
-        
+
         H5::Attribute attr;
         std::string attrName, attrValue;
         std::string timeStr = "T00:00:00";
         std::string epoch;
-        
+
         for (int i = 0; i < time->getNumAttrs(); i++)
         {
             attr = time->openAttribute(i);
             attrName = attr.getName();
-            
+
             // get "units" attribute
             // parse the "units" attribute value to get the epoch
             // ex.) units = seconds since 2018-01-01, parse out "2018-01-01"
@@ -693,9 +673,9 @@ private:
                 if (temporal->needToUpdateEpoch(epoch)) temporal->updateReferenceTime(epoch);
             }
         }
-        
+
     }*/
-    
+
     // map that captures coordinate datasets, keys are coordinate dataset names(string)
     // values are acutal coordinate datasets
     // e.g. key:/profile_1/delta_time, value: /profile_1/delta_time dataset object

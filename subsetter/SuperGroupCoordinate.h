@@ -15,13 +15,13 @@ public:
     : Coordinate(groupname, geoboxes, temporal, geoPolygon)
     {
     }
-    
+
     /*
      * subset dataset the "super group"
      * when multiple sets of lat/lon coordinates references exist within one group and these coordinate references
      * all referencing one delta_time datasets, the datasets under that group will be subsetted using the "super group" rule.
      *  - ex.) lat_1, lon_1, lat_2, lon_2, lat_3, and lon_3 exist within one group, and all have reference to delta_time
-     *         subsetting will be applied by <lat_1,lon_1> or <lat_2,lon_2> or <lat_3,lon_3> and delta_time(if temporal 
+     *         subsetting will be applied by <lat_1,lon_1> or <lat_2,lon_2> or <lat_3,lon_3> and delta_time(if temporal
      *         constraint exists)
      * @param Group root: root group
      * @param Group ingroup: input group
@@ -36,14 +36,14 @@ public:
     {
         SuperGroupCoordinate* sgCoor = new SuperGroupCoordinate(groupname, geoboxes, temporal, geoPolygon);
         sgCoor->coordinateSize = 0;
-        
+
         std::cout << "superGroup getCoordinate" << std::endl;
         std::map<std::string, std::vector<std::string>> datasets;
         std::string superGroupname, latitudeName, longitudeName, timeName, otherName;
         bool inconsistentCoorDatasets = false;
         H5::DataSet* data = NULL;
         std::vector<std::string> superGroupnames;
-        
+
         datasets = Configuration::getInstance()->getSuperCoordinates(shortname);
         Configuration::getInstance()->getSuperCoordinateGroupname(shortname, groupname, superGroupnames);
         for(std::vector<std::string>::iterator it = superGroupnames.begin(); it != superGroupnames.end(); it++)
@@ -58,7 +58,7 @@ public:
             std::cout << superGroupname << " already exists in lookUpMap" << std::endl;
             return lookUpMap[superGroupname];
         }
-        
+
         // distinguish between latitude, longitude and delta_time datasets
         //while (!datasets.empty())
         for (std::map<std::string, std::vector<std::string>>::iterator it = datasets.begin(); it != datasets.end(); it++)
@@ -89,14 +89,14 @@ public:
                             sgCoor->coorDatasets.insert(std::pair<std::string, H5::DataSet*>("time",data));
                         }
                     }
-                    
+
                 }
             }
         }
-        
+
         sort(sgCoor->latitudes.begin(), sgCoor->latitudes.end());
         sort(sgCoor->longitudes.begin(), sgCoor->longitudes.end());
-        
+
         // get coordinate datasets from input file if they exist
         for (int i = 0; i < sgCoor->latitudes.size(); i++)
         {
@@ -118,8 +118,8 @@ public:
                     sgCoor->coorDatasets.insert(std::pair<std::string, H5::DataSet*>(sgCoor->longitudes[i],data));
                 }
             }
-        }        
-                        
+        }
+
         // if the number of latitude datasets and the number of longitude datasets don't agree, or their
         // dataset sizes are not the same, return Index Selection with retstriction, start=0, length=0
         if ((sgCoor->latitudes.size() != sgCoor->longitudes.size()) || inconsistentCoorDatasets)
@@ -129,25 +129,25 @@ public:
             sgCoor->indexesProcessed = true;
             return sgCoor;
         }
-        
+
         lookUpMap.insert(std::make_pair(superGroupname, sgCoor));
-        
+
         return sgCoor;
     }
-    
+
     virtual IndexSelection* getIndexSelection()
     {
         std::cout << "superGroup getIndexSelection" << std::endl;
         H5::DataSet* timeSet = NULL;
         double* time = new double[coordinateSize];
-        
+
         indexes = new IndexSelection(coordinateSize);
         // if both temporal and spatial constraints don't exist,
         // return null to include all in the output
         if (geoboxes == NULL && temporal == NULL && geoPolygon == NULL) return NULL;
-        
+
         if (this->coorDatasets.find("time") != this->coorDatasets.end()) timeSet = this->coorDatasets.find("time")->second;
-        
+
         //find index ranges
         // limit the index by temporal constraint
         if (temporal != NULL && timeSet != NULL)
@@ -157,9 +157,8 @@ public:
             temporalSubset(time);
         }
         else std::cout << "temporal constraint or temporal coordinate not found" << std::endl;
-                
-        //std::cout << "coorDatasets.size(): " << this->coorDatasets.size() << std::endl;
-        
+
+
         // read lat/lon datasets if spatial(bbox/polygon) constraints exist
         if ((geoboxes != NULL || geoPolygon != NULL) && this->coorDatasets.size() != 0)
         {
@@ -172,32 +171,32 @@ public:
                 this->coors.insert(std::pair<std::string, double*>(this->longitudes[i],lon));
             }
         }
-        
+
         // limit the index by spatial constraint
-        if (geoboxes != NULL && this->coorDatasets.size() != 0) spatialBboxSubset(); 
+        if (geoboxes != NULL && this->coorDatasets.size() != 0) spatialBboxSubset();
         else std::cout << "spatial constraint or lat/lon coordinates not found" << std::endl;
         // limit the index by polygon
         if (geoPolygon != NULL && this->coorDatasets.size() != 0) spatialPolygonSubset();
         else std::cout << "polygon or lat/lon coordinates not found" << std::endl;
-        
+
         indexesProcessed = true;
-        
+
         return indexes;
     }
 private:
-    
+
     std::vector<H5::Group> superGroups;
     std::vector<std::string> latitudes;
     std::vector<std::string> longitudes;
     std::map<std::string, H5::DataSet*> coorDatasets;
     std::map<std::string, double*> coors;
-    
+
     // limit the index range by spatial constraints
     void spatialBboxSubset()
     {
         std::cout << "superGroup spatialBboxSubset" << std::endl;
         bool contains = false;
-        
+
         long indexBegin = indexes->minIndexStart, indexEnd = indexes->maxIndexEnd - 1;
         long start = 0, length = 0;
         for (int i=indexBegin; i<=indexEnd; i++)
@@ -207,19 +206,16 @@ private:
             {
                 for (int j = 0; j < latitudes.size(); j++)
                 {
-                    //std::cout << latitudes[j] << "," << longitudes[j] << " -- " << i << std::endl;
-                    //std::cout << coors[latitudes[j]][i] << ", " << coors[longitudes[j]][i] << std::endl;
                     if (geobox_it->contains(coors[latitudes[j]][i], coors[longitudes[j]][i]))
                     {
                         contains = true;
-                        //std::cout << "found " << coors[latitudes[j]][i] << ", " << coors[longitudes[j]][i] << " inside polygon" << std::endl;
                         break;
                     }
                     else contains = false;
                 }
                 if (contains)
                 {
-                    if (length == 0) start = i; 
+                    if (length == 0) start = i;
                     length++;
                     break;
                 }
@@ -227,47 +223,45 @@ private:
             // not covered by the bbox
             if (geobox_it == geoboxes->end())
             {
-                //std::cout << "latitude " << lat[i] << " and longitude " << lon[i] << " was not in the polygon" << std::endl;
                 if (length != 0)
                 {
                     indexes->addSegment(start, length);
                     length = 0;
                 }
             }
-            
+
         }
-        
+
         // if new index range found, but does not have an end point, add it
         if (length != 0) indexes->addSegment(start, length);
         // if no index range found, return no data
         if (indexes->segments.empty()) indexes->addRestriction(0, 0);
     }
-    
+
     // limit the index range by polygon
     void spatialPolygonSubset()
     {
         std::cout << "superGroup spatialPolygonSubset" << std::endl;
         IndexSelection* newIndexes = new IndexSelection(coordinateSize);
-        
+
         geobox g = geoPolygon->getBbox();
         if (geoboxes == NULL) geoboxes = new std::vector<geobox>();
         geoboxes->push_back(g);
-        
+
         std::cout << "geoboxes.size(): " << geoboxes->size() << std::endl;
-        
+
         spatialBboxSubset();
         std::cout << "indexes->size(): " << indexes->size() << std::endl;
-        
+
         if (indexes->size() == 0) return;
-        //if (indexes->size() == 0 || geoPolygon->isBbox()) return;
-        
+
         long start = 0, length = 0;
         bool contains = false;
-        
+
         for (std::map<long, long>::iterator it = indexes->segments.begin(); it != indexes->segments.end(); it++)
         {
             for (int i = it->first; i != it->second+it->first; i++)
-            {                
+            {
                 // count in the points with fill values
                 for (int j = 0; j < latitudes.size(); j++)
                 {
@@ -275,7 +269,6 @@ private:
                     {
                         contains = true;
                         break;
-                        //std::cout << "point: (" << lat[i] << "," << lon[i] << ") is within the polygon" << std::endl;
                     }
                     else contains = false;
                 }
@@ -286,7 +279,6 @@ private:
                 }
                 else
                 {
-                    //std::cout << "point: (" << lat[i] << "," << lon[i] << ") is not within the polygon" << std::endl;
                     if (length != 0)
                     {
                         newIndexes->addSegment(start, length);
@@ -299,16 +291,16 @@ private:
                 newIndexes->addSegment(start, length);
                 length = 0;
             }
-            
+
         }
-        
+
         // if new index range found, but does not have an end point, add it
         if (length != 0) newIndexes->addSegment(start, length);
         // if no index range found, return no data
         if (newIndexes->segments.empty()) newIndexes->addRestriction(0, 0);
-        
+
         indexes = newIndexes;
-        
+
         // if new index range found, but does not have an end point, add it
         if (length != 0) indexes->addSegment(start, length);
         // if no index range found, return no data

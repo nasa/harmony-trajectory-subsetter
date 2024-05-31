@@ -1,5 +1,5 @@
 /*
-*  This program subsets an HDF5 file. 
+*  This program subsets an HDF5 file.
 */
 
 #include <time.h>
@@ -43,6 +43,13 @@ std::vector<geobox>* geoboxes = NULL; // Multiple bounding boxes can be specifie
 std::vector<std::string> datasetsToInclude;
 property_tree::ptree boundingShapePt;
 
+/**
+ * @brief Process the input arguments of the subset request.
+ *
+ * @param argc The number of input arguments.
+ * @param argv The vector of input arguments.
+ * @return Error code (0 - success, 1 - fail)
+ */
 int process_args(int argc, char* argv[])
 {
     program_options::options_description description("Available Options");
@@ -64,7 +71,7 @@ int process_args(int argc, char* argv[])
     program_options::store(program_options::command_line_parser(argc, argv).options(description).run(), variables_map);
     program_options::notify(variables_map);
 
-    // Print out the defined command options when the user either types 
+    // Print out the defined command options when the user either types
     // "help" or does not include a filename.
     if (variables_map.count("help") || !variables_map.count("filename"))
     {
@@ -89,7 +96,7 @@ int process_args(int argc, char* argv[])
         return 1;
     }
 
-    // If either the subset type and/or config file are specified, pull them from the 
+    // If either the subset type and/or config file are specified, pull them from the
     // variable map, otherwise assign these variables to an empty string.
     subsettype = (variables_map.count("subsettype"))? variables_map["subsettype"].as<std::string>() : "";
     configFile = (variables_map.count("configfile"))? variables_map["configfile"].as<std::string>() : "";
@@ -132,6 +139,8 @@ int process_args(int argc, char* argv[])
     {
         startString = variables_map["start"].as<std::string>();
         endString = variables_map["end"].as<std::string>();
+        boost::erase_all(startString, "'");
+        boost::erase_all(endString, "'");
         boost::regex date_format("[']?[\\d]{4}-[\\d]{2}-[\\d]{2}(T[\\d]{2}:[\\d]{2}:[\\d]{2}[\\.[\\d]*]?)?[']?");
         if (!regex_match(startString, regex_results, date_format) || !regex_match(endString, regex_results, date_format))
         {
@@ -177,7 +186,7 @@ int process_args(int argc, char* argv[])
         {
             outputFormat = "GeoTIFF";
         }
-        else if (outputFormat == "netCDF3" || outputFormat == "NetCDF3" || outputFormat == "NetCDF-3") 
+        else if (outputFormat == "netCDF3" || outputFormat == "NetCDF3" || outputFormat == "NetCDF-3")
         {
             outputFormat = "NetCDF-3";
         }
@@ -185,11 +194,11 @@ int process_args(int argc, char* argv[])
     }
 
     // Access coordinate reference system / reprojection, if specified.
-    if (variables_map.count("crs")) 
+    if (variables_map.count("crs"))
     {
         reproject=true;
     }
-    else 
+    else
     {
         reproject=false;
     }
@@ -197,9 +206,9 @@ int process_args(int argc, char* argv[])
     return 0;
 }
 
-/* 
-*   Trajectory Subsetter main function.
-*/
+/**
+ * Trajectory Subsetter main function.
+ */
 int main(int argc, char* argv[])
 {
     // If process_args() returns a non-zero value,
@@ -213,7 +222,7 @@ int main(int argc, char* argv[])
 
     // This is the error code returned by Subsetter::subset()
     // if an exception is not thrown.
-    int ErrorCode = 0;   
+    int ErrorCode = 0;
 
     try
     {
@@ -226,7 +235,7 @@ int main(int argc, char* argv[])
 
         // Data structure for requested datasets.
         SubsetDataLayers* subsetDataLayers;
-        
+
         // Read in a json file if one is provided for the
         // requested datasets.
         if (datasetList.find("json") != std::string::npos)
@@ -248,21 +257,21 @@ int main(int argc, char* argv[])
         }
 
         // Construct test to check if the input start and end parameters
-        // are valid, if they are specified. 
+        // are valid, if they are specified.
         Temporal* temporal = (!startString.empty() && !endString.empty())? new Temporal(startString, endString) : NULL;
 
         // Construct data structure to hold bounding shape info, if specified.
         GeoPolygon* geoPolygon = (!boundingShapePt.empty())? new GeoPolygon(boundingShapePt) : NULL;
 
-        // If a bounding shape is provided but the constructed GeoPolygon 
-        // polygon contains no data, return an error.   
+        // If a bounding shape is provided but the constructed GeoPolygon
+        // polygon contains no data, return an error.
         if (geoPolygon != NULL and geoPolygon->isEmpty())
         {
             std::cout << "ERROR: no polygon found for the given GeoJSON/KML/Shapefile" << std::endl;
             return 6;
         }
 
-        // Extract the granule mission by passing the short name returned by 
+        // Extract the granule mission by passing the short name returned by
         // a Subsetter class function into a Configuration instance function.
         Subsetter* getMission = new Subsetter(subsetDataLayers, geoboxes, temporal, geoPolygon, outputFormat);
         H5::H5File infile = H5::H5File(infilename,H5F_ACC_RDONLY);
@@ -301,7 +310,7 @@ int main(int argc, char* argv[])
 
         endTime=clock();
         double runTime = (double) (endTime - startTime) / CLOCKS_PER_SEC;
-        for (int i = 0; i < argc; i++) 
+        for (int i = 0; i < argc; i++)
         {
             std::cout << argv[i] <<  " ";
         }
@@ -311,7 +320,7 @@ int main(int argc, char* argv[])
     {
         std::cerr << "ERROR: caught H5 Exception " << e.getDetailMsg() << std::endl;
         e.printErrorStack();
-        
+
         if (e.getDetailMsg().compare("HFcreate") != 0)
         {
             std::cerr << "\nOutput file could not be created, check if it's currently open in another application.\n" << std::endl;

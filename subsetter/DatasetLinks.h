@@ -1,4 +1,4 @@
-#ifndef DatasetLinks_H 
+#ifndef DatasetLinks_H
 #define DatasetLinks_H
 
 #include <map>
@@ -10,7 +10,7 @@
  */
 class DatasetLinks
 {
-public:    
+public:
     DatasetLinks()
     {
         links = new std::map<haddr_t, std::string>();
@@ -26,8 +26,8 @@ public:
     /**
      * call back function for links
      * save the address and the first dataset which points to this address, and,
-     * if the address has a dataset, point the current dataset to the previous dataset 
-     * groupId: id of the group 
+     * if the address has a dataset, point the current dataset to the previous dataset
+     * groupId: id of the group
      * name: link name
      * linfo: link information
      * opdata: user-defined pointer of data, here is datasetlinks
@@ -46,7 +46,6 @@ public:
             if (links->find(address) == links->end())
             {
                 links->insert(std::pair<haddr_t, std::string>(address, name));
-                //std::cout << "links address:" << address << ", name=" << name << std::endl;
             }
             else // the address has a dataset, the current dataset can then point to that dataset
             {
@@ -66,10 +65,10 @@ public:
     {
         H5Literate(group.getLocId(), H5_INDEX_NAME, H5_ITER_INC, NULL, DatasetLinks::linkCallback, (void*)this);
     }
-        
+
     /**
      * check if the object is a hard link
-     * @param objname 
+     * @param objname
      * @return true if the object is a hard link
      */
     bool isHardLink(const std::string& objname)
@@ -77,27 +76,27 @@ public:
         std::map<std::string, std::string>::iterator it = hardlinks->find(objname);
         if (it != hardlinks->end()) return true;
     }
-    
+
     /**
      * get the hard link source if exists
      * @param objname
-     * @return 
+     * @return
      */
     std::string getHardLinkSource(const std::string& objname)
     {
         std::map<std::string, std::string>::iterator it = hardlinks->find(objname);
         return (it != hardlinks->end())? it->second : std::string();
     }
-        
+
 private:
-    /** 
+    /**
      * keep map of address to the first object name which points to this address,
      * could contain objects other than dataset
      * key: address, value: dataset
      */
     std::map<haddr_t, std::string>* links;
 
-    /** 
+    /**
      * keep track of the dataset names that point to a previous dataset in a group,
      * we haven't seen dataset link to dataset in different group
      *key: target dataset, value: source dataset

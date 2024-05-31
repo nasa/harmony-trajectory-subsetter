@@ -14,15 +14,15 @@
 #include "geotiffio.h"
 #include "xtiffio.h"
 
-//GCTP
-extern "C" {
-#ifdef SDPS
-#include "HE5_GctpFunc.h"
-#elif defined HARMONY
-#include <gctp_prototypes.h>
-#include <cproj.h>
-#endif
-}
+// //GCTP
+// extern "C" {
+// #ifdef SDPS
+// #include "HE5_GctpFunc.h"
+// #elif defined HARMONY
+// #include <gctp_prototypes.h>
+// #include <cproj.h>
+// #endif
+// }
 
 #include <iostream>
 #include <vector>
@@ -59,7 +59,7 @@ extern "C" {
 
 class geotiff_converter
 {
-public: 
+public:
 
     void convert(short* row_data, short* col_data, float* lat_dat, float* lon_data)
     {
@@ -68,7 +68,7 @@ public:
         num_rows = row_max - row_min + 1;
         num_cols = col_max - col_min + 1;
     }
-    
+
     geotiff_converter(std::string outfilename, std::string shortName, H5::Group& outgroup, SubsetDataLayers* subsetDataLayers)
     {
         SubsetDataLayers* osub = new SubsetDataLayers(std::vector<std::string>());
@@ -87,19 +87,16 @@ public:
             {
                 datasetName = *it;
                 std::cout << "converting " << datasetName << " to GeoTIFF" << std::endl;
-                
+
                 if (subsetDataLayers->is_dataset_included(datasetName))
                 {
                     // generating tif file name
                     // replace '/' in the dataset name with '.'
                     groupname = datasetName.substr(0, datasetName.size()-1);
                     groupname = groupname.substr(0, groupname.find_last_of("/\\")+1);
-                    //datasetName = datasetName.substr(1);
-                    //std::replace(datasetName.begin(), datasetName.end(), '/', '.');
                     tifFileName = outfilename + "_";
                     fileDatasetName = datasetName.substr(1);
                     std::replace(fileDatasetName.begin(), fileDatasetName.end(), '/', '.');
-                    //std::replace(tifFileName.find_last_of("/\\"), tifFileName.end(), '/', '.');
                     std::cout << "tifFileName: " << tifFileName << std::endl;
                     std::cout << "fileDatasetName: " << fileDatasetName << std::endl;
                     tifFileName += fileDatasetName + "tif";
@@ -124,15 +121,15 @@ public:
                 }
             }
         }
-        
+
     }
-    
-    void convert_to_geotiff(const char* outfilename, const char* ds_name, H5::DataSet& row, H5::DataSet& col, H5::DataSet& ds, 
+
+    void convert_to_geotiff(const char* outfilename, const char* ds_name, H5::DataSet& row, H5::DataSet& col, H5::DataSet& ds,
         const char* outputformat, const char* projection, short resolution=36, bool crop = false, H5::DataSet* lat=0, H5::DataSet* lon=0)
     {
         std::vector<TIFF*> tifs;
         std::vector<GTIF*> gtifs;
-        
+
         if (get_data_type(ds)==0 || get_size(row)==0)
         {
             std::cout << "Skipping " << outfilename << " because it is a type that can not be output to GeoTIFF or it has no matching data" << std::endl;
@@ -145,7 +142,7 @@ public:
         for (int i=0;i<numfiles;i++)
         {
             std::string filename = outfilename;
-            // multiple bands 
+            // multiple bands
             if (numfiles > 1) filename = filename.erase(filename.length()-4) + "_" + boost::lexical_cast<std::string>(i+1) + ".tif";
             std::cout << "geotiff_converter processing : " << filename << std::endl;
             tifs.push_back(XTIFFOpen(filename.c_str(),"w"));
@@ -173,21 +170,21 @@ public:
 
         short num_row_pixels = 406 * 36 / resolution;
         short num_col_pixels = 964 * 36 / resolution;
-        
+
         // recalculate row/col for polar bands
         if (std::string(outfilename).find("Polar") != std::string::npos)
         {
             num_row_pixels = 500 * 36 / resolution;
             num_col_pixels = 500 * 36 / resolution;
         }
-        
-        double ul_lat_meters, ul_lon_meters, lr_lat_meters, lr_lon_meters;
-#ifdef SDPS
-        ceaforint(r_major, r_minor, 0, 30.*pi/180., 0., 0.);
 
-        ceafor(-180.*pi/180., 85.0445664*pi/180., &ul_lon_meters, &ul_lat_meters);
-        ceafor(180.*pi/180., -85.0445664*pi/180., &lr_lon_meters, &lr_lat_meters);
-#endif
+        double ul_lat_meters, ul_lon_meters, lr_lat_meters, lr_lon_meters;
+// #ifdef SDPS
+//         ceaforint(r_major, r_minor, 0, 30.*pi/180., 0., 0.);
+
+//         ceafor(-180.*pi/180., 85.0445664*pi/180., &ul_lon_meters, &ul_lat_meters);
+//         ceafor(180.*pi/180., -85.0445664*pi/180., &lr_lon_meters, &lr_lat_meters);
+// #endif
         lat_pixel_size = fabs((ul_lat_meters - lr_lat_meters) / num_row_pixels);
         lon_pixel_size = fabs((ul_lon_meters - lr_lon_meters) / num_col_pixels);
 
@@ -215,7 +212,6 @@ public:
 
             num_rows = num_rows*lat_resolution_ratio[resolution];
             num_cols = col_max - col_min + 1;
-            //std::cout << "Using num rows: " << num_rows << std::endl;
             lat_pixel_size = fabs((ul_lat_meters - lr_lat_meters) / num_rows);
             // Corner-Points of Geographic Projection are just the lon/lat values
             geotiepoints[3]=-180.0;
@@ -255,8 +251,6 @@ public:
         delete [] row_data;
         delete [] col_data;
         delete [] lat_data;
-        //H5::DataSpace space(ds.getSpace());
-        //H5::DataSpace outspace(dimnum, dims, maxdims);
 
         void* dataset_data = (void*)malloc(get_dataset_size(ds)*data_type_size);
         ds.read(dataset_data,ds.getDataType()); //), outspace, space);
@@ -543,7 +537,6 @@ public:
         TIFFSetField(tif, TIFFTAG_GEOTIEPOINTS, 6, geotiepoints);
         TIFFSetField(tif, TIFFTAG_GEOPIXELSCALE, 3, pixelscale);
         TIFFSetField(tif, TIFFTAG_COMPRESSION, COMPRESSION_ADOBE_DEFLATE);
-//        TIFFSetField(tif, TIFFTAG_GDAL_NODATA, ); //=42113
         augment_libtiff_with_custom_tags();
 
         registerCustomTIFFTags(tif);;
@@ -627,7 +620,6 @@ public:
             if ((row_data[i] >= row_min && col_data[i] >= col_min) &&
                 (row_data[i] - row_min <= row_max && col_data[i] - col_min <= col_max))
             {
-                //std::cout << row_data[i] << "," << row_min << ", " << col_data[i] << ", " << col_min << std::endl;
                 array_index_map[row_data[i]-row_min][col_data[i]-col_min] = i;
             }
         }
@@ -637,10 +629,9 @@ public:
     {
         for (int i=0;i<num_rows;i++) delete [] array_index_map[i];
         delete [] array_index_map;
-    }    
+    }
     protected:
-        /*std::vector<TIFF*> tifs;
-        std::vector<GTIF*> gtifs;*/
+
         int coordinate_size;
         int row_min;
         int row_max;
@@ -651,8 +642,8 @@ public:
         bool laea;
         static constexpr double r_major = 6378137.;
         static constexpr double r_minor = 6356752.31424;
-        static constexpr double pi = 3.141592653589793;  
+        static constexpr double pi = 3.141592653589793;
 };
 
-constexpr double geotiff_converter::r_major; 
+constexpr double geotiff_converter::r_major;
 

@@ -21,7 +21,7 @@ public:
         replace(s.begin(), s.end(), 'T', ' ');
         replace(s.begin(), s.end(), 'Z', ' ');
         replace(e.begin(), e.end(), 'T', ' ');
-        replace(e.begin(), e.end(), 'Z', ' ');        
+        replace(e.begin(), e.end(), 'Z', ' ');
         myReferenceTime = (epochTime.empty())? unixEpochTime : epochTime;
         try
         {
@@ -54,24 +54,24 @@ public:
         return this->end;
     }
 
-    // return the start date time string 
-    std::string getStartTime() 
+    // return the start date time string
+    std::string getStartTime()
     {
         return convertToDateTimeString(this->start);
     }
 
-    // return the end date time string 
+    // return the end date time string
     std::string getEndTime()
     {
-        return convertToDateTimeString(this->end); 
-    } 
+        return convertToDateTimeString(this->end);
+    }
 
-    bool needToUpdateEpoch(std::string epoch) 
-    { 
+    bool needToUpdateEpoch(std::string epoch)
+    {
         return (myReferenceTime != epoch);
     }
-    
-    // update the reference time, start and end 
+
+    // update the reference time, start and end
     void updateReferenceTime(std::string referenceTime)
     {
         // get the difference between old and new reference time
@@ -117,10 +117,10 @@ private:
     double start;
     double end;
     std::string myReferenceTime;
-    
+
     // use as default epoch time
     static std::string unixEpochTime;
-    
+
 };
 std::string Temporal::unixEpochTime = "1970-01-01 00:00:00.000000";
 

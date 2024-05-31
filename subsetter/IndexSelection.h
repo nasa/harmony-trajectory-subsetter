@@ -1,4 +1,4 @@
-#ifndef IndexSelection_H 
+#ifndef IndexSelection_H
 #define IndexSelection_H
 //
 // IndexSelection encapsulates the temporal bounds and the spatial
@@ -17,8 +17,8 @@ class IndexSelection
         // Ordered list of non-overlapping start/length pairs
         std::map<long, long> segments;
 
-        //Map "Begin" to "End" index values.  Begin and End establish 
-        // constraints, either set to the index range of the dataset or 
+        //Map "Begin" to "End" index values.  Begin and End establish
+        // constraints, either set to the index range of the dataset or
         // used to add interior bounding constraints, e.g. for temporal
         // subsetting.
         long minIndexStart;
@@ -31,13 +31,13 @@ class IndexSelection
                 maxIndexEnd(maxlength)
         {};
 
-        long offset() 
+        long offset()
             {return minIndexStart;};
 
-        long getMaxSize() 
+        long getMaxSize()
             {return maxsize;};
 
-        long size() 
+        long size()
         {
             long size = 0;
             std::map<long, long>::iterator it;
@@ -59,7 +59,7 @@ class IndexSelection
             std::map<long,long> original_segments = segments;
             segments.erase(segments.begin(), segments.end());
             std::map<long, long>::iterator it;
-            for (it = original_segments.begin(); it != original_segments.end(); it++) 
+            for (it = original_segments.begin(); it != original_segments.end(); it++)
                 addSegment(it->first, it->second);
         }
 
@@ -169,7 +169,7 @@ class IndexSelection
             out << "[" << " ";
             for (it=selection.segments.begin(); it != selection.segments.end(); it++) out << " (" << it->first << "," << it->second << ") ";
             out << " " << "]";
-            return out; 
+            return out;
         }
     private:
         // size of 1-D dimension scale array

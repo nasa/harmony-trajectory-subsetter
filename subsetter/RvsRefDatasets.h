@@ -10,7 +10,7 @@
 class RvsRefDatasets
 {
 public:
-    
+
     std::string shortname;
     std::string datasetName;
 
@@ -18,7 +18,7 @@ public:
     : shortname(shortname), datasetName(objname)
     {
     }
-    
+
     /**
      * compute new index values and write it
      * @param objname string dataset object name
@@ -27,7 +27,7 @@ public:
      * @param groupname string group name
      * @param indexes IndexSelection index selection object for the current group
      * @param targetIndexes IndexSelection index selection for the referenced group
-     *          (i.e., for /freeboard_swath_segment/fbswath_lead_ndx_gt1, 
+     *          (i.e., for /freeboard_swath_segment/fbswath_lead_ndx_gt1,
      *           targetIndexes will be the IndexSelection from /gt1l/leads group)
      */
     void mapWriteDataset(H5::Group& outgroup, const std::string&groupname, const H5::DataSet& indataset, IndexSelection* indexes, IndexSelection* targetIndexes, SubsetDataLayers* subsetDataLayers)
@@ -38,7 +38,7 @@ public:
         int32_t* indexRef = new int32_t[subsettedSize]; // array to store subsetted index reference dataset
         int32_t* newIndexRef = new int32_t[subsettedSize]; // array to store repaired index reference dataset
         bool diffIndex = false;
-        
+
         indataset.read(inData, indataset.getDataType());
         int index = 0;
         // copy index from the input file according to indexes
@@ -61,16 +61,16 @@ public:
                 }
             }
         }
-        
+
         // location - new index value
         // offset - difference between new index and previous new index
         // prevLocation - previous new index
         // count - keeps track of how many indices in the (start, length) have been accounted for
         // prevOldLocation - previous index
         int32_t location = 1, offset = 0, prevLocation = 1, count = 0, prevOldLocation = 0;
-        
+
         long start = 0, length = 0, end = 0, prevLength = 0;
-       
+
         // if only temporal constraint is specified
         if (targetIndexes->segments.empty())
         {
@@ -78,9 +78,9 @@ public:
             end = targetIndexes->maxIndexEnd;
             length = end - start;
         }
-        
+
         std::map<long, long>::iterator startIter = targetIndexes->segments.begin();
-        
+
         // walk through the subsetted index and targetIndexes
         for (int i = 0; i < subsettedSize; i++)
         {
@@ -138,12 +138,12 @@ public:
                 }
             }
             newIndexRef[i] = location;
-            count += offset; 
+            count += offset;
 
             prevLocation = location;
             prevOldLocation = indexRef[i];
         }
-        
+
          // write the index dataset
         int dimnum = indataset.getSpace().getSimpleExtentNdims();
         hsize_t olddims[dimnum], newdims[dimnum], maxdims[dimnum];
@@ -155,11 +155,11 @@ public:
         H5::DataType datatype(indataset.getDataType());
         H5::DataSet outdataset(outgroup.createDataSet(datasetName, datatype, outspace, indataset.getCreatePlist()));
         outdataset.write(newIndexRef, datatype, H5::DataSpace::ALL, outspace);
-        
+
         delete [] indexRef;
         delete [] inData;
         delete [] newIndexRef;
-        
+
     }
 };
 

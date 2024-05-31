@@ -20,7 +20,7 @@
 namespace property_tree = boost::property_tree;
 
 class SubsetDataLayers{
-    
+
     // data structure that keeps tracks of datasets to be included in the output
     // the vector is ordered by the depth of the subset data layer
     // each set contains strings of specified subset data layers at that depth
@@ -30,12 +30,12 @@ class SubsetDataLayers{
     //              third set would be all two-level data layers(/1/2, /1/3)
     std::vector< std::set <std::string> > datasets;
     bool include_all;
-    
+
 public:
-    
+
     std::string json_in_name; // input file name for reading from a json file
     std::vector <std::string> dataset_to_include; // contains lists of "includedataset" parameter
-    
+
     // constructor
     // parse comma-separated lists of "includedataset", and add it to "datasets"
     SubsetDataLayers(std::vector <std::string> dataset_to_include):dataset_to_include(dataset_to_include)
@@ -70,7 +70,7 @@ public:
         }
 
     };
-    
+
     // constructor
     // read-in specified subset data layers from a json file when it is provided
     SubsetDataLayers(std::string json_in_name):json_in_name(json_in_name)
@@ -80,11 +80,10 @@ public:
         add_dataset("/Metadata/");
         add_dataset("/METADATA/");
     };
- 
+
     // add all descendants of groups that are included in the output to "datasets"
     void expand_all(std::string input_filename)
-    {                
-        //std::cout << "expand_all" << std::endl;
+    {
         H5::H5File infile(input_filename, H5F_ACC_RDONLY);
         H5::Group ingroup = infile.openGroup("/");
         expand_group(ingroup, "");
@@ -92,12 +91,11 @@ public:
 
     // check to see if a dataset is one of the datasets to  be included in the output
     bool is_dataset_included(std::string str)
-    {        
+    {
         if (*str.rbegin() != '/') str.push_back('/');
         if (include_all) return true;
-        
-        //std::cout << "str: " << str << std::endl;
-        
+
+
         std::string ancestor("");
         size_t next_slash;
         std::vector < std::set <std::string> >::iterator it = datasets.begin();
@@ -105,36 +103,31 @@ public:
         while(it != datasets.end())
         {
             next_slash = str.find('/', ancestor.size());
-            //std::cout << "next_slash: " << next_slash << std::endl;
             if (next_slash != std::string::npos)
             {
                 ancestor = str.substr(0, next_slash+1);
-                //std::cout << "ancestor: " << ancestor << std::endl;
                 if (it->find(ancestor) != it->end()){
-                    //std::cout << "is dataset included - true" << std::endl;
                     return true;
                 }
                 it++;
             }
             else
             {
-                //std::cout << "ancestor: " << ancestor << std::endl;
-                //std::cout << "(it->find(ancestor) != it->end(): " << (it->find(ancestor) != it->end()) << std::endl;
                 return (it->find(ancestor) != it->end());
             }
         }
-        
+
         return false;
     }
-    
+
     // check to see if any of its children are included in the output
     bool is_child_included(std::string str)
-    {                
+    {
         if (*str.rbegin() != '/') str.push_back('/');
         if (include_all) return true;
-        
+
         std::vector < std::set <std::string> >::iterator it = datasets.begin();
-        
+
         while(it != datasets.end())
         {
             std::set<std::string>::iterator set_iter = it->begin();
@@ -145,30 +138,30 @@ public:
             }
             it++;
         }
-        
+
         return false;
     }
-    
+
     // check to see if it is one of the included datasets or any of its children are included in the output
     bool is_included(std::string str)
     {
         return (is_child_included(str)||is_dataset_included(str));
     }
-    
+
     // prints all included datasets
     void print_datasets()
-    {        
+    {
         std::cout << "printing the subset data layers" << std::endl;;
 
         int count = 0;
         std::vector< std::set <std::string> >::iterator it = datasets.begin();
-        
+
         // loop through sets in the vector
         while  (it!=datasets.end())
         {
             std::set<std::string> temp_set = *it;
             std::set<std::string>::iterator set_it = temp_set.begin();
-            
+
             // loop through strings in the set
             while (set_it!=temp_set.end())
             {
@@ -179,29 +172,29 @@ public:
             count++;
             std::cout << std::endl;
         }
-    }    
-    
+    }
+
     // writes all included datasets to a json file
     void write_to_json(std::string json_out_name)
     {
         property_tree::ptree root;
         property_tree::ptree data_set_layers; // list(node) stores included datasets
-        
+
         std::vector< std::set <std::string> >::iterator it = datasets.begin();
-        
+
         // loop through sets in the vector
         while (it != datasets.end())
         {
             std::set<std::string> temp = *it;
             std::set<std::string>::iterator iter = temp.begin();
-            
+
             // loop through strings in the set
             while (iter!=temp.end())
             {
                 // create an unnamed node with value
                 property_tree::ptree data_set_layer;
                 data_set_layer.put("", *iter);
-                
+
                 // add the node to the list
                 data_set_layers.push_back(std::make_pair("", data_set_layer));
                 iter++;
@@ -210,21 +203,20 @@ public:
         }
         // add the list to the root
         root.add_child("data_set_layers", data_set_layers);
-        
+
         std::cout << "writing to the json file: " << json_out_name << std::endl;
-        
+
         //write to json
         property_tree::write_json(json_out_name, root);
     }
-    
+
     std::vector < std::set <std::string> > getDatasets() { return this->datasets; }
-    
+
     // add descendants of a group that are included in the output to "datasets"
     // ingroup IN: input h5 group
     // groupname IN: group name
     void expand_group(H5::Group ingroup, std::string groupName)
-    {        
-        //std::cout << "expand_group" << std::endl;
+    {
         size_t numObjs = ingroup.getNumObjs();
         // loop through all the objects in the group
         for (int i = 0; i < numObjs; i++)
@@ -233,7 +225,7 @@ public:
             std::string full_name = groupName + "/"+obj_name;
             std::string type_name;
             ingroup.getObjTypeByIdx(i, type_name);
-            // if the object is a group, and it is one of the group to be included or 
+            // if the object is a group, and it is one of the group to be included or
             // it is an ancestor of one of the included datasets
             if (type_name == "group" && is_included(full_name))
             {
@@ -244,37 +236,37 @@ public:
             {
                 if (*full_name.rbegin() != '/') full_name.push_back('/');
                 add_expanded_dataset(full_name);
-            }        
+            }
         }
-        remove_expanded_group(groupName);        
+        remove_expanded_group(groupName);
     }
-    
+
 private:
-    
+
     // Add a dataset to "datasets" only if its ancestor is not already included.
     // Purge lower-level datasets if their ancestor is being added.
     void add_dataset(std::string str)
-    {   
+    {
         std::string ancestor = "";
         std::set<std::string> empty_set;
         size_t next_slash;
 
-        if (datasets.size() == 0) 
+        if (datasets.size() == 0)
         {
             datasets.push_back(empty_set);
         }
-        
+
         std::vector< std::set <std::string> >::iterator it = datasets.begin();
-        
+
         next_slash = str.find('/',1);
-        
+
         // Step through levels of added dataset string, treating levels as ancestors.
         // Step down through levels of datasets and exit if ancestor is found.
         while (next_slash != std::string::npos)
-        {           
+        {
             it++;   // Step down into datasets.
 
-            if (it == datasets.end()) 
+            if (it == datasets.end())
             {
                 // If no set of variables are found at this level, add an empty
                 // set at this level.
@@ -288,13 +280,13 @@ private:
             // Move end-marker to next '/', starting at current end-marker.
             // Current next_slash == ancestor.size().
             next_slash = str.find('/', ancestor.size()+1);
-            if (it->find(ancestor) != it->end()) 
+            if (it->find(ancestor) != it->end())
             {
                 // Found the ancestor string in the set at this level (it).
                 return;
             }
         }
-        
+
         // If full dataset string is not found at this level, insert dataset.
         if (it->find(str) == it->end())
         {
@@ -313,7 +305,7 @@ private:
                 {
                     // Look for the new dataset being added as a prefix in any
                     // of the datasets withing the current set.
-                    if (set_iter->find(str)==0) 
+                    if (set_iter->find(str)==0)
                     {
                         // Remove the set-item that has matching prefix.
                         // Compute the parameter set-iter, iterate, and call erase.
@@ -323,25 +315,24 @@ private:
                     {
                         set_iter++;
                     }
-                    
+
                 }
                 it++;
             }
-        }      
+        }
     }
-    
 
-    
+
+
     void add_expanded_dataset(std::string str)
     {
         int num_of_slashes = std::count(str.begin(), str.end(), '/');
         std::set<std::string> s = datasets.back();
         std::set<std::string> empty_set;
-        
+
         if (num_of_slashes <= datasets.size())
         {
             datasets.at(num_of_slashes-1).insert(str);
-            //std::cout << "inserted dataset: " << str << std::endl;
         }
         else
         {
@@ -350,10 +341,9 @@ private:
                 datasets.insert(datasets.end(), empty_set);
             }
             datasets.back().insert(str);
-            //std::cout << "inserted dataset: " << str << std::endl;
         }
     }
-    
+
     // removes groups that has already been expanded
     void remove_expanded_group(std::string str)
     {
@@ -365,14 +355,14 @@ private:
         }
 
     }
-    
+
     // read datasets to be included in the output from a json file
     void read_from_json(std::string json_in_name)
-    {       
+    {
         std::cout << "reading from the json file: " << json_in_name << std::endl;
-        
+
         property_tree::ptree root;
-        
+
         std::string str, dataset;
 
         // read the json file
@@ -389,7 +379,7 @@ private:
                 add_dataset(dataset);
             }
         }
-    } 
+    }
 
 };
 
