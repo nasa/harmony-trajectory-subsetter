@@ -1,16 +1,20 @@
 from datetime import datetime
 from os import makedirs
-from os.path import basename, exists
+from os.path import basename, exists, join
 from shutil import rmtree
 from unittest import TestCase
 from unittest.mock import patch
 
 from harmony.message import Message, Source
-from harmony.util import config, HarmonyException, bbox_to_geometry
+from harmony.util import HarmonyException, bbox_to_geometry, config
 from pystac import Asset, Catalog, Item
 
-from harmony_service.adapter import (HarmonyAdapter, main,
-                                     SUBSETTER_BINARY_PATH, SUBSETTER_CONFIG)
+from harmony_service.adapter import (
+    SUBSETTER_BINARY_PATH,
+    SUBSETTER_CONFIG,
+    HarmonyAdapter,
+    main,
+)
 
 
 @patch('harmony_service.adapter.include_support_variables')
@@ -414,15 +418,17 @@ class TestAdapter(TestCase):
 
         with self.subTest('Variable subset'):
             mock_download.side_effect = download_list
+
             expected_parameters = {
                 '--configfile': SUBSETTER_CONFIG,
                 '--filename': local_input_path,
-                '--includedataset': 'var_one,/nested/var_two',
+                '--includedataset': join(self.temp_dir, "source_vars.json"),
                 '--outfile': f'{self.temp_dir}/{self.subsetted_filename}'
             }
             message_content = base_message.copy()
             source_content = base_source.copy()
             source_content['variables'] = source_variables
+            mock_support_variables.return_value = ['var_one', '/nested/var_two']
 
             message_content['sources'] = [source_content]
             message = Message(message_content)
@@ -432,6 +438,13 @@ class TestAdapter(TestCase):
             binary_parameters = subsetter.parse_binary_parameters(
                 self.temp_dir, asset, source
             )
+            source_vars_filename = join(self.temp_dir, 'source_vars.json')
+            with open(source_vars_filename, 'r', encoding='utf-8') as var_file:
+                self.assertEqual(
+                    var_file.read(),
+                    '{"data_set_layers": ["var_one", "/nested/var_two"]}',
+                )
+
             self.assertDictEqual(binary_parameters, expected_parameters)
             mock_download.assert_called_once_with(
                 asset.href, self.temp_dir, logger=subsetter.logger,
@@ -533,7 +546,7 @@ class TestAdapter(TestCase):
                 '--configfile': SUBSETTER_CONFIG,
                 '--end': end_time,
                 '--filename': local_input_path,
-                '--includedataset': 'var_one,/nested/var_two',
+                '--includedataset': join(self.temp_dir, "source_vars.json"),
                 '--outfile': f'{self.temp_dir}/{self.subsetted_filename}',
                 '--start': start_time,
             }

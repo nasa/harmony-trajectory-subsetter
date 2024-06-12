@@ -16,29 +16,38 @@
     are set to values specific to the Docker image.
 
 """
+import json
 from argparse import ArgumentParser
 from itertools import chain
-from os.path import basename, join as join_path
+from os.path import basename
+from os.path import join as join_path
 from shutil import rmtree
 from sys import argv
 from tempfile import mkdtemp
 from typing import Any, Dict, List, Optional
-import json
 
 from harmony import BaseHarmonyAdapter, run_cli, setup_cli
 from harmony.message import Source
-from harmony.util import (Config, download, generate_output_filename,
-                          HarmonyException, stage)
+from harmony.util import (
+    Config,
+    HarmonyException,
+    download,
+    generate_output_filename,
+    stage,
+)
 from pystac import Asset, Item
 
-from harmony_service.utilities import (convert_harmony_datetime,
-                                       execute_command, get_file_mimetype,
-                                       is_bbox_spatial_subset,
-                                       is_harmony_subset,
-                                       is_polygon_spatial_subset,
-                                       is_temporal_subset,
-                                       include_support_variables)
-
+from harmony_service.utilities import (
+    convert_harmony_datetime,
+    execute_command,
+    get_file_mimetype,
+    include_support_variables,
+    is_bbox_spatial_subset,
+    is_harmony_subset,
+    is_polygon_spatial_subset,
+    is_temporal_subset,
+    write_source_variables_to_file,
+)
 
 SUBSETTER_BINARY_PATH = '/home/subset'
 SUBSETTER_CONFIG = '/home/harmony_service/subsetter_config.json'
@@ -78,9 +87,6 @@ class HarmonyAdapter(BaseHarmonyAdapter):
 
             binary_parameters = self.parse_binary_parameters(working_directory,
                                                              asset, source)
-
-            binary_parameters = include_support_variables(binary_parameters,
-                                                          source.shortName)
 
             # Invoke the Trajectory subsetter binary
             self.transform(binary_parameters)
@@ -143,24 +149,31 @@ class HarmonyAdapter(BaseHarmonyAdapter):
             has_items = False
 
         if not has_granules and not has_items:
-            raise Exception('No granules specified for trajectory subsetting.')
+            raise HarmonyException(
+                'No granules specified for trajectory subsetting.'
+            )
 
         if self.message.isSynchronous and len(self.message.granules) > 1:
-            raise Exception('Synchronous requests accept only one granule.')
+            raise HarmonyException(
+                'Synchronous requests accept only one granule.'
+            )
 
         if (
                 is_temporal_subset(self.message) and
                 (self.message.temporal.start is None
                  or self.message.temporal.end is None)
         ):
-            raise Exception('Invalid temporal range, both start and end '
-                            'required.')
+            raise HarmonyException(
+                'Invalid temporal range, both start and end required.'
+            )
 
         if (
                 is_polygon_spatial_subset(self.message) and
                 self.message.subset.shape.type != 'application/geo+json'
         ):
-            raise Exception('Invalid shape file format. Must be GeoJSON.')
+            raise HarmonyException(
+                'Invalid shape file format. Must be GeoJSON.'
+            )
 
     def parse_binary_parameters(self, working_directory: str,
                                 input_asset: Asset,
@@ -217,9 +230,17 @@ class HarmonyAdapter(BaseHarmonyAdapter):
         }
 
         if source.variables != []:
-            variables = [variable.fullPath
-                         for variable in source.process('variables')]
-            binary_parameters['--includedataset'] = ','.join(variables)
+            variables = [
+                variable.fullPath for variable in source.process('variables')
+            ]
+            vars_and_support_vars = include_support_variables(
+                variables, source.shortName, binary_parameters['--filename']
+            )
+            binary_parameters['--includedataset'] = (
+                write_source_variables_to_file(
+                    vars_and_support_vars, working_directory
+                )
+            )
         else:
             variables = None
 

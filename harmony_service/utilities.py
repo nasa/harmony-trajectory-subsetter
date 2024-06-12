@@ -3,20 +3,26 @@
     allows finer-grained unit testing of each function.
 
 """
+import json
 from logging import Logger
 from mimetypes import guess_type as guess_mime_type
-from os.path import splitext, join, dirname, abspath
+from os.path import abspath, dirname, join, splitext
 from subprocess import PIPE, Popen
-from typing import List, Optional, Dict
+from typing import List, Optional
 
 from dateutil.parser import parse as parse_datetime
-from harmony.message import Message, Variable as HarmonyVariable
+from harmony.message import Message
+from harmony.message import Variable as HarmonyVariable
 from varinfo import VarInfoFromNetCDF4
 
-from harmony_service.exceptions import (CustomError, InternalError,
-                                        InvalidParameter, MissingParameter,
-                                        NoMatchingData, NoPolygonFound)
-
+from harmony_service.exceptions import (
+    CustomError,
+    InternalError,
+    InvalidParameter,
+    MissingParameter,
+    NoMatchingData,
+    NoPolygonFound,
+)
 
 KNOWN_MIME_TYPES = {'.nc4': 'application/x-netcdf4',
                     '.nc': 'application/x-netcdf',
@@ -160,27 +166,47 @@ def convert_harmony_datetime(harmony_datetime_str: str) -> str:
     return parse_datetime(harmony_datetime_str).strftime('%Y-%m-%dT%H:%M:%S')
 
 
-def include_support_variables(binary_parameters: Dict,
-                              short_name: str) -> Dict:
-    """ Get support variables needed for a viable subset.
+def include_support_variables(
+    variables: list[str], short_name: str, filename: str
+) -> list[str]:
+    """Get support variables needed for a viable subset.
 
-        Parse the variable list, ensuring all variable names have a leading
-        slash, even when variable names supplied by Harmony do not. Then update
-        that list to include all supporting variables necessary to use a
-        subsetted file.
+    Parse the variable list, ensuring all variable names have a leading
+    slash, even when variable names supplied by Harmony do not. Then update
+    that list to include all supporting variables necessary to use a
+    subsetted file.
 
     """
     var_info = VarInfoFromNetCDF4(
-        binary_parameters.get('--filename', None),
+        filename,
         short_name=short_name,
         config_file=TRAJECTORY_SUBSETTER_VARINFO_CONFIG
     )
-    requested_vars = binary_parameters.get('--includedataset', '').split(',')
-    requested_vars = set(requested_var
-                         if requested_var.startswith('/')
-                         else f'/{requested_var}'
-                         for requested_var in requested_vars)
+    requested_vars = set(
+        requested_var if requested_var.startswith('/') else f'/{requested_var}'
+        for requested_var in variables
+    )
     updated_vars = var_info.get_required_variables(requested_vars)
-    return {
-        **binary_parameters, '--includedataset': ','.join(list(updated_vars))
-    }
+    return list(updated_vars)
+
+
+def write_source_variables_to_file(
+        variables: list[str],
+        working_dir: str,
+) -> str:
+    """
+    Writes a list of variables to a temporary file.
+
+    Args:
+        variables: List of variable names.
+        working_dir: Directory where the temp file will be created.
+
+    Returns:
+        str: URI of the temporary file containing the variables.
+    """
+    data = {"data_set_layers": [var.strip() for var in variables]}
+    with open(
+        join(working_dir, "source_vars.json"), "w+", encoding="utf-8"
+    ) as variables_file:
+        json.dump(data, variables_file)
+    return variables_file.name

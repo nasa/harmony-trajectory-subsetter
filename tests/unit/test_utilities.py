@@ -1,20 +1,31 @@
 from logging import Logger
+from tempfile import NamedTemporaryFile, TemporaryDirectory
 from unittest import TestCase
 from unittest.mock import Mock, patch
 
-
 from harmony.message import Message
 
-from harmony_service.exceptions import (InternalError, InvalidParameter,
-                                        MissingParameter, NoMatchingData,
-                                        NoPolygonFound)
-from harmony_service.utilities import (convert_harmony_datetime,
-                                       get_binary_exception, get_file_mimetype,
-                                       execute_command, is_bbox_spatial_subset,
-                                       is_harmony_subset,
-                                       is_polygon_spatial_subset,
-                                       is_temporal_subset, is_variable_subset,
-                                       include_support_variables, VarInfoFromNetCDF4)
+from harmony_service.exceptions import (
+    InternalError,
+    InvalidParameter,
+    MissingParameter,
+    NoMatchingData,
+    NoPolygonFound,
+)
+from harmony_service.utilities import (
+    VarInfoFromNetCDF4,
+    convert_harmony_datetime,
+    execute_command,
+    get_binary_exception,
+    get_file_mimetype,
+    include_support_variables,
+    is_bbox_spatial_subset,
+    is_harmony_subset,
+    is_polygon_spatial_subset,
+    is_temporal_subset,
+    is_variable_subset,
+    write_source_variables_to_file,
+)
 
 
 class TestUtilities(TestCase):
@@ -263,139 +274,124 @@ class TestIncludeSupportVariables(TestCase):
 
     @classmethod
     def setUp(self):
-        self.binary_parameters = {
-            '--configfile': '/home/harmony_service/subsetter_config.json',
-            '--filename': '/tmp/tmprnxav3hs/86019ac37c24f47f.h5',
-            '--includedataset': 'replaced in each test',
-            '--outfile': '/tmp/tmprnxav3hs/GEDI04__001_01_subsetted.h5'
-        }
+        self.filename = '/tmp/tmprnxav3hs/86019ac37c24f47f.h5'
         self.short_name = 'GEDI_L4A_AGB_Density_1907'
 
     @patch('harmony_service.utilities.VarInfoFromNetCDF4')
-    def test_single_variable_with_no_support_variables(self, varinfo_mock):
-        """Test single input variable with no support vars.
+    def test_request_with_no_support_variables(self, varinfo_mock):
+        """Test multiple variables with no support variables."""
 
-        """
-        input_var = '/BEAM0000/avel'
-        test_params = {**self.binary_parameters, '--includedataset': input_var}
-        expected_params = test_params.copy()
+        input_vars = ['/BEAM0000/agbd', '/BEAM0000/delta_time']
+
+        expected = input_vars.copy()
 
         var_info_object_mock = Mock(spec=VarInfoFromNetCDF4)
         varinfo_mock.return_value = var_info_object_mock
-        var_info_object_mock.get_required_variables.return_value = {input_var}
+        var_info_object_mock.get_required_variables.return_value = set(
+            input_vars
+        )
 
-        actual_params = include_support_variables(test_params,
-                                                  self.short_name)
-
-        self.assertDictEqual(actual_params, expected_params)
+        actual = include_support_variables(
+            input_vars, self.short_name, self.filename
+        )
 
         var_info_object_mock.get_required_variables.assert_called_once_with(
-            {'/BEAM0000/avel'})
+            {'/BEAM0000/agbd', '/BEAM0000/delta_time'}
+        )
+        self.assertEqual(actual.sort(), expected.sort())
 
     @patch('harmony_service.utilities.VarInfoFromNetCDF4')
-    def test_multiple_variable_with_no_support_variables(self, varinfo_mock):
-        """Test multiple variables with no support variables.
-
-        """
-        input_var = '/BEAM0000/agbd,/BEAM0000/delta_time'
-        test_params = {**self.binary_parameters, '--includedataset': input_var}
-        expected_params = test_params.copy()
-
-        var_info_object_mock = Mock(spec=VarInfoFromNetCDF4)
-        varinfo_mock.return_value = var_info_object_mock
-        var_info_object_mock.get_required_variables.return_value = {input_var}
-
-        actual_params = include_support_variables(test_params,
-                                                  self.short_name)
-
-        self.assertDictEqual(actual_params, expected_params)
-        var_info_object_mock.get_required_variables.assert_called_once_with(
-            {'/BEAM0000/agbd', '/BEAM0000/delta_time'})
-
-    @patch('harmony_service.utilities.VarInfoFromNetCDF4')
-    def test_single_variable_with_support_variables(self, varinfo_mock):
-        """Test single support variable appends correct support
-
-        """
-        input_var = '/BEAM0000/avel'
-        returned_vars = '/BEAM0000/avel,/BEAM0000/support1,/BEAM0000/support2'
-
-        test_params = {**self.binary_parameters, '--includedataset': input_var}
-        expected_params = {
-            **test_params.copy(), '--includedataset': returned_vars
-        }
+    def test_request_with_support_variables(self, varinfo_mock):
+        """test multiple input vars each with support vars."""
+        input_vars = ['/BEAM0000/avel', '/BEAM0001/testvar']
+        expected = [
+            '/BEAM0000/avel',
+            '/BEAM0000/support1',
+            '/BEAM0000/support2',
+            '/BEAM0001/testvar',
+            '/BEAM001/support1',
+        ]
 
         var_info_object_mock = Mock(spec=VarInfoFromNetCDF4)
         varinfo_mock.return_value = var_info_object_mock
-        var_info_object_mock.get_required_variables.return_value = {
-            returned_vars
-        }
+        var_info_object_mock.get_required_variables.return_value = set(expected)
 
-        actual_params = include_support_variables(test_params,
-                                                  self.short_name)
+        actual = include_support_variables(
+            input_vars, self.short_name, self.filename
+        )
 
-        self.assertDictEqual(actual_params, expected_params)
+        self.assertEqual(actual.sort(), expected.sort())
         var_info_object_mock.get_required_variables.assert_called_once_with(
-            {'/BEAM0000/avel'})
-
-    @patch('harmony_service.utilities.VarInfoFromNetCDF4')
-    def test_multiple_variable_with_support_variables(self, varinfo_mock):
-        """test multiple input vars each with support vars.
-
-        """
-        input_var = '/BEAM0000/avel,/BEAM0001/testvar'
-        returned_vars = ('/BEAM0000/avel,/BEAM0000/support1,'
-                         '/BEAM0000/support2,/BEAM0001/testvar,'
-                         '/BEAM001/support1')
-
-        test_params = {**self.binary_parameters, '--includedataset': input_var}
-        expected_params = {
-            **test_params.copy(), '--includedataset': returned_vars
-        }
-
-        var_info_object_mock = Mock(spec=VarInfoFromNetCDF4)
-        varinfo_mock.return_value = var_info_object_mock
-        var_info_object_mock.get_required_variables.return_value = {
-            returned_vars
-        }
-
-        actual_params = include_support_variables(test_params,
-                                                  self.short_name)
-
-        self.assertDictEqual(actual_params, expected_params)
-        var_info_object_mock.get_required_variables.assert_called_once_with(
-            {'/BEAM0000/avel', '/BEAM0001/testvar'})
+            {'/BEAM0000/avel', '/BEAM0001/testvar'}
+        )
 
     @patch('harmony_service.utilities.VarInfoFromNetCDF4')
     def test_include_support_variables_no_leading_slashes(self, mock_varinfo):
-        """ Ensure that if requested variables do not contain a leading slash,
-            the variable set used with
-            `VarInfoFromNetCDF4.get_required_variables` still are prepended
-            with that slash. This is because all variables in sds-varinfo are
-            prepended with slashes.
+        """Ensure that if requested variables do not contain a leading slash,
+        the variable set used with
+        `VarInfoFromNetCDF4.get_required_variables` still are prepended
+        with that slash. This is because all variables in sds-varinfo are
+        prepended with slashes.
 
         """
-        requested_variables = 'BEAM0000/avel,BEAM0001/testvar'
-        required_variables = {'/BEAM0000/avel', '/BEAM0000/support1',
-                              '/BEAM0000/support2', '/BEAM0001/testvar',
-                              '/BEAM001/support1'}
-
-        input_parameters = {**self.binary_parameters,
-                            '--includedataset': requested_variables}
+        requested_variables = ['BEAM0000/avel', 'BEAM0001/testvar']
+        expected = [
+            '/BEAM0000/avel',
+            '/BEAM0000/support1',
+            '/BEAM0000/support2',
+            '/BEAM0001/testvar',
+            '/BEAM001/support1',
+        ]
 
         var_info_object_mock = Mock(spec=VarInfoFromNetCDF4)
         mock_varinfo.return_value = var_info_object_mock
-        var_info_object_mock.get_required_variables.return_value = required_variables
+        var_info_object_mock.get_required_variables.return_value = set(expected)
 
-        actual_parameters = include_support_variables(input_parameters,
-                                                      self.short_name)
-        self.assertSetEqual(
-            set(actual_parameters['--includedataset'].split(',')),
-            required_variables
+        actual = include_support_variables(
+            requested_variables, self.short_name, self.filename
         )
+        self.assertEqual(actual.sort(), expected.sort())
 
         # All variables should have been prepended with a slash prior to
         # calling VarInfoFromNetCDF4.get_required_variables()
         var_info_object_mock.get_required_variables.assert_called_once_with(
             {'/BEAM0000/avel', '/BEAM0001/testvar'}
         )
+
+
+class TestWriteSourceVariablesToFile(TestCase):
+    def setUp(self):
+        self.tmp_dir = TemporaryDirectory()
+
+    def tearDown(self):
+        del self.tmp_dir
+
+    def test_empty_variable_list(self):
+        variables = []
+        expected = '{"data_set_layers": []}'
+
+        actual = write_source_variables_to_file(variables, self.tmp_dir.name)
+
+        with open(actual, mode='r', encoding='utf-8') as source_vars_file:
+            source_vars_file.seek(0)
+            self.assertEqual(source_vars_file.read(), expected)
+
+    def test_with_variable_list(self):
+        variables = ['/var1', '/var2/a', 'var3']
+        expected = '{"data_set_layers": ["/var1", "/var2/a", "var3"]}'
+
+        actual = write_source_variables_to_file(variables, self.tmp_dir.name)
+
+        with open(actual, mode='r', encoding='utf-8') as source_vars_file:
+            source_vars_file.seek(0)
+            self.assertEqual(source_vars_file.read(), expected)
+
+    def test_with_variables_with_spaces(self):
+        variables = [' var1', '  /var2/ ', '/var3 ']
+        expected = '{"data_set_layers": ["var1", "/var2/", "/var3"]}'
+
+        actual = write_source_variables_to_file(variables, self.tmp_dir.name)
+
+        with open(actual, mode='r', encoding='utf-8') as source_vars_file:
+            source_vars_file.seek(0)
+            self.assertEqual(source_vars_file.read(), expected)
