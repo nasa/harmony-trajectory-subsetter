@@ -1,3 +1,10 @@
+[version 0.1.16] 2024-06-11
+
+- **DAS-2149**
+  - Fixed issue introduced in original change by ensuring that the time
+    range is only calculated when we have spatial or temporal constraints.
+
+
 [version 0.1.15] 2024-05-24
 
 - **DAS-2149**

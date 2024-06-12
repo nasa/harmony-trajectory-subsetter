@@ -286,9 +286,13 @@ protected:
             return;
         }
 
-        // Check if the dataset is a time coordinate dataset, then update
-        // the subset time range accordingly.
-        updateTimeRange(objname, indataset, indexes);
+        // If the request includes a spatial and/or temporal constraint, the
+        // subset index selection may have changed the overall time range,
+        // so it should be updated accordingly.
+        if (geoboxes != NULL || temporal != NULL || geoPolygon != NULL)
+        {
+            updateTimeRange(objname, indataset, indexes);
+        }
 
         // Calculate new dimensions.
         int dimnum = indataset.getSpace().getSimpleExtentNdims();
