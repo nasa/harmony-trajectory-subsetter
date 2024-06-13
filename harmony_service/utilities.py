@@ -168,7 +168,7 @@ def convert_harmony_datetime(harmony_datetime_str: str) -> str:
 
 def include_support_variables(
     variables: list[str], short_name: str, filename: str
-) -> list[str]:
+) -> set[str]:
     """Get support variables needed for a viable subset.
 
     Parse the variable list, ensuring all variable names have a leading
@@ -187,11 +187,11 @@ def include_support_variables(
         for requested_var in variables
     )
     updated_vars = var_info.get_required_variables(requested_vars)
-    return list(updated_vars)
+    return updated_vars
 
 
 def write_source_variables_to_file(
-        variables: list[str],
+        variables: set[str],
         working_dir: str,
 ) -> str:
     """

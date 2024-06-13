@@ -1,3 +1,8 @@
+[version 0.1.18] 2024-06-13
+
+- **DAS-None**
+ - Update internal library versions for the Harmony Docker images.
+
 [version 0.1.17] 2024-06-10
 
 - **DAS-2161**

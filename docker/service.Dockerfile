@@ -9,7 +9,7 @@
 # into the Docker image, before environment variables are set to activate the
 # created conda environment.
 #
-FROM oraclelinux:8.5
+FROM oraclelinux:8.10
 
 WORKDIR /home
 # Add needed libraries
@@ -25,7 +25,8 @@ RUN dnf -y upgrade && \
 ENV HDF5_URL="https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8/hdf5-1.8.22/src/hdf5-1.8.22.tar.gz"
 ENV HDFEOS_URL="https://maven.earthdata.nasa.gov/repository/heg-c/HDF-EOS2/hdf-eos2-3.0-src.tar.gz"
 ENV HDFEOS5_URL="https://maven.earthdata.nasa.gov/repository/heg-c/HDF-EOS5/hdf-eos5-2.0-src.tar.gz"
-ENV MINICONDA="https://repo.anaconda.com/miniconda/Miniconda3-py39_4.10.3-Linux-x86_64.sh"
+ENV MINICONDA="https://repo.anaconda.com/miniconda/Miniconda3-py311_24.4.0-0-Linux-x86_64.sh"
+
 
 RUN set -e && \
   curl -sfSL ${HDF5_URL} > hdf5.tar.gz && \
@@ -63,7 +64,7 @@ RUN rm -rf ./subsetter ./hdfeos ./hdfeos5 ./hdf5
 # Create Conda environment
 ENV PATH="/opt/conda/bin:$PATH"
 
-RUN conda create -y --name trajectorysubsetter python=3.9 -q \
+RUN conda create -y --name trajectorysubsetter python=3.11 -q \
     --channel conda-forge \
     --channel defaults
 

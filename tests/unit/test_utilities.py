@@ -48,19 +48,25 @@ class TestUtilities(TestCase):
             should be used.
 
         """
-        test_args = [['file.nc4', 'application/x-netcdf4'],
-                     ['file.nc', 'application/x-netcdf'],
-                     ['file.h5', 'application/x-hdf'],
-                     ['file.hdf5', 'application/x-hdf'],
-                     ['file.tif', 'image/tiff'],
-                     ['file.tiff', 'image/tiff'],
-                     ['file.csv', 'text/csv'],
-                     ['file.unknown', None]]
+        test_args = [
+            ['file.nc4', 'application/x-netcdf4'],
+            ['file.nc', 'application/x-netcdf'],
+            ['file.h5', 'application/x-hdf5'],
+            ['file.hdf5', 'application/x-hdf'],
+            ['file.hdf', 'application/x-hdf'],
+            ['file.tif', 'image/tiff'],
+            ['file.tiff', 'image/tiff'],
+            ['file.csv', 'text/csv'],
+            ['file.unknown', None],
+        ]
 
         for file_path, expected_mime_type in test_args:
             with self.subTest(f'MIME type for {file_path}'):
-                self.assertEqual(get_file_mimetype(file_path),
-                                 expected_mime_type)
+                self.assertEqual(
+                    get_file_mimetype(file_path),
+                    expected_mime_type,
+                    f'Broken test: {file_path}',
+                )
 
     def test_get_binary_exception(self):
         """ Ensure that the correct type of `CustomError` is returned for each
@@ -281,7 +287,7 @@ class TestIncludeSupportVariables(TestCase):
     def test_request_with_no_support_variables(self, varinfo_mock):
         """Test multiple variables with no support variables."""
 
-        input_vars = ['/BEAM0000/agbd', '/BEAM0000/delta_time']
+        input_vars = {'/BEAM0000/agbd', '/BEAM0000/delta_time'}
 
         expected = input_vars.copy()
 
@@ -298,19 +304,19 @@ class TestIncludeSupportVariables(TestCase):
         var_info_object_mock.get_required_variables.assert_called_once_with(
             {'/BEAM0000/agbd', '/BEAM0000/delta_time'}
         )
-        self.assertEqual(actual.sort(), expected.sort())
+        self.assertSetEqual(actual, expected)
 
     @patch('harmony_service.utilities.VarInfoFromNetCDF4')
     def test_request_with_support_variables(self, varinfo_mock):
         """test multiple input vars each with support vars."""
-        input_vars = ['/BEAM0000/avel', '/BEAM0001/testvar']
-        expected = [
+        input_vars = {'/BEAM0000/avel', '/BEAM0001/testvar'}
+        expected = {
             '/BEAM0000/avel',
             '/BEAM0000/support1',
             '/BEAM0000/support2',
             '/BEAM0001/testvar',
             '/BEAM001/support1',
-        ]
+        }
 
         var_info_object_mock = Mock(spec=VarInfoFromNetCDF4)
         varinfo_mock.return_value = var_info_object_mock
@@ -320,7 +326,7 @@ class TestIncludeSupportVariables(TestCase):
             input_vars, self.short_name, self.filename
         )
 
-        self.assertEqual(actual.sort(), expected.sort())
+        self.assertSetEqual(actual, expected)
         var_info_object_mock.get_required_variables.assert_called_once_with(
             {'/BEAM0000/avel', '/BEAM0001/testvar'}
         )
@@ -334,14 +340,14 @@ class TestIncludeSupportVariables(TestCase):
         prepended with slashes.
 
         """
-        requested_variables = ['BEAM0000/avel', 'BEAM0001/testvar']
-        expected = [
+        requested_variables = {'BEAM0000/avel', 'BEAM0001/testvar'}
+        expected = {
             '/BEAM0000/avel',
             '/BEAM0000/support1',
             '/BEAM0000/support2',
             '/BEAM0001/testvar',
             '/BEAM001/support1',
-        ]
+        }
 
         var_info_object_mock = Mock(spec=VarInfoFromNetCDF4)
         mock_varinfo.return_value = var_info_object_mock
@@ -350,7 +356,7 @@ class TestIncludeSupportVariables(TestCase):
         actual = include_support_variables(
             requested_variables, self.short_name, self.filename
         )
-        self.assertEqual(actual.sort(), expected.sort())
+        self.assertSetEqual(actual, expected)
 
         # All variables should have been prepended with a slash prior to
         # calling VarInfoFromNetCDF4.get_required_variables()
