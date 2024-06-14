@@ -23,7 +23,7 @@
 
 // This class captures a reference from one dataset to a set of other coordinate
 // datasets.
-// Summary of different behavoirs for different cases:
+// Summary of different behaviors for different cases:
 //  - test cases when index selection returns everything (at the group level)
 //    - no spatial/temporal constraints specified
 //    - no coordinate references found
@@ -631,50 +631,6 @@ private:
             }
         }
     }
-
-    // check if all the coordinate datasets(lat/lon/time) have same coordinate size
-    /*void checkCoorDatasetSize(H5::DataSet* data, bool& inconsistentCoorDatasets)
-    {
-        H5::DataSpace inspace = data->getSpace();
-        int dim = inspace.getSimpleExtentNdims();
-        hsize_t olddims[dim];
-        inspace.getSimpleExtentDims(olddims);
-        if (coordinateSize == 0) coordinateSize = olddims[0];
-        if ((coordinateSize != olddims[0]) && (!inconsistentCoorDatasets)) inconsistentCoorDatasets = true;
-    }*/
-
-    // update epoch time if different with existing product epoch
-    /*void updateEpochTime(H5::DataSet* time)
-    {
-
-        H5::Attribute attr;
-        std::string attrName, attrValue;
-        std::string timeStr = "T00:00:00";
-        std::string epoch;
-
-        for (int i = 0; i < time->getNumAttrs(); i++)
-        {
-            attr = time->openAttribute(i);
-            attrName = attr.getName();
-
-            // get "units" attribute
-            // parse the "units" attribute value to get the epoch
-            // ex.) units = seconds since 2018-01-01, parse out "2018-01-01"
-            // add "T00:00:00" to the date
-            if (attrName == "units")
-            {
-                attr.read(attr.getDataType(), attrValue);
-                std::string pathDelim(" ");
-                std::vector<std::string> units;
-                split(units, attrValue, boost::is_any_of(pathDelim));
-                epoch = units.at(units.size()-1) + timeStr;
-                // if the epoch is different from the product epoch in configuration file or default epoch,
-                // update it
-                if (temporal->needToUpdateEpoch(epoch)) temporal->updateReferenceTime(epoch);
-            }
-        }
-
-    }*/
 
     // map that captures coordinate datasets, keys are coordinate dataset names(string)
     // values are acutal coordinate datasets

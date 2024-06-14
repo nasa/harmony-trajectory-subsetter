@@ -97,6 +97,11 @@ public:
         // to the root group.
         copyH5(ingroup, ingroup, outgroup, "/");
 
+        // Write subsets for datasets for the special case where
+        // the dataset has no spatial coordinates in requests that
+        // only spatial constraints.
+        writeRequiredTemporalSubsets(ingroup);
+
         // Recreate and re-attach dimension scales in the output file.
         dimensionScales->recreateDimensionScales(outfile);
 
@@ -278,7 +283,7 @@ protected:
     virtual void writeDataset(const std::string& objname, const H5::DataSet& indataset, H5::Group& outgroup, const std::string& groupname,
                       IndexSelection* indexes)
     {
-        // If the dataset is already included in the outgroup, don't it create again.
+        // If the dataset is already included in the outgroup, don't create it again.
         // e.g. we create /geolocation/segment_ph_cnt before we write /geolocation/ph_index_beg dataset
         if (H5Lexists(outgroup.getLocId(), objname.c_str(), H5P_DEFAULT) > 0)
         {
@@ -512,11 +517,12 @@ private:
                     std::cout << "groupname+objname: " << groupname+objname << std::endl;
                     Coordinate* coor = getCoordinate(inRootGroup, in, groupname+objname, subsetDataLayers, geoboxes, temporal, geoPolygon);
                     IndexSelection* newIndexes = coor->getIndexSelection();
+                    addGroupRequiringTemporalSubsetting(groupname, objname, newIndexes);
                     writeDataset(objname, indataset, out, groupname, newIndexes);
-
                 }
                 else
                 {
+                    addGroupRequiringTemporalSubsetting(groupname, objname, indexes);
                     writeDataset(objname, indataset, out, groupname, indexes);
                 }
             }
@@ -606,6 +612,75 @@ private:
 
     }
 
+    /**
+     * @brief Check if a group requires temporal subsetting in the special
+     *        case that a spatial-only request is made of a group that does
+     *        not have spatial coordinates.
+     *
+     *        If so, add this group to the container.
+     *
+     * @param groupName The group to be checked for temporal subsetting.
+     * @param datasetName The name of a child dataset.
+     * @param indexes The subset indexes of a child dataset.
+     */
+    void addGroupRequiringTemporalSubsetting(std::string groupName, std::string datasetName, IndexSelection* indexes)
+    {
+        // Check if the group is already on the list, and return if it is.
+        auto group_it = find(
+            this->groupsRequiringTemporalSubsetting.begin(),
+            this->groupsRequiringTemporalSubsetting.end(),
+            groupName);
+
+        if (group_it != this->groupsRequiringTemporalSubsetting.end())
+            return;
+
+        // Check if:
+        // (1) the request has only spatial constraints.
+        // (2) the group has no spatial coordinates.
+        // (3) a child dataset has not been subset.
+        std::string shortname = this->getShortName();
+        if ((this->temporal == NULL) && ((this->geoboxes != NULL) || (this->geoPolygon != NULL)) &&
+            (indexes->size() == indexes->getMaxSize()) &&
+            !Configuration::getInstance()->getTimeCoordinateName(datasetName, shortname).empty() &&
+            Configuration::getInstance()->getLatitudeCoordinateName(datasetName, shortname).empty() &&
+            Configuration::getInstance()->getLongitudeCoordinateName(datasetName, shortname).empty())
+            {
+                this->groupsRequiringTemporalSubsetting.push_back(groupName);
+            }
+
+    }
+
+    /**
+     * @brief Subsets and writes groups recursively that need special
+     *        temporal subsetting.
+     *
+     *        This occurs in the case where a group has no spatial coordinates
+     *        in requests that only spatial constraints.
+     *
+     * @param rootGroup This root group.
+     */
+    void writeRequiredTemporalSubsets(H5::Group& rootGroup)
+    {
+        if (!groupsRequiringTemporalSubsetting.empty())
+        {
+            // Construct temporal constraints using calculated time range.
+            this->temporal = new Temporal(timeRange.first, timeRange.second);
+
+            // Write requested groups recursively.
+            for (std::string groupname : this->groupsRequiringTemporalSubsetting)
+            {
+                // Remove group from coordinate look-up map.
+                Coordinate::lookUpMap.erase(groupname);
+
+                // Remove and recreate output group.
+                H5::Group group = this->infile.openGroup(groupname);
+                H5::Group outGroupExisting = this->outfile.openGroup(groupname);
+                H5Ldelete(outGroupExisting.getLocId(), groupname.c_str(), H5P_DEFAULT);
+                H5::Group newOutGroup = this->outfile.createGroup(groupname);
+                copyH5(group, rootGroup, newOutGroup, groupname);
+            }
+        }
+    }
 
     /**
      * @brief Check if the `coordinates` attribute is still valid, since the
@@ -887,6 +962,11 @@ private:
 
     // subset time range <minimum, maximum>
     std::pair<double, double> timeRange;
+
+    // datasets that require temporal subsetting when only spatial
+    // constraints are defined.
+    // std::vector<H5::Group*> groupsRequiringTemporalSubsetting;
+    std::vector<std::string> groupsRequiringTemporalSubsetting;
 
 };
 #endif

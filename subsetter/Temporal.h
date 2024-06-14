@@ -11,8 +11,15 @@
 class Temporal
 {
 public:
-    // s startTime, e endTime
+    /**
+     * @brief Construct a new Temporal object using datetime string:
+     *        YYYY-MM-DDTHH:MM:SS.ssssss
+     * @param s Start time in datetime string format.
+     * @param e End time in datetime string format.
+     * @param epochTime Reference time of start and end time values.
+     */
     Temporal(std::string s, std::string e, std::string epochTime="")
+    : epochUpdateRequired(true)
     {
         if (s.find(":") == std::string::npos)
             s += " 00:00:00.000000";
@@ -44,6 +51,25 @@ public:
         std::cout.unsetf(std::ios_base::floatfield); //set back
     }
 
+    /**
+     * @brief Construct a new Temporal object using seconds since epoch.
+     *
+     *        The reference time has no initial value, because the input
+     *        start and end times are already respect to whatever the time
+     *        coordinate attributes are. This is also why no epoch update
+     *        is required.
+     *
+     * @param s Start time in seconds since epoch.
+     * @param e End time in seconds since epoch.
+     */
+    Temporal(double s, double e)
+    : epochUpdateRequired(false)
+    {
+        myReferenceTime = "";
+        start = s;
+        end = e;
+    }
+
     double getStart()
     {
         return this->start;
@@ -66,17 +92,31 @@ public:
         return convertToDateTimeString(this->end);
     }
 
+    // update reference time if it differs from the dataset's epoch.
+    // if the epochUpdateRequired is set to false, we don't update.
     bool needToUpdateEpoch(std::string epoch)
     {
-        return (myReferenceTime != epoch);
+        if (myReferenceTime != epoch && epochUpdateRequired)
+        {
+            return true;
+        }
+        else if (!epochUpdateRequired)
+        {
+            replace(epoch.begin(), epoch.end(), 'T', ' ');
+            replace(epoch.begin(), epoch.end(), 'Z', ' ');
+            myReferenceTime = epoch;
+            return false;
+        }
     }
 
     // update the reference time, start and end
     void updateReferenceTime(std::string referenceTime)
     {
+
         // get the difference between old and new reference time
         replace(referenceTime.begin(), referenceTime.end(), 'T', ' ');
         replace(referenceTime.begin(), referenceTime.end(), 'Z', ' ');
+
         try
         {
             boost::posix_time::time_duration diffTime = boost::posix_time::ptime(boost::posix_time::time_from_string(referenceTime)) - boost::posix_time::ptime(boost::posix_time::time_from_string(myReferenceTime));
@@ -117,6 +157,13 @@ private:
     double start;
     double end;
     std::string myReferenceTime;
+
+    // epoch update required depends on constructor.
+    // the constructor that takes in datetime start/end arguments will
+    // require reference time adjustments, however,
+    // the constructor that takes in start/end arguments in seconds
+    // have already been created in reference to correct epoch.
+    bool epochUpdateRequired;
 
     // use as default epoch time
     static std::string unixEpochTime;

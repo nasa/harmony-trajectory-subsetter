@@ -623,6 +623,73 @@ public:
     }
 
     /**
+     * @brief Get the time coordinate dataset name.
+     *
+     * @param datasetName The dataset whose coordinates are being accessed.
+     * @param shortName The collection shortname.
+     * @return The name of the time dataset.
+     */
+    std::string getTimeCoordinateName(std::string& datasetName, std::string& shortName)
+    {
+        std::vector<std::string> datasetNames(1, datasetName);
+        std::string timeName, latitudeName, longitudeName, ignoreName;
+        Configuration::getInstance()->getMatchingCoordinateDatasetNames(
+            shortName,
+            datasetNames,
+            timeName,
+            latitudeName,
+            longitudeName,
+            ignoreName);
+
+        return timeName;
+    }
+
+    /**
+     * @brief Get the latitude coordinate dataset name.
+     *
+     * @param datasetName The dataset whose coordinates are being accessed.
+     * @param shortName The collection shortname.
+     * @return The name of the latitude dataset.
+     */
+    std::string getLatitudeCoordinateName(std::string& datasetName, std::string& shortName)
+    {
+        std::vector<std::string> datasetNames(1, datasetName);
+        std::string timeName, latitudeName, longitudeName, ignoreName;
+        Configuration::getInstance()->getMatchingCoordinateDatasetNames(
+            shortName,
+            datasetNames,
+            timeName,
+            latitudeName,
+            longitudeName,
+            ignoreName);
+
+        return latitudeName;
+
+    }
+
+    /**
+     * @brief Get the longitude coordinate dataset name.
+     *
+     * @param datasetName The dataset whose coordinates are being accessed.
+     * @param shortName The collection shortname.
+     * @return The name of the longitude dataset.
+     */
+    std::string getLongitudeCoordinateName(std::string& datasetName, std::string& shortName)
+    {
+        std::vector<std::string> datasetNames(1, datasetName);
+        std::string timeName, latitudeName, longitudeName, ignoreName;
+        Configuration::getInstance()->getMatchingCoordinateDatasetNames(
+            shortName,
+            datasetNames,
+            timeName,
+            latitudeName,
+            longitudeName,
+            ignoreName);
+
+        return longitudeName;
+    }
+
+    /**
      * check if a product has Photon and Segment Groups
      * @param shortName product shortname
      * @return whether the product configured to have Photon and Segment groups

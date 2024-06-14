@@ -1,3 +1,12 @@
+[version 0.1.19] 2024-06-13
+
+- **DAS-2151**
+ - Add ability to subset datasets that only have temporal coordinates
+   in requests with only spatial constraints. This includes adding
+   latitude, longitude, and time coordinate getters to Configuration.h,
+   and adding a second Temporal constructor that takes seconds instead
+   of datetime.
+
 [version 0.1.18] 2024-06-13
 
 - **DAS-None**
