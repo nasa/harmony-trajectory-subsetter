@@ -140,10 +140,14 @@ number as stored in `docker/service_version.txt`.
 
 A local Conda development environment can be configured using the following Conda environment and a customized `makeit` file. In the `./subsetter` directory:
 ```
-conda env create -f ../environment.yaml && conda activate trajectory-subsetter-local-dev
+conda env create -f ../environment.yaml
+```
+and activate the environment:
+```
+conda activate trajectory-subsetter-local-dev
 ```
 
-and create a `makeit_local_conda` file and place in it the code below. Remember to replace the file path to h5c++. Note that the first build may take longer.<br>
+Create a `makeit_local_conda` file and place in it the code below. Remember to replace the file path to h5c++. Note that the first build may take longer.<br>
 Note: When the latest version of `hdfeos5` is available in conda (newer than 5.1.16), the if statement may be removed.
 
 ```
@@ -175,12 +179,22 @@ Build the source code (you may have to make it executable via `chmod 755 makeit_
 ./makeit_local_conda
 ```
 
-A debug environment can be configured in Visual Studio Code using the `launch.json` file in the top-level `.vscode` directory. To create this file, go to "Run and Debug" in the left panel, click "create a launch.json file", and add the following configurations, including only relevant `args`. Remember to replace file paths as needed.
+ * Note: If the error "_fatal: destination path 'hdfeos5' already exists..._" is returned, it's likely the library was not fully built. Remove the library altogether and re-build.
+
+A debug environment for both Intel and ARM64 architectures can be
+configured in Visual Studio Code by:
+1. Installing the `CodeLLDB` VS Code
+extension
+2. Using the `launch.json` file in the top-level `.vscode`
+directory. To create this file, go to "Run and Debug" in the left panel,
+click "create a launch.json file", and add the following configurations,
+including only relevant `args` (`includedataset`, `bbox`, `start/end` are
+not required). Remember to replace file paths as needed.
 ```
     "configurations": [
         {
             "name": "<Name of debug environment>",
-            "type": "cppdbg",
+            "type": "lldb",
             "request": "launch",
             "program": "/Path/to/subset",
             "args": [
@@ -189,8 +203,8 @@ A debug environment can be configured in Visual Studio Code using the `launch.js
               "--outfile","/Path/to/output/file",
               "--includedataset","/Path/to/variable1,/Path/to/variable2",
               "--bbox","W,S,E,N",
-              "--start","YYYY-MM-DDTHH:MM:SS",
-              "--end","YYYY-MM-DDTHH:MM:SS"
+              "--start","'YYYY-MM-DDTHH:MM:SS'",
+              "--end","'YYYY-MM-DDTHH:MM:SS'"
               ],
             "cwd": "/Path/to/subset/directory",
             "environment": [],
@@ -198,19 +212,18 @@ A debug environment can be configured in Visual Studio Code using the `launch.js
         }
     ]
 ```
-**Temporal subsetting issue**: VScode mysteriously converts the `--start` and `--end` arguments to `YYYY/MM/DD HH:MM:SS`. To work around this, note the addition of single quotes within the time arguments in `launch.json`, and go to `Subset.cpp` and add these two lines of code in the temporal argument processing section. <br>
-**BEWARE**: You must remember to delete these two lines before committing.
-```
-startString = variables_map["start"].as<std::string>();
-endString = variables_map["end"].as<std::string>();
-boost::erase_all(startString, "'");     <----- New code
-boost::erase_all(endString, "'");       <----- New code
-boost::regex date_format(...
-```
+**Temporal subsetting issue**: VScode mysteriously converts the `--start` and
+`--end` arguments to `YYYY/MM/DD HH:MM:SS`. To work around this, note the
+addition of single quotes within the time arguments in `launch.json`.
 
-Now navigate to any source file to place a breakpoint, and hit "Start debugging" in the Debug Console. Refer to the [Visual Studio Code Debugging](https://code.visualstudio.com/docs/editor/debugging) documentation for how to further use the VSCode debugger. <br><br>
-Note 1: A pop-up window may appear called "Developer Tools Access" that requires elevated privileges.<br>
-Note 2: Additional required variables are not yet included as `earthdata-varinfo` is not linked.
+Now navigate to any source file to place a breakpoint, and hit "Start debugging"
+in the Debug Console. Refer to the [Visual Studio Code Debugging](https://code.visualstudio.com/docs/editor/debugging)
+documentation for how to further use the VSCode debugger. <br><br>
+
+Note 1: A pop-up window may appear called "Developer Tools Access" that
+requires elevated privileges.<br>
+Note 2: Additional required variables are not yet included as `earthdata-varinfo`
+is not linked.
 
 ### Best Coding Practices:
 
