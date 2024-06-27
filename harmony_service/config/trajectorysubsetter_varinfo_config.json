@@ -342,6 +342,32 @@
         },
         {
           "Applicability": {
+            "ShortNamePath": "ATL03",
+            "Variable_Pattern": "/gt[123][lr]/bckgrd_atlas/.*"
+          },
+          "Attributes": [
+            {
+              "Name": "ancillary_variables",
+              "Value": "../geolocation/delta_time, ../geolocation/reference_photon_lat, ../geolocation/reference_photon_lon"
+            }
+          ],
+          "_Description": "Add a time dataset that's associated with geolocation data so a spatial subset of only variables that only have temporal coordinate (in `bckgrd_atlas` group) can be made"
+        },
+        {
+          "Applicability": {
+            "ShortNamePath": "ATL03",
+            "Variable_Pattern": "/gt[123][lr]/signal_find_output/.*"
+          },
+          "Attributes": [
+            {
+              "Name": "ancillary_variables",
+              "Value": "../geolocation/delta_time, ../geolocation/reference_photon_lat, ../geolocation/reference_photon_lon"
+            }
+          ],
+          "_Description": "Add a time dataset that's associated with geolocation data so a spatial subset of only variables that only have temporal coordinate (in `signal_find_output` group) can be made"
+        },
+        {
+          "Applicability": {
             "ShortNamePath": "ATL08",
             "Variable_Pattern": "/gt[123][lr]/signal_photons/.*"
           },

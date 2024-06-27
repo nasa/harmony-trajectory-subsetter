@@ -1,3 +1,10 @@
+[version 0.1.20] 2024-06-19
+
+- **DAS-2175**
+ - Update the earthdata-varinfo configuration file to add spatial coordinates
+   whenever variables with only temporal coordinates are requested, namely in
+   the groups `bckgrd_atlas` and `signal_find_output` in the ATL03 collection.
+
 [version 0.1.19] 2024-06-13
 
 - **DAS-2151**
@@ -45,23 +52,27 @@
 [version 0.1.12] 2023-08-03
 
 - **DAS-1931**
-  - Bug fix: Added the required format output argument to an instantiation of the Subsetter class.
+  - Bug fix: Added the required format output argument to an instantiation of the
+    Subsetter class.
 
 
 [version 0.1.11] 2023-07-20
 
 - **DAS-1887**
-  - Bug fix: Updated ForwardRefCoordinates.h to use forward and backward scanning methods to ensure that the fill values in the index begin dataset are skipped.
+  - Bug fix: Updated ForwardRefCoordinates.h to use forward and backward scanning
+    methods to ensure that the fill values in the index begin dataset are skipped.
 
 [version 0.1.10] 2023-06-19
 
 - **DAS-1731**
-  - Bug fix: Updated FwdRefBeginDataset.h to correctly calculate index begin datasets for ATL03.
+  - Bug fix: Updated FwdRefBeginDataset.h to correctly calculate index begin
+    datasets for ATL03.
 
 [version 0.1.9] 2023-04-17
 
 - **DAS-1806**
-  - Refactoring: Removed global namespaces and updated Subset.cpp and Subsetter.h to incorporate modern coding standards.
+  - Refactoring: Removed global namespaces and updated Subset.cpp and
+    Subsetter.h to incorporate modern coding standards.
 
 [version 0.1.8] 2023-03-22
 
