@@ -294,7 +294,7 @@ protected:
         // If the request includes a spatial and/or temporal constraint, the
         // subset index selection may have changed the overall time range,
         // so it should be updated accordingly.
-        if (geoboxes != NULL || temporal != NULL || geoPolygon != NULL)
+        if ((indexes != NULL) && (geoboxes != NULL || temporal != NULL || geoPolygon != NULL))
         {
             updateTimeRange(objname, indataset, indexes);
         }
@@ -625,6 +625,11 @@ private:
      */
     void addGroupRequiringTemporalSubsetting(std::string groupName, std::string datasetName, IndexSelection* indexes)
     {
+        if (indexes == NULL)
+        {
+            return;
+        }
+
         // Check if the group is already on the list, and return if it is.
         auto group_it = find(
             this->groupsRequiringTemporalSubsetting.begin(),
