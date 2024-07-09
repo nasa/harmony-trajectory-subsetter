@@ -1,3 +1,10 @@
+[version 0.1.21] 2024-07-03
+
+- **DAS-2194**
+ - Fixed bug that would try to access the index selection size for a dataset
+   when there is no index selection. This occur in two places, both regarding
+   the calculation of the total time range.
+
 [version 0.1.20] 2024-06-19
 
 - **DAS-2175**
