@@ -13,4 +13,4 @@ fi
 
 # Build the image
 #
-docker build -t ${image}:${tag} -f docker/tests.Dockerfile .
+docker build --platform linux/amd64 -t ${image}:${tag} -f docker/tests.Dockerfile .

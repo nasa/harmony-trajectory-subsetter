@@ -29,6 +29,7 @@ mkdir -p coverage
 # Run the tests in a Docker container with mounted volumes for XML report
 # output and test coverage reporting
 docker run --rm \
+	--platform linux/amd64 \
 	-v $(pwd)/test-reports:/home/tests/reports \
 	-v $(pwd)/coverage:/home/tests/coverage \
 	sds/trajectory-subsetter-test "$@"

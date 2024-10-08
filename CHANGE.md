@@ -1,3 +1,9 @@
+[version 0.1.22] 2024-10-07
+
+- **DAS-None**
+ - Add flag `--platform linux/amd64` to the Docker build files so Docker
+   binaries can be built on ARM64 machines.
+
 [version 0.1.21] 2024-07-03
 
 - **DAS-2194**
