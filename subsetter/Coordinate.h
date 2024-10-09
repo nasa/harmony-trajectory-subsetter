@@ -19,6 +19,7 @@
 #include "Temporal.h"
 #include "SubsetDataLayers.h"
 #include "GeoPolygon.h"
+#include "Configuration.h"
 
 
 // This class captures a reference from one dataset to a set of other coordinate
@@ -45,13 +46,11 @@ public:
     // IndexSelection instance created based on the coordinate datasets and temporal
     // and/or spatial constraints specified
     IndexSelection* indexes;
-
     bool indexesProcessed;
-
     std::string groupname;
 
-    Coordinate(std::string groupname, std::vector<geobox>* geoboxes, Temporal* temporal, GeoPolygon* geoPolygon)
-    : groupname(groupname),geoboxes(geoboxes),temporal(temporal),geoPolygon(geoPolygon),indexes(NULL), indexesProcessed(false)
+    Coordinate(std::string groupname, std::vector<geobox>* geoboxes, Temporal* temporal, GeoPolygon* geoPolygon, Configuration* config)
+    : groupname(groupname),geoboxes(geoboxes),temporal(temporal),geoPolygon(geoPolygon),indexes(NULL), indexesProcessed(false), config(config)
     {
     };
 
@@ -62,7 +61,7 @@ public:
     // returns the Coordinate instance that is associated with the coordinate attribute value
     // if it does not exist, create it
     static Coordinate* getCoordinate(H5::Group& root, H5::Group& ingroup, const std::string& groupname, const std::string& shortname,
-        SubsetDataLayers* subsetDataLayers, std::vector<geobox>* geoboxes, Temporal* temporal, GeoPolygon* geoPolygon)
+        SubsetDataLayers* subsetDataLayers, std::vector<geobox>* geoboxes, Temporal* temporal, GeoPolygon* geoPolygon, Configuration* config)
     {
         std::string typeName, objName;
         int numOfObjs, inGroupCount=0;
@@ -75,7 +74,7 @@ public:
         numOfObjs = ingroup.getNumObjs();
         int i = 0;
 
-        Coordinate* coor = new Coordinate(groupname, geoboxes, temporal, geoPolygon);
+        Coordinate* coor = new Coordinate(groupname, geoboxes, temporal, geoPolygon, config);
         coor->coordinateSize = 0;
 
         if (geoboxes == NULL && temporal == NULL && geoPolygon == NULL)
@@ -106,7 +105,7 @@ public:
             }
         }
         // match datasets in the group with the coordinate dataset names in the configuration file
-        Configuration::getInstance()->getMatchingCoordinateDatasetNames(shortname, allDatasets, timeNameInGroup, latitudeNameInGroup, longitudeNameInGroup,
+        config->getMatchingCoordinateDatasetNames(shortname, allDatasets, timeNameInGroup, latitudeNameInGroup, longitudeNameInGroup,
                                                                         ignoreNameInGroup);
         // use groupname as coorGroupname(key for lookup map) if the coordinate dataset names are
         // retrieved by walking through the datasets in the group
@@ -313,6 +312,8 @@ protected:
     std::vector<geobox>* geoboxes;
     Temporal* temporal;
     GeoPolygon* geoPolygon;
+
+    Configuration* config;
 
     std::vector<std::string> datasetNames;
 
@@ -624,7 +625,7 @@ private:
                         datasetNames.push_back(attrDataset);
 
                         // get matching coordinate dataset names with the configuration file
-                        Configuration::getInstance()->getMatchingCoordinateDatasetNames(shortname, datasetNames, timeName, latitudeName, longitudeName,
+                        config->getMatchingCoordinateDatasetNames(shortname, datasetNames, timeName, latitudeName, longitudeName,
                                                                                         ignoreName);
                     }
                 }

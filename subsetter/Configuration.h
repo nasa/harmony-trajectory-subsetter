@@ -25,30 +25,10 @@ class Configuration
 public:
 
     /**
-     * get singleton instance
-     * @return
-     */
-    static Configuration* getInstance()
-    {
-        if (!myInstance)
-            myInstance = new Configuration();
-        return myInstance;
-    }
-
-    /**
-     * destroy instance
-     */
-    static void destroyInstance()
-    {
-	if (myInstance) delete myInstance;
-        myInstance = NULL;
-    }
-
-    /**
      * initialize the information from json configuration file
      * @param configFile the configuration file
      */
-    void initialize(const std::string& configFile)
+    Configuration(const std::string& configFile)
     {
         property_tree::ptree root;
         std::string s;
@@ -149,7 +129,6 @@ public:
             {
                 BOOST_FOREACH(property_tree::ptree::value_type &v, root.get_child("ShortNamePath"))
                 {
-                    std::cout << "shortname path " << v.second.data() << std::endl;
                     shortnames.push_back(v.second.data());
                 }
             }
@@ -272,7 +251,6 @@ public:
      */
     std::string removeComment(const std::string& configFile)
     {
-        std::cout << "removeComment" << std::endl;
         std::ifstream is(configFile);
         std::string s, str;
         s.reserve(is.rdbuf()->in_avail());
@@ -633,7 +611,7 @@ public:
     {
         std::vector<std::string> datasetNames(1, datasetName);
         std::string timeName, latitudeName, longitudeName, ignoreName;
-        Configuration::getInstance()->getMatchingCoordinateDatasetNames(
+        this->getMatchingCoordinateDatasetNames(
             shortName,
             datasetNames,
             timeName,
@@ -655,7 +633,7 @@ public:
     {
         std::vector<std::string> datasetNames(1, datasetName);
         std::string timeName, latitudeName, longitudeName, ignoreName;
-        Configuration::getInstance()->getMatchingCoordinateDatasetNames(
+        this->getMatchingCoordinateDatasetNames(
             shortName,
             datasetNames,
             timeName,
@@ -678,7 +656,7 @@ public:
     {
         std::vector<std::string> datasetNames(1, datasetName);
         std::string timeName, latitudeName, longitudeName, ignoreName;
-        Configuration::getInstance()->getMatchingCoordinateDatasetNames(
+        this->getMatchingCoordinateDatasetNames(
             shortName,
             datasetNames,
             timeName,
@@ -1878,11 +1856,6 @@ public:
 
 private:
 
-    Configuration() {};
-    Configuration(Configuration const&) {};
-    Configuration& operator=(Configuration const&){};
-    ~Configuration(){};
-
     // return a value in vectorB which is also in vectorA,
     // an empty string is returned if no matches
     std::string findStringInBothVectors(std::vector<std::string> vectorA, std::vector<std::string> vectorB)
@@ -1917,8 +1890,6 @@ private:
         }
         return matchFound;
     }
-
-    static Configuration* myInstance;
 
     /**
      * coordinate dataset names for each shortname pattern
@@ -2006,5 +1977,4 @@ private:
 
     bool freeboardSwathSegment;
 };
-Configuration* Configuration::myInstance = NULL;
 #endif

@@ -16,8 +16,10 @@
 class IcesatSubsetter : public Subsetter
 {
 public:
-    IcesatSubsetter(SubsetDataLayers* subsetDataLayers, std::vector<geobox>* geoboxes, Temporal* temporal, GeoPolygon* geoPolygon)
-    : Subsetter(subsetDataLayers, geoboxes, temporal, geoPolygon)
+    IcesatSubsetter(SubsetDataLayers* subsetDataLayers,
+    std::vector<geobox>* geoboxes, Temporal* temporal,
+    GeoPolygon* geoPolygon, Configuration* config)
+    : Subsetter(subsetDataLayers, geoboxes, temporal, geoPolygon, config)
     {
         std::cout << "IcesatSubsetter ctor" << std::endl;
     }
@@ -41,11 +43,11 @@ protected:
 
         H5::H5File infile = getInputFile();
         if (indexes != NULL && indexes->getMaxSize() != indexes->size() && indexes->size() != 0 &&
-            Configuration::getInstance()->isSegmentGroup(this->getShortName(), groupname) &&
-            Configuration::getInstance()->getIndexBeginDatasetName(this->getShortName(), groupname, objname) ==objname)
+            config->isSegmentGroup(this->getShortName(), groupname) &&
+            config->getIndexBeginDatasetName(this->getShortName(), groupname, objname) ==objname)
         {
             // need to make sure count dataset exists
-            std::string countName = Configuration::getInstance()->getCountDatasetName(this->getShortName(), groupname, objname);
+            std::string countName = config->getCountDatasetName(this->getShortName(), groupname, objname);
             // if the count dataset is not in the output file, create it
             if (H5Lexists(outgroup.getLocId(), countName.c_str(), H5P_DEFAULT) <= 0)
             {
@@ -64,7 +66,7 @@ protected:
                     return;
             }
             // write index begin dataset
-            FwdRefBeginDataset* photonDataset = new FwdRefBeginDataset(this->getShortName(), objname);
+            FwdRefBeginDataset* photonDataset = new FwdRefBeginDataset(this->getShortName(), objname, config);
             photonDataset->writeDataset(outgroup, groupname, indataset, indexes, this->getSubsetDataLayers());
 
 
@@ -74,16 +76,16 @@ protected:
         }
         // write index begin for ATL10 if it has been subsetted
         else if (indexes != NULL && (indexes->getMaxSize() != indexes->size() ||indexes->size() == 1) && indexes->size() != 0 &&
-                (Configuration::getInstance()->isLeadsGroup(this->getShortName(), groupname) ||
-                Configuration::getInstance()->isFreeboardSwathSegmentGroup(this->getShortName(), groupname) ||
-                Configuration::getInstance()->isFreeboardBeamSegmentGroup(this->getShortName(), groupname) ||
-                Configuration::getInstance()->isHeightSegmentRateGroup(this->getShortName(), groupname)) &&
-                Configuration::getInstance()->getIndexBeginDatasetName(this->getShortName(), groupname, objname, true) ==objname)
+                (config->isLeadsGroup(this->getShortName(), groupname) ||
+                config->isFreeboardSwathSegmentGroup(this->getShortName(), groupname) ||
+                config->isFreeboardBeamSegmentGroup(this->getShortName(), groupname) ||
+                config->isHeightSegmentRateGroup(this->getShortName(), groupname)) &&
+                config->getIndexBeginDatasetName(this->getShortName(), groupname, objname, true) ==objname)
         {
             RvsRefDatasets* referenceDataset = new RvsRefDatasets(this->getShortName(), objname);
 
             // get target group index selection
-            std::string targetGroupname = Configuration::getInstance()->getTargetGroupname(this->getShortName(), groupname, objname);
+            std::string targetGroupname = config->getTargetGroupname(this->getShortName(), groupname, objname);
 
             // if target group does not exist in input, write index begin as normal dataset
             if (H5Lexists(infile.getLocId(), targetGroupname.c_str(), H5P_DEFAULT) <= 0)
@@ -98,7 +100,7 @@ protected:
             Coordinate* coor;
             if (Coordinate::lookUp(targetGroupname)) coor = Coordinate::lookUpMap[targetGroupname];
             else coor = IcesatSubsetter::getCoordinate(root, targetGroup, targetGroupname, this->getSubsetDataLayers(),
-                    this->getGeobox(), this->getTemporal(), this->getGeoPolygon(), true);
+                    this->getGeobox(), this->getTemporal(), this->getGeoPolygon(), config, true);
             if (coor->indexesProcessed) targetIndexes = coor->indexes;
             else targetIndexes = coor->getIndexSelection();
 
@@ -119,25 +121,25 @@ protected:
 private:
 
     virtual Coordinate* getCoordinate(H5::Group& root, H5::Group& ingroup, const std::string& groupname,
-        SubsetDataLayers* subsetDataLayers, std::vector<geobox>* geoboxes, Temporal* temporal, GeoPolygon* geoPolygon, bool repair = false)
+        SubsetDataLayers* subsetDataLayers, std::vector<geobox>* geoboxes, Temporal* temporal, GeoPolygon* geoPolygon, Configuration* config, bool repair = false)
     {
         std::cout << "IcesatSubsetter getCoordinate" << std::endl;
         std::cout << "groupname: " << groupname << std::endl;
-        bool hasPhotonSegmentGroup = Configuration::getInstance()->hasPhotonSegmentGroups(this->getShortName());
-        bool isPhotonGroup = Configuration::getInstance()->isPhotonGroup(this->getShortName(), groupname);
-        bool isLeadsGroup = Configuration::getInstance()->isLeadsGroup(this->getShortName(), groupname);
-        bool isHeightSegmentRateGroup = Configuration::getInstance()->isHeightSegmentRateGroup(this->getShortName(), groupname);
-        bool isFreeboardBeamSegmentGroup = Configuration::getInstance()->isFreeboardBeamSegmentGroup(this->getShortName(), groupname);
-        bool isHeightsGroup = Configuration::getInstance()->isHeightsGroup(this->getShortName(), groupname);
-        bool isGeophysicalGroup = Configuration::getInstance()->isGeophysicalGroup(this->getShortName(), groupname);
+        bool hasPhotonSegmentGroup = config->hasPhotonSegmentGroups(this->getShortName());
+        bool isPhotonGroup = config->isPhotonGroup(this->getShortName(), groupname);
+        bool isLeadsGroup = config->isLeadsGroup(this->getShortName(), groupname);
+        bool isHeightSegmentRateGroup = config->isHeightSegmentRateGroup(this->getShortName(), groupname);
+        bool isFreeboardBeamSegmentGroup = config->isFreeboardBeamSegmentGroup(this->getShortName(), groupname);
+        bool isHeightsGroup = config->isHeightsGroup(this->getShortName(), groupname);
+        bool isGeophysicalGroup = config->isGeophysicalGroup(this->getShortName(), groupname);
 
         bool freeboardSwathSegment = checkFreeboardSwathSegmentExists(root, groupname);
-        Configuration::getInstance()->setFreeboardSwathSegment(freeboardSwathSegment);
+        config->setFreeboardSwathSegment(freeboardSwathSegment);
 
         if (hasPhotonSegmentGroup && (isPhotonGroup || isLeadsGroup) && (subsetDataLayers->is_included(groupname) || repair))
         {
             return ForwardReferenceCoordinates::getCoordinate(root, ingroup, this->getShortName(), subsetDataLayers, groupname,
-                    geoboxes, temporal, geoPolygon);
+                    geoboxes, temporal, geoPolygon, config);
         }
         else if (hasPhotonSegmentGroup && (isHeightSegmentRateGroup || isFreeboardBeamSegmentGroup && freeboardSwathSegment)
                 && (subsetDataLayers->is_included(groupname) || repair))
@@ -147,21 +149,21 @@ private:
 
             if (isHeightsGroup || isGeophysicalGroup)
             {
-                coorGroupname = Configuration::getInstance()->getBeamFreeboardGroup(this->getShortName(), groupname);
+                coorGroupname = config->getBeamFreeboardGroup(this->getShortName(), groupname);
                 coorGroup = root.openGroup(coorGroupname);
             }
             return ReverseReferenceCoordinates::getCoordinate(root, coorGroup, this->getShortName(), subsetDataLayers,
-                    coorGroupname, geoboxes, temporal, geoPolygon);
+                    coorGroupname, geoboxes, temporal, geoPolygon, config);
         }
-        else if (Configuration::getInstance()->subsetBySuperGroup(this->getShortName(), groupname))
+        else if (config->subsetBySuperGroup(this->getShortName(), groupname))
         {
             std::cout << "subset by super H5::Group" << std::endl;
             return SuperGroupCoordinate::getCoordinate(root, ingroup, this->getShortName(), subsetDataLayers,
-                    groupname, geoboxes, temporal, geoPolygon);
+                    groupname, geoboxes, temporal, geoPolygon, config);
         }
         else
         {
-            return Subsetter::getCoordinate(root, ingroup, groupname, subsetDataLayers, geoboxes, temporal, geoPolygon);
+            return Subsetter::getCoordinate(root, ingroup, groupname, subsetDataLayers, geoboxes, temporal, geoPolygon, config);
         }
     }
 
@@ -174,7 +176,7 @@ private:
     {
         bool exist = true;
 
-        std::string freeboardSwathSegmentName = Configuration::getInstance()->getSwathSegmentGroup(this->getShortName(), groupname);
+        std::string freeboardSwathSegmentName = config->getSwathSegmentGroup(this->getShortName(), groupname);
 
         if (freeboardSwathSegmentName == "" || H5Lexists(root.getLocId(), freeboardSwathSegmentName.c_str(), H5P_DEFAULT) == 0)
         {

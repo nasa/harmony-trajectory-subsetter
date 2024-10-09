@@ -2,6 +2,7 @@
 #define FWDREFBEGINDATASET_H
 
 #include <stdlib.h>
+#include "Configuration.h"
 
 
 /**
@@ -14,10 +15,11 @@ public:
 
     std::string shortname;
     std::string datasetName;
+    Configuration* config;
 
     // Initialize with collection shortname and forward-reference begin dataset name
-    FwdRefBeginDataset(std::string shortname, std::string objname)
-      : shortname(shortname), datasetName(objname)
+    FwdRefBeginDataset(std::string shortname, std::string objname, Configuration* config)
+      : shortname(shortname), datasetName(objname), config(config)
         {}
 
     /**
@@ -39,8 +41,7 @@ public:
         // Get output dataset data size from output count dataset.
         // Dataset size for fwd-ref-begin dataset should match the fwd-ref-count dataset
         std::string countName
-            = Configuration::getInstance()
-                ->getCountDatasetName (shortname, groupname, datasetName);
+            = config->getCountDatasetName (shortname, groupname, datasetName);
         H5::DataSet countOutDS
             = outgroup.openDataSet(countName);
         size_t outputCoordinateSize

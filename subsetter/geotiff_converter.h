@@ -8,6 +8,8 @@
 #include <H5DataType.h>
 #include <H5Exception.h>
 
+#include "Configuration.h"
+
 
 //libgeotiff
 #include "tiff.h"
@@ -69,7 +71,8 @@ public:
         num_cols = col_max - col_min + 1;
     }
 
-    geotiff_converter(std::string outfilename, std::string shortName, H5::Group& outgroup, SubsetDataLayers* subsetDataLayers)
+    geotiff_converter(std::string outfilename, std::string shortName,
+    H5::Group& outgroup, SubsetDataLayers* subsetDataLayers, Configuration* config)
     {
         SubsetDataLayers* osub = new SubsetDataLayers(std::vector<std::string>());
         osub->expand_group(outgroup, "");
@@ -103,7 +106,7 @@ public:
 
                     // ToDo: need to refactor this to get lat/lon/row/col and resolution once for the whole group
                     //       instead of getting it for each dataset
-                    Configuration::getInstance()->getRequiredDatasetsAndResolution(outputFormat, groupname, shortName, rowName, colName, latName, lonName, resolution);
+                    config->getRequiredDatasetsAndResolution(outputFormat, groupname, shortName, rowName, colName, latName, lonName, resolution);
                     if (rowName.find("/") == std::string::npos)
                     {
                         rowName = groupname + rowName;
@@ -116,7 +119,7 @@ public:
                     H5::DataSet lat = outgroup.openDataSet(latName);
                     H5::DataSet lon = outgroup.openDataSet(lonName);
                     H5::DataSet ds = outgroup.openDataSet(datasetName);
-                    projection = Configuration::getInstance()->getProjection(groupname);
+                    projection = config->getProjection(groupname);
                     convert_to_geotiff(tifFileName.c_str(), "not used", row, col, ds, outputFormat.c_str(), projection.c_str(), resolution, crop, &lat, &lon);
                 }
             }

@@ -12,3 +12,5 @@ dependencies:
   - hdf5==1.14.2
   - boost-cpp==1.84.0
   - geotiff==1.7.1
+  - cmake==3.30.3
+  - gtest==1.15.2

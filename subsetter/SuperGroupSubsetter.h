@@ -2,14 +2,15 @@
 #define SuperGroupSubsetter_H
 
 #include "SuperGroupCoordinate.h"
+#include "Configuration.h"
 
 
 // GEDI specific implementation
 class SuperGroupSubsetter : public Subsetter
 {
 public:
-    SuperGroupSubsetter(SubsetDataLayers* subsetDataLayers, std::vector<geobox>* geoboxes, Temporal* temporal, GeoPolygon* geoPolygon)
-    : Subsetter(subsetDataLayers, geoboxes, temporal, geoPolygon)
+    SuperGroupSubsetter(SubsetDataLayers* subsetDataLayers, std::vector<geobox>* geoboxes, Temporal* temporal, GeoPolygon* geoPolygon, Configuration* config)
+    : Subsetter(subsetDataLayers, geoboxes, temporal, geoPolygon, config)
     {
         std::cout << "SuperGroupSubsetter ctor" << std::endl;
     }
@@ -29,11 +30,11 @@ protected:
     {
         H5::H5File infile = getInputFile();
         if (indexes != NULL && indexes->getMaxSize() != indexes->size() && indexes->size() != 0 &&
-            Configuration::getInstance()->isSegmentGroup(this->getShortName(), groupname) &&
-            Configuration::getInstance()->getIndexBeginDatasetName(this->getShortName(), groupname, objname) ==objname)
+            config->isSegmentGroup(this->getShortName(), groupname) &&
+            config->getIndexBeginDatasetName(this->getShortName(), groupname, objname) ==objname)
         {
             // need to make sure count dataset exists
-            std::string countName = Configuration::getInstance()->getCountDatasetName(this->getShortName(), groupname, objname);
+            std::string countName = config->getCountDatasetName(this->getShortName(), groupname, objname);
             // if the count dataset is not in the output file, create it
             if (H5Lexists(outgroup.getLocId(), countName.c_str(), H5P_DEFAULT) <= 0)
             {
@@ -52,7 +53,7 @@ protected:
                     return;
             }
             // write index begin dataset
-            FwdRefBeginDataset* photonDataset = new FwdRefBeginDataset(this->getShortName(), objname);
+            FwdRefBeginDataset* photonDataset = new FwdRefBeginDataset(this->getShortName(), objname, config);
             photonDataset->writeDataset(outgroup, groupname, indataset, indexes, this->getSubsetDataLayers());
 
 
@@ -68,23 +69,23 @@ protected:
 
 private:
     virtual Coordinate* getCoordinate(H5::Group& root, H5::Group& ingroup, const std::string& groupname,
-        SubsetDataLayers* subsetDataLayers, std::vector<geobox>* geoboxes, Temporal* temporal, GeoPolygon* geoPolygon, bool repair = false)
+        SubsetDataLayers* subsetDataLayers, std::vector<geobox>* geoboxes, Temporal* temporal, GeoPolygon* geoPolygon, Configuration* config, bool repair = false)
     {
-        bool hasPhotonSegmentDataset = Configuration::getInstance()->hasPhotonSegmentGroups(this->getShortName());
-        bool isPhotonDataset = Configuration::getInstance()->isPhotonDataset(this->getShortName(), groupname);
+        bool hasPhotonSegmentDataset = config->hasPhotonSegmentGroups(this->getShortName());
+        bool isPhotonDataset = config->isPhotonDataset(this->getShortName(), groupname);
         if (hasPhotonSegmentDataset && isPhotonDataset)
         {
             return ForwardReferenceCoordinates::getCoordinate(root, ingroup, this->getShortName(), subsetDataLayers,
-                    groupname, geoboxes, temporal, geoPolygon);
+                    groupname, geoboxes, temporal, geoPolygon, config);
         }
         else if (groupname != "/")
         {
             return SuperGroupCoordinate::getCoordinate(root, ingroup, this->getShortName(), subsetDataLayers,
-                    groupname, geoboxes, temporal, geoPolygon);
+                    groupname, geoboxes, temporal, geoPolygon, config);
         }
         else
         {
-            return Subsetter::getCoordinate(root, ingroup, groupname, subsetDataLayers, geoboxes, temporal, geoPolygon);
+            return Subsetter::getCoordinate(root, ingroup, groupname, subsetDataLayers, geoboxes, temporal, geoPolygon, config);
         }
     }
 };

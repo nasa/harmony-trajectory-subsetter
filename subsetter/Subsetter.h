@@ -37,9 +37,10 @@ class Subsetter
 {
 public:
 
-    Subsetter(SubsetDataLayers* subsetDataLayers, std::vector<geobox>* geoboxes, Temporal* temporal, GeoPolygon* geoPolygon, std::string outputFormat="")
-    : subsetDataLayers(subsetDataLayers), geoboxes(geoboxes), temporal(temporal), matchingDataFound(false), geoPolygon(geoPolygon),
-            outputFormat(outputFormat)
+    Subsetter(SubsetDataLayers* subsetDataLayers, std::vector<geobox>* geoboxes,
+    Temporal* temporal, GeoPolygon* geoPolygon, Configuration* config, std::string outputFormat="")
+    : subsetDataLayers(subsetDataLayers), geoboxes(geoboxes), temporal(temporal),
+     matchingDataFound(false), geoPolygon(geoPolygon), config(config), outputFormat(outputFormat)
     {
         dimensionScales = new DimensionScales();
     };
@@ -48,6 +49,9 @@ public:
     {
         delete dimensionScales;
     }
+
+    // configuration information
+    Configuration* config;
 
     /**
      * @brief This function performs the subset.
@@ -79,7 +83,7 @@ public:
 
         // Update epoch time if it's configured for this product,
         // otherwise return an empty string.
-        std::string epochTime = Configuration::getInstance()->getProductEpoch(shortName);
+        std::string epochTime = config->getProductEpoch(shortName);
         if (!epochTime.empty() && this->temporal != NULL)
         {
             this->temporal->updateReferenceTime(epochTime);
@@ -130,7 +134,7 @@ public:
         if (outputFormat == "GeoTIFF")
         {
             std::cout << "Outputting to GeoTIFF" << std::endl;
-            geotiff_converter geotiff = geotiff_converter(outfilename, shortName, outgroup, subsetDataLayers);
+            geotiff_converter geotiff = geotiff_converter(outfilename, shortName, outgroup, subsetDataLayers, config);
         }
 
         return returnCode;
@@ -148,7 +152,7 @@ public:
         H5std_string str;
         std::string shortnameFullPath, shortnamePath, shortnameLabel;
         H5::Group root = file.openGroup("/");
-        std::vector<std::string> shortnamePaths = Configuration::getInstance()->getShortnamePath();
+        std::vector<std::string> shortnamePaths = config->getShortnamePath();
         size_t found;
         for (std::vector<std::string>::iterator it = shortnamePaths.begin(); it != shortnamePaths.end(); it++)
         {
@@ -404,9 +408,9 @@ protected:
 
 
     virtual Coordinate* getCoordinate(H5::Group& root, H5::Group& ingroup, const std::string& groupname,
-        SubsetDataLayers* subsetDataLayers, std::vector<geobox>* geoboxes, Temporal* temporal, GeoPolygon* geoPolygon, bool repair = false)
+        SubsetDataLayers* subsetDataLayers, std::vector<geobox>* geoboxes, Temporal* temporal, GeoPolygon* geoPolygon, Configuration* config, bool repair = false)
     {
-        Coordinate* coor = Coordinate::getCoordinate(root, ingroup, groupname, shortName, subsetDataLayers, geoboxes, temporal, geoPolygon);
+        Coordinate* coor = Coordinate::getCoordinate(root, ingroup, groupname, shortName, subsetDataLayers, geoboxes, temporal, geoPolygon, config);
         return coor;
     }
 
@@ -429,14 +433,14 @@ private:
 
         // Indexes is NULL when no subsetting has been applied to the group.
         IndexSelection* indexes = NULL;
-        if (!isMetadataGroup && Configuration::getInstance()->isGroupSubsettable(shortName, groupname))
+        if (!isMetadataGroup && config->isGroupSubsettable(shortName, groupname))
         {
             // If spatial or temporal subsets are requested, use the
             // respective coordinate variables of each group to calculate the
             // index subsets that are to be applied to each dataset in the group.
             if (geoboxes != NULL || temporal != NULL || geoPolygon != NULL)
             {
-                Coordinate* coor = getCoordinate(inRootGroup, in, groupname, subsetDataLayers, geoboxes, temporal, geoPolygon);
+                Coordinate* coor = getCoordinate(inRootGroup, in, groupname, subsetDataLayers, geoboxes, temporal, geoPolygon, config);
                 if (coor->indexesProcessed)
                 {
                     indexes = coor->indexes;
@@ -476,7 +480,7 @@ private:
 
                 if (outputFormat == "GeoTIFF" && !isMetadataGroup)
                 {
-                    requiredDatasets = Configuration::getInstance()->getRequiredDatasetsByFormat(outputFormat, groupname+objname+"/", shortName, resolution);
+                    requiredDatasets = config->getRequiredDatasetsByFormat(outputFormat, groupname+objname+"/", shortName, resolution);
                 }
 
                 copyAttributes(ingroup, outgroup, groupname);
@@ -512,10 +516,10 @@ private:
                 // Write the dataset to the output group, where photon datasets
                 // require revised index selections based on which dataset is
                 // being subset.
-                if (Configuration::getInstance()->isPhotonDataset(this->getShortName(), groupname+objname))
+                if (config->isPhotonDataset(this->getShortName(), groupname+objname))
                 {
                     std::cout << "groupname+objname: " << groupname+objname << std::endl;
-                    Coordinate* coor = getCoordinate(inRootGroup, in, groupname+objname, subsetDataLayers, geoboxes, temporal, geoPolygon);
+                    Coordinate* coor = getCoordinate(inRootGroup, in, groupname+objname, subsetDataLayers, geoboxes, temporal, geoPolygon, config);
                     IndexSelection* newIndexes = coor->getIndexSelection();
                     addGroupRequiringTemporalSubsetting(groupname, objname, newIndexes);
                     writeDataset(objname, indataset, out, groupname, newIndexes);
@@ -548,7 +552,7 @@ private:
         // Check if this is a time coordinate dataset.
         std::vector<std::string> datasetName(1, objname);
         std::string timeName, latitudeName, longitudeName, ignoreName;
-        Configuration::getInstance()->getMatchingCoordinateDatasetNames(this->getShortName(),
+        config->getMatchingCoordinateDatasetNames(this->getShortName(),
                                                                         datasetName,
                                                                         timeName,
                                                                         latitudeName,
@@ -646,9 +650,9 @@ private:
         std::string shortname = this->getShortName();
         if ((this->temporal == NULL) && ((this->geoboxes != NULL) || (this->geoPolygon != NULL)) &&
             (indexes->size() == indexes->getMaxSize()) &&
-            !Configuration::getInstance()->getTimeCoordinateName(datasetName, shortname).empty() &&
-            Configuration::getInstance()->getLatitudeCoordinateName(datasetName, shortname).empty() &&
-            Configuration::getInstance()->getLongitudeCoordinateName(datasetName, shortname).empty())
+            !config->getTimeCoordinateName(datasetName, shortname).empty() &&
+            config->getLatitudeCoordinateName(datasetName, shortname).empty() &&
+            config->getLongitudeCoordinateName(datasetName, shortname).empty())
             {
                 this->groupsRequiringTemporalSubsetting.push_back(groupName);
             }
@@ -912,7 +916,7 @@ private:
                 // Note the datasetName from the SubsetDataLayer somehow ends with '/'.
                 if (!isMetadataGroup &&
                     count(datasetName.begin(), datasetName.end(), '/') > 2 &&   // This is not a root dataset.
-                    Configuration::getInstance()->isGroupSubsettable(shortName, datasetName) &&
+                    config->isGroupSubsettable(shortName, datasetName) &&
                     std::find(dimScales->begin(), dimScales->end(), datasetName.substr(0, datasetName.size()-1)) == dimScales->end() &&
                     std::find(inconsistentDatasets.begin(), inconsistentDatasets.end(), datasetName.substr(0, datasetName.size()-1))
                         == inconsistentDatasets.end())

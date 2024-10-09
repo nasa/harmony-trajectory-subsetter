@@ -22,7 +22,7 @@ This repository contains a number of subdirectories:
 * `docker` - A directory containing Dockerfiles for creation images for Harmony service and test.
 * `harmony_service` - A directory containing the Python code to invoke the
   Trajectory Subsetter within a Harmony service.
-* `tests` - A directory containing Python unit tests for the Harmony service functionality.
+* `tests` - A directory containing unit tests for the Python Harmony service functionality and C++ source code.
 
 Note also: `VERSION` - A file containing the version for the most recent SDPS
 release. This file is only iterated shortly before merging to the `master`
@@ -224,6 +224,21 @@ Note 1: A pop-up window may appear called "Developer Tools Access" that
 requires elevated privileges.<br>
 Note 2: Additional required variables are not yet included as `earthdata-varinfo`
 is not linked.
+
+### GoogleTest:
+
+GoogleTest is the unit test framework used to test the C++ source code. To build and run your test:
+
+```
+cd tests/unit/gtest
+cmake -S . -B build
+cmake --build build
+```
+
+To rebuild and rerun your test:
+```
+cmake --build build
+```
 
 ### Best Coding Practices:
 

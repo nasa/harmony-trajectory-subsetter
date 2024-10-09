@@ -8,8 +8,8 @@ class ReverseReferenceCoordinates: public Coordinate
 {
 public:
 
-    ReverseReferenceCoordinates(std::string groupname, std::vector<geobox>* geoboxes, Temporal* temporal, GeoPolygon* geoPolygon)
-    : Coordinate(groupname, geoboxes, temporal, geoPolygon)
+    ReverseReferenceCoordinates(std::string groupname, std::vector<geobox>* geoboxes, Temporal* temporal, GeoPolygon* geoPolygon, Configuration* config)
+    : Coordinate(groupname, geoboxes, temporal, geoPolygon, config)
     {
     }
 
@@ -29,30 +29,30 @@ public:
      * @param Temporal temporal: temporal constraint
      */
      static Coordinate* getCoordinate(H5::Group& root, H5::Group& ingroup, const std::string& shortName, SubsetDataLayers* subsetDataLayers,
-            const std::string& groupname, std::vector<geobox>* geoboxes, Temporal* temporal, GeoPolygon* geoPolygon)
+            const std::string& groupname, std::vector<geobox>* geoboxes, Temporal* temporal, GeoPolygon* geoPolygon, Configuration* config)
     {
         std::cout << "ReverseReferenceCoordinates" << std::endl;
 
-        ReverseReferenceCoordinates* reverseCoor = new ReverseReferenceCoordinates(groupname, geoboxes, temporal, geoPolygon);
+        ReverseReferenceCoordinates* reverseCoor = new ReverseReferenceCoordinates(groupname, geoboxes, temporal, geoPolygon, config);
         reverseCoor->coordinateSize = 0;
         reverseCoor->setCoordinateSize(ingroup);
         reverseCoor->shortname = shortName;
         reverseCoor->ingroup = ingroup;
 
         // get referenced group name
-        std::string referencedGroupname = Configuration::getInstance()->getReferencedGroupname(reverseCoor->shortname, groupname);
+        std::string referencedGroupname = config->getReferencedGroupname(reverseCoor->shortname, groupname);
         H5::Group referencedGroup = root.openGroup(referencedGroupname);
         Coordinate* referencedCoor;
 
         // if the referenced group Coordinate has been created, get it from the lookUpMap
         // else create it
         if (Coordinate::lookUp(referencedGroupname)) referencedCoor = Coordinate::lookUpMap[referencedGroupname];
-        else if (Configuration::getInstance()->isFreeboardSwathSegmentGroup(reverseCoor->shortname, referencedGroupname))
+        else if (config->isFreeboardSwathSegmentGroup(reverseCoor->shortname, referencedGroupname))
             referencedCoor = Coordinate::getCoordinate(root, referencedGroup, referencedGroupname, reverseCoor->shortname,
-                    subsetDataLayers, geoboxes, temporal, geoPolygon);
-        else if (Configuration::getInstance()->isFreeboardBeamSegmentGroup(reverseCoor->shortname, referencedGroupname))
+                    subsetDataLayers, geoboxes, temporal, geoPolygon, config);
+        else if (config->isFreeboardBeamSegmentGroup(reverseCoor->shortname, referencedGroupname))
             referencedCoor = ReverseReferenceCoordinates::getCoordinate(root, referencedGroup, reverseCoor->shortname,
-                    subsetDataLayers, referencedGroupname, geoboxes, temporal, geoPolygon);
+                    subsetDataLayers, referencedGroupname, geoboxes, temporal, geoPolygon, config);
 
         // if the index selection object has been created, get it
         // else create it
@@ -74,7 +74,7 @@ public:
         // return null to include all in the output
         if (geoboxes == NULL && temporal == NULL && geoPolygon == NULL) return NULL;
 
-        std::string indexBegName = Configuration::getInstance()->getIndexBeginDatasetName(shortname, groupname);
+        std::string indexBegName = config->getIndexBeginDatasetName(shortname, groupname);
 
         indexes = new IndexSelection(coordinateSize);
 

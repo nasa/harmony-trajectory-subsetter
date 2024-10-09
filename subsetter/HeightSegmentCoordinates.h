@@ -11,8 +11,8 @@ class HeightSegmentCoordinates: public Coordinate
 {
 public:
 
-    HeightSegmentCoordinates(std::string groupname, std::vector<geobox>* geoboxes, Temporal* temporal, GeoPolygon* geoPolygon)
-    : Coordinate(groupname, geoboxes, temporal, geoPolygon)
+    HeightSegmentCoordinates(std::string groupname, std::vector<geobox>* geoboxes, Temporal* temporal, GeoPolygon* geoPolygon, Configuration* config)
+    : Coordinate(groupname, geoboxes, temporal, geoPolygon, config)
     {
     }
 
@@ -32,7 +32,7 @@ public:
      * @param SubsetDataLayers subsetDataLayers: dataset name to include in the output
      */
      static Coordinate* getCoordinate(H5::Group& root, H5::Group& ingroup, const std::string& shortName, SubsetDataLayers* subsetDataLayers,
-            const std::string& groupname, std::vector<geobox>* geoboxes, Temporal* temporal, GeoPolygon* geoPolygon)
+            const std::string& groupname, std::vector<geobox>* geoboxes, Temporal* temporal, GeoPolygon* geoPolygon, Configuration* config)
     {
         std::cout << "HeightSegmentCoordinates" << std::endl;
 
@@ -42,7 +42,7 @@ public:
             return lookUpMap["HeightSegmentRate"];
         }
 
-        HeightSegmentCoordinates* hgtSegCoor = new HeightSegmentCoordinates(groupname, geoboxes, temporal, geoPolygon);
+        HeightSegmentCoordinates* hgtSegCoor = new HeightSegmentCoordinates(groupname, geoboxes, temporal, geoPolygon, config);
 
         hgtSegCoor->coordinateSize = 0;
         hgtSegCoor->setCoordinateSize(ingroup);
@@ -50,16 +50,16 @@ public:
 
         // get coordinate reference from in group's coordinates attribute(latitude/longitude and/or delta_time)
         Coordinate* coor = Coordinate::getCoordinate(root, ingroup, groupname, shortName,
-                            subsetDataLayers, geoboxes, temporal, geoPolygon);
+                            subsetDataLayers, geoboxes, temporal, geoPolygon, config);
         if (coor->indexesProcessed) hgtSegCoor->localIndexes = coor->indexes;
         else hgtSegCoor->localIndexes = coor->getIndexSelection();
 
         // get forward coordinate reference from leads group
-        std::string leadsGroupname = Configuration::getInstance()->getLeadsGroup(shortName, groupname);
+        std::string leadsGroupname = config->getLeadsGroup(shortName, groupname);
         Coordinate* leadsCoor;
         hgtSegCoor->leadsGroup = root.openGroup(leadsGroupname);
         if (Coordinate::lookUp(leadsGroupname)) leadsCoor = lookUpMap[leadsGroupname];
-        else leadsCoor = ForwardReferenceCoordinates::getCoordinate(root, hgtSegCoor->leadsGroup, shortName, subsetDataLayers, leadsGroupname, geoboxes, temporal, geoPolygon);
+        else leadsCoor = ForwardReferenceCoordinates::getCoordinate(root, hgtSegCoor->leadsGroup, shortName, subsetDataLayers, leadsGroupname, geoboxes, temporal, geoPolygon, config);
         if (hgtSegCoor->indexesProcessed) hgtSegCoor->leadsIndexes = leadsCoor->indexes;
         else hgtSegCoor->leadsIndexes = leadsCoor->getIndexSelection();
         Coordinate::lookUpMap.insert(std::make_pair("HeightSegmentRate", hgtSegCoor));
@@ -79,7 +79,7 @@ public:
 
         std::string indexBegName, countName;
 
-	Configuration::getInstance()->getDatasetNames(shortname, groupname, indexBegName, countName);
+	config->getDatasetNames(shortname, groupname, indexBegName, countName);
         if (!indexBegName.empty() && H5Lexists(leadsGroup.getLocId(), indexBegName.c_str(), H5P_DEFAULT) > 0)
             indexBegSet = new H5::DataSet(leadsGroup.openDataSet(indexBegName));
         if (!countName.empty() && H5Lexists(leadsGroup.getLocId(), countName.c_str(), H5P_DEFAULT) > 0)

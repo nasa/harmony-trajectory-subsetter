@@ -1,3 +1,9 @@
+[version 0.2.0] 2024-10-04
+
+- **DAS-2205**
+ - Fix bug that caused trajectory values to be cut off the end of each
+   trajectory segment, and add a unit test framework for the C++ source code.
+
 [version 0.1.22] 2024-10-07
 
 - **DAS-None**

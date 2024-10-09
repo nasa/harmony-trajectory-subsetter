@@ -226,12 +226,7 @@ int main(int argc, char* argv[])
 
     try
     {
-        // Initialize the configuration.
-        if (!configFile.empty())
-        {
-            Configuration* config = Configuration::getInstance();
-            config->initialize(configFile);
-        }
+        Configuration* config = new Configuration(configFile);
 
         // Data structure for requested datasets.
         SubsetDataLayers* subsetDataLayers;
@@ -273,29 +268,30 @@ int main(int argc, char* argv[])
 
         // Extract the granule mission by passing the short name returned by
         // a Subsetter class function into a Configuration instance function.
-        Subsetter* getMission = new Subsetter(subsetDataLayers, geoboxes, temporal, geoPolygon, outputFormat);
+        Subsetter* getMission = new Subsetter(subsetDataLayers, geoboxes, temporal, geoPolygon, config, outputFormat);
         H5::H5File infile = H5::H5File(infilename,H5F_ACC_RDONLY);
         std::string shortname = getMission->retrieveShortName(infile);
-        std::string mission = Configuration::getInstance()->getMissionFromShortName(shortname);
+        std::string mission = config->getMissionFromShortName(shortname);
         delete getMission;
 
         // Select which subsetter is needed for the mission.
         Subsetter* subsetter = nullptr;
         if (mission == "ICESAT")
         {
-            subsetter = new IcesatSubsetter(subsetDataLayers, geoboxes, temporal, geoPolygon);
+            subsetter = new IcesatSubsetter(subsetDataLayers, geoboxes, temporal, geoPolygon, config);
         }
         else if (mission == "GEDI")
         {
-            subsetter = new SuperGroupSubsetter(subsetDataLayers, geoboxes, temporal, geoPolygon);
+            subsetter = new SuperGroupSubsetter(subsetDataLayers, geoboxes, temporal, geoPolygon, config);
         }
         else // Use the base Subsetter if the mission isn't GEDI or ICESAT.
         {
-            subsetter = new Subsetter(subsetDataLayers, geoboxes, temporal, geoPolygon, outputFormat);
+            subsetter = new Subsetter(subsetDataLayers, geoboxes, temporal, geoPolygon, config, outputFormat);
         }
         ErrorCode = subsetter->subset(infilename, outfilename);
 
         // Release dynamic memory.
+        delete config;
         delete subsetDataLayers;
         if (temporal != NULL)
         {
@@ -306,7 +302,6 @@ int main(int argc, char* argv[])
            delete geoPolygon;
         }
         delete subsetter;
-        Configuration::destroyInstance();
 
         endTime=clock();
         double runTime = (double) (endTime - startTime) / CLOCKS_PER_SEC;

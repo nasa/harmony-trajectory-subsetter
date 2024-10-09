@@ -2,6 +2,7 @@
 #define SUPERGROUPCOORDINATE_H
 
 #include <stdlib.h>
+#include "Configuration.h"
 
 
 
@@ -11,8 +12,8 @@
 class SuperGroupCoordinate: public Coordinate
 {
 public:
-    SuperGroupCoordinate(std::string groupname, std::vector<geobox>* geoboxes, Temporal* temporal, GeoPolygon* geoPolygon)
-    : Coordinate(groupname, geoboxes, temporal, geoPolygon)
+    SuperGroupCoordinate(std::string groupname, std::vector<geobox>* geoboxes, Temporal* temporal, GeoPolygon* geoPolygon, Configuration* config)
+    : Coordinate(groupname, geoboxes, temporal, geoPolygon, config)
     {
     }
 
@@ -32,9 +33,9 @@ public:
      * @param Temporal temporal: temporal constraint
      */
     static Coordinate* getCoordinate(H5::Group& root, H5::Group& ingroup, const std::string& shortname, SubsetDataLayers* subsetDataLayers,
-            const std::string& groupname, std::vector<geobox>* geoboxes, Temporal* temporal, GeoPolygon* geoPolygon)
+            const std::string& groupname, std::vector<geobox>* geoboxes, Temporal* temporal, GeoPolygon* geoPolygon, Configuration* config)
     {
-        SuperGroupCoordinate* sgCoor = new SuperGroupCoordinate(groupname, geoboxes, temporal, geoPolygon);
+        SuperGroupCoordinate* sgCoor = new SuperGroupCoordinate(groupname, geoboxes, temporal, geoPolygon, config);
         sgCoor->coordinateSize = 0;
 
         std::cout << "superGroup getCoordinate" << std::endl;
@@ -44,8 +45,8 @@ public:
         H5::DataSet* data = NULL;
         std::vector<std::string> superGroupnames;
 
-        datasets = Configuration::getInstance()->getSuperCoordinates(shortname);
-        Configuration::getInstance()->getSuperCoordinateGroupname(shortname, groupname, superGroupnames);
+        datasets = config->getSuperCoordinates(shortname);
+        config->getSuperCoordinateGroupname(shortname, groupname, superGroupnames);
         for(std::vector<std::string>::iterator it = superGroupnames.begin(); it != superGroupnames.end(); it++)
         {
             H5::Group group = root.openGroup(*it);
@@ -66,7 +67,7 @@ public:
             superGroupnames.push_back(it->first);
             while (!it->second.empty())
             {
-                Configuration::getInstance()->getMatchingCoordinateDatasetNames(shortname, it->second, timeName, latitudeName, longitudeName, otherName);
+                config->getMatchingCoordinateDatasetNames(shortname, it->second, timeName, latitudeName, longitudeName, otherName);
                 if (!latitudeName.empty())
                 {
                     sgCoor->latitudes.push_back(latitudeName);
