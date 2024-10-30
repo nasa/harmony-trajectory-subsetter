@@ -300,6 +300,16 @@ public:
             return;
         }
 
+        // If this is the last segment of the input trajectory, then the
+        // length of this trajectory segment is just the number of trajectory
+        // values between the first value of this segment and the last
+        // trajectory value.
+        if (lastSelectedIdx+1 == maxIndexBegIdx)
+        {
+            trajSegLength =  maxTrajIndex - indexBegDataset[firstIdxNonFill] + 1;
+            return;
+        }
+
         // Need to find end of this segment. Unfortunately, in GEDI data, the count
         // dataset does not define the end of the full segment. It does not include
         // the padding that is present in the waveform (segmented trajectory) data.
@@ -311,14 +321,9 @@ public:
         long nextTrajIndex = 0;  // trajectory index associated with the
                                  // index begin segment after the last
                                  // selected segment.
+
         scanFwdNonFill( lastBegIdx+1, maxIndexBegIdx,
                         nextTrajIndex, nextBegIdx, indexBegDataset );
-
-        // If no segment is found after the last index begin segment:
-        if (nextTrajIndex <= 0)
-        {
-            nextTrajIndex = maxTrajIndex; // Segmented trajectory group/dataset size
-        }
 
         // We need to calculate the length of the last segment in the selection
         // since we can't use the count dataset.
@@ -327,7 +332,6 @@ public:
         long allExceptLastCount = lastTrajIndex - firstTrajIndex; // Doesn't include last index
         long lastCount = nextTrajIndex - lastTrajIndex; // Doesn't include next index
         trajSegLength = allExceptLastCount + lastCount;
-
     }
 
 private:
@@ -402,6 +406,7 @@ private:
                 defineOneSegment(selectedStart, selectedCount,
                                 start, length, idxBegSize,
                                 coordinateSize, indexBeg);
+
 
                 // Note: index-selection start is true to datasets,
                 // zero based indexing, whereas start index pulled from

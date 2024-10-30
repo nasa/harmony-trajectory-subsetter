@@ -24,7 +24,8 @@ protected:
         coordinate_object = new ForwardReferenceCoordinates(groupname, geoboxes, temporal, geopolygon, config);
 
         // Read in test data.
-        index_begin_dataset = gtest_utilities::readDataset(gtest_utilities::getFullPath("tests/data/ATL03_index_begin.h5"), "ph_index_beg");
+        // This index begin dataset starts and ends with fill values (0).
+        index_begin_dataset = gtest_utilities::readDataset(gtest_utilities::getFullPath("tests/data/ATL03_indexbegin_start_end_FVs.h5"), "ph_index_beg");
 
     }
 
@@ -48,17 +49,61 @@ private:
 
 };
 
-TEST_F(ForwardReferenceCoordinatesTest, DefineOneSegment_StartIndexBeginNonFillValue)
+TEST_F(ForwardReferenceCoordinatesTest, DefineOneSegment_start_nonFV_end_nonFV)
 {
-    // Segment data generated from bounding box {68.9502,-0.61901,69.43799,-0.18814}.
-    long selectedStartIdx = 147825;
-    long selectedCount = 718;
-    long maxIndexBegIdx = 149892;
-    long maxTrajIndex = 1639461;
+    // Segment data generated from bounding box {-60,24,-55,26}.
+    long selectedStartIdx = 5538;
+    long selectedCount = 1;
+    long maxIndexBegIdx = 149697;
+    long maxTrajIndex = 3219960;
 
-    long firstTrajIndex_expected = 1606025;
+    long firstTrajIndex_expected = 1236;
     long firstTrajIndex_result = 0;          // Returned-by-reference
-    long trajSegLength_expected = 12652;
+    long trajSegLength_expected = 1;
+    long trajSegLength_result = 0;           // Returned-by-reference
+
+    coordinate_object->defineOneSegment(selectedStartIdx, selectedCount,
+                                        firstTrajIndex_result, trajSegLength_result,
+                                        maxIndexBegIdx, maxTrajIndex,
+                                        this->index_begin_dataset);
+
+    EXPECT_EQ(firstTrajIndex_expected, firstTrajIndex_result);
+    EXPECT_EQ(trajSegLength_expected, trajSegLength_result);
+}
+
+TEST_F(ForwardReferenceCoordinatesTest, DefineOneSegment_start_FV_end_FV)
+{
+    // Segment data generated from bounding box {60,23.3435,-59,23.55}.
+    long selectedStartIdx = 19147;
+    long selectedCount = 1130;
+    long maxIndexBegIdx = 149697;
+    long maxTrajIndex = 3219960;
+
+    long firstTrajIndex_expected = 31879;
+    long firstTrajIndex_result = 0;          // Returned-by-reference
+    long trajSegLength_expected = 2310;
+    long trajSegLength_result = 0;           // Returned-by-reference
+
+    coordinate_object->defineOneSegment(selectedStartIdx, selectedCount,
+                                        firstTrajIndex_result, trajSegLength_result,
+                                        maxIndexBegIdx, maxTrajIndex,
+                                        this->index_begin_dataset);
+
+    EXPECT_EQ(firstTrajIndex_expected, firstTrajIndex_result);
+    EXPECT_EQ(trajSegLength_expected, trajSegLength_result);
+}
+
+TEST_F(ForwardReferenceCoordinatesTest, DefineOneSegment_start_nonFV_end_FVall)
+{
+    // Segment data generated from bounding box {-62,-2,60,25}.
+    long selectedStartIdx = 11092;
+    long selectedCount = 1;
+    long maxIndexBegIdx = 149697;
+    long maxTrajIndex = 3219960;
+
+    long firstTrajIndex_expected = 15404;
+    long firstTrajIndex_result = 0;          // Returned-by-reference
+    long trajSegLength_expected = 1;
     long trajSegLength_result = 0;           // Returned-by-reference
 
     coordinate_object->defineOneSegment(selectedStartIdx, selectedCount,
@@ -71,26 +116,23 @@ TEST_F(ForwardReferenceCoordinatesTest, DefineOneSegment_StartIndexBeginNonFillV
 
 }
 
-TEST_F(ForwardReferenceCoordinatesTest, DefineOneSegment_StartIndexBeginFillValue)
+TEST_F(ForwardReferenceCoordinatesTest, DefineOneSegment_start_FVall_end_nonFV)
 {
-    // Segment data generated from bounding box {69.421946,-0.226334,69.452095,-0.215356}.
-    long selectedStartIdx = 148638;
-    long selectedCount = 60;
-    long maxIndexBegIdx = 149892;
-    long maxTrajIndex = 1639461;
+    // Segment data generated from bounding box {-62,24.3022,60,27}.
+    long selectedStartIdx = 0;
+    long selectedCount = 14958;
+    long maxIndexBegIdx = 149697;
+    long maxTrajIndex = 3219960;
 
-    long firstTrajIndex_expected = 1619651;
+    long firstTrajIndex_expected = 1;
     long firstTrajIndex_result = 0;          // Returned-by-reference
-    long trajSegLength_expected = 294;
+    long trajSegLength_expected = 16519;
     long trajSegLength_result = 0;           // Returned-by-reference
 
     coordinate_object->defineOneSegment(selectedStartIdx, selectedCount,
                                         firstTrajIndex_result, trajSegLength_result,
                                         maxIndexBegIdx, maxTrajIndex,
                                         this->index_begin_dataset);
-
-    std::cout << "firstTrajIndex_result = " << firstTrajIndex_result;
-    std::cout << "\ntrajSegLength_result = " << trajSegLength_result;
 
     EXPECT_EQ(firstTrajIndex_expected, firstTrajIndex_result);
     EXPECT_EQ(trajSegLength_expected, trajSegLength_result);

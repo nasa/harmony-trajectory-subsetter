@@ -1,3 +1,9 @@
+[version 0.2.1] 2024-10-29
+
+- **DAS-2268**
+ - Fix bug that caused incorrect subsetting when the subset included the end
+   of the index begin dataset.
+
 [version 0.2.0] 2024-10-04
 
 - **DAS-2205**
