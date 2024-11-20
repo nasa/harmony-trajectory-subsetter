@@ -138,6 +138,8 @@ private:
      */
     void readPolygon(property_tree::ptree tree)
     {
+        std::cout << "GeoPolygon::readPolygon(): ENTER" << std::endl;
+
         std::vector<std::string> objTypes = {"Polygon", "MultiPolygon"};
 
         std::string objType = getType(tree);
@@ -174,6 +176,8 @@ private:
      */
     void getCoordinatesFromGeoJSON(property_tree::ptree tree)
     {
+        std::cout << "GeoPolygon::getCoordinatesFromGeoJSON(): ENTER" << std::endl;
+
         bool isPolygon = (getType(tree) == "Polygon") ? true : false;
         bool isMultiPolygon = (getType(tree) == "MultiPolygon") ? true : false;
 
@@ -207,6 +211,8 @@ private:
      */
     void getPolygon(polygon_type &poly, property_tree::ptree tree, bool outer, int inner)
     {
+        std::cout << "GeoPolygon::getPolygon(): ENTER" << std::endl;
+
         std::vector<double> point;
 
         BOOST_FOREACH(property_tree::ptree::value_type &nodei, tree)
@@ -235,6 +241,8 @@ private:
      */
     void getMultiPolygon(property_tree::ptree tree, polygon_type &poly)
     {
+        std::cout << "GeoPolygon::getMultiPolygon(): ENTER" << std::endl;
+
         bool outer = true;
         int inner = 0;
         int counter = 1;

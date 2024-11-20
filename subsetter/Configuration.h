@@ -493,6 +493,8 @@ public:
      */
     bool isGroupSubsettable(const std::string& shortName, const std::string& group)
     {
+        std::cout << "Configuration::isGroupSubsettable(): Enter" << std::endl;
+
         bool isSubsettable = true;
         //// first check subsettable groups
         // check if it's configured to be subsettable
@@ -512,7 +514,7 @@ public:
         // if the shortName is configured and group is not specified, the group is not subsettable
         if (shortNameMatched && !patternMatched)
         {
-            std::cout << group << " isn't subsettable " << std::endl;
+            std::cout << "Configuration::isGroupSubsettable() group: " << group << " is NOT subsettable " << std::endl;
             return false;
         }
 
@@ -528,7 +530,9 @@ public:
                 break;
             }
         }
-        if (!isSubsettable) std::cout << group << " is not subsettable " << std::endl;
+
+        std::cout << "Configuration::isGroupSubsettable() group: " << group << (isSubsettable ? " is subsettable" : " is NOT subsettable")  << std::endl;
+
         return isSubsettable;
     }
 
@@ -596,7 +600,7 @@ public:
                 break;
             }
         }
-        std::cout << "Configuration.getMatchingCoordinateDatasetNames matched " << timeName << ","
+        std::cout << "Configuration::getMatchingCoordinateDatasetNames(): matched " << timeName << ","
              << latitudeName << "," << longitudeName << "," << ignoreName << std::endl;
     }
 
@@ -719,12 +723,14 @@ public:
     }
 
     /**
-     * check if a group is a segment group
+     * check if a group is a segment, photon, or dataset
      * @param shortName product shortname
      * @param group group name
-     * @return whether the group is a segment group
+     * @param patternName pattern name
+     * @return true or false
      */
-    bool isSegmentGroup(const std::string& shortName, const std::string& group)
+    bool isGroupPatternMatched(const std::string& shortName, const std::string& group, 
+                             const std::string patternName)
     {
         bool matched = false;
         // check shortname and group match
@@ -732,13 +738,13 @@ public:
              it != photonSegmentGroups.end(); it++)
         {
             std::string shortNamePattern = it->first;
-            std::map<std::string,std::string> keyinfo = it->second;
+            std::map<std::string, std::string> keyinfo = it->second;
             // shortname matched
             if (regex_match(shortName, boost::regex(shortNamePattern)))
             {
-                if (keyinfo.find("SegmentGroup") != keyinfo.end())
+                if (keyinfo.find(patternName.c_str()) != keyinfo.end())
                 {
-                    std::string groupPattern = keyinfo.at("SegmentGroup");
+                    std::string groupPattern = keyinfo.at(patternName.c_str());
                     if (regex_search(group, boost::regex(groupPattern)))
                     {
                         matched = true;
@@ -747,7 +753,20 @@ public:
                 }
             }
         }
+
         return matched;
+    }
+
+    /**
+     * check if a group is a segment group
+     * @param shortName product shortname
+     * @param group group name
+     * @return whether the group is a segment group
+     */
+    bool isSegmentGroup(const std::string& shortName, const std::string& group)
+    {
+        const std::string patternName("SegmentGroup");
+        return isGroupPatternMatched(shortName, group, patternName);
     }
 
     /**
@@ -758,28 +777,8 @@ public:
      */
     bool isPhotonGroup(const std::string& shortName, const std::string& group)
     {
-        bool matched = false;
-        // check shortname and group match
-        for (std::map<std::string, std::map<std::string,std::string>>::iterator it = photonSegmentGroups.begin();
-             it != photonSegmentGroups.end(); it++)
-        {
-            std::string shortNamePattern = it->first;
-            std::map<std::string,std::string> keyinfo = it->second;
-            // shortname matched
-            if (regex_match(shortName, boost::regex(shortNamePattern)))
-            {
-                if (keyinfo.find("PhotonGroup") != keyinfo.end())
-                {
-                    std::string groupPattern = keyinfo.at("PhotonGroup");
-                    if (regex_search(group, boost::regex(groupPattern)))
-                    {
-                        matched = true;
-                        break;
-                    }
-                }
-            }
-        }
-        return matched;
+        const std::string patternName("PhotonGroup");
+        return isGroupPatternMatched(shortName, group, patternName);
     }
 
      /**
@@ -790,28 +789,8 @@ public:
      */
     bool isPhotonDataset(const std::string& shortName, const std::string& dataset)
     {
-        bool matched = false;
-        // check shortname and group match
-        for (std::map<std::string, std::map<std::string,std::string>>::iterator it = photonSegmentGroups.begin();
-             it != photonSegmentGroups.end(); it++)
-        {
-            std::string shortNamePattern = it->first;
-            std::map<std::string,std::string> keyinfo = it->second;
-            // shortname matched
-            if (regex_match(shortName, boost::regex(shortNamePattern)))
-            {
-                if (keyinfo.find("PhotonDataset") != keyinfo.end())
-                {
-                    std::string datasetPattern = keyinfo.at("PhotonDataset");
-                    if (regex_search(dataset, boost::regex(datasetPattern)))
-                    {
-                        matched = true;
-                        break;
-                    }
-                }
-            }
-        }
-        return matched;
+        const std::string patternName("PhotonDataset");
+        return isGroupPatternMatched(shortName, dataset, patternName);
     }
 
     /**
@@ -854,31 +833,23 @@ public:
      */
     bool isFreeboardBeamSegmentGroup(const std::string& shortName, const std::string& group)
     {
-        bool matched = false;
-        // check shortname and group match
-        for (std::map<std::string, std::map<std::string,std::string>>::iterator it = photonSegmentGroups.begin();
-             it != photonSegmentGroups.end(); it++)
-        {
-            std::string shortNamePattern = it->first;
-            std::map<std::string,std::string> keyinfo = it->second;
-            // shortname matched
-            if (regex_match(shortName, boost::regex(shortNamePattern)))
-            {
-                if (keyinfo.find("FreeboardBeamSegmentGroup") != keyinfo.end())
-                {
-                    std::string groupPattern = keyinfo.at("FreeboardBeamSegmentGroup");
-                    if (regex_search(group, boost::regex(groupPattern)))
-                    {
-                        matched = true;
-                        break;
-                    }
-                }
-            }
-        }
-        return matched;
+        const std::string patternName("FreeboardBeamSegmentGroup");
+        return isGroupPatternMatched(shortName, group, patternName);
     }
 
-        /**
+    /**
+     * check if a group is a freeboard segment group
+     * @param shortName product shortname
+     * @param group group name
+     * @return whether the group is a photon group
+     */
+    bool isFreeboardSegmentGroup(const std::string& shortName, const std::string& group)
+    {
+        const std::string patternName("FreeboardSegmentGroup");
+        return isGroupPatternMatched(shortName, group, patternName);
+    }
+
+    /**
      * check if a group is a leads group
      * @param shortName product shortname
      * @param group group name
@@ -886,28 +857,20 @@ public:
      */
     bool isLeadsGroup(const std::string& shortName, const std::string& group)
     {
-        bool matched = false;
-        // check shortname and group match
-        for (std::map<std::string, std::map<std::string,std::string>>::iterator it = photonSegmentGroups.begin();
-             it != photonSegmentGroups.end(); it++)
-        {
-            std::string shortNamePattern = it->first;
-            std::map<std::string,std::string> keyinfo = it->second;
-            // shortname matched
-            if (regex_match(shortName, boost::regex(shortNamePattern)))
-            {
-                if (keyinfo.find("LeadsGroup") != keyinfo.end())
-                {
-                    std::string groupPattern = keyinfo.at("LeadsGroup");
-                    if (regex_search(group, boost::regex(groupPattern)))
-                    {
-                        matched = true;
-                        break;
-                    }
-                }
-            }
-        }
-        return matched;
+        const std::string patternName("LeadsGroup");
+        return isGroupPatternMatched(shortName, group, patternName);
+    }
+
+    /**
+     * check if a group is a Reference Surface Section group
+     * @param shortName product shortname
+     * @param group group name
+     * @return whether the group is a photon group
+     */
+    bool isReferenceSurfaceSectionGroup(const std::string& shortName, const std::string& group)
+    {
+        const std::string patternName("ReferenceSurfaceSectionGroup");
+        return isGroupPatternMatched(shortName, group, patternName);
     }
 
     /**
@@ -918,28 +881,8 @@ public:
      */
     bool isSwathFreeboardGroup(const std::string& shortName, const std::string& group)
     {
-        bool matched = false;
-        // check shortname and group match
-        for (std::map<std::string, std::map<std::string,std::string>>::iterator it = photonSegmentGroups.begin();
-             it != photonSegmentGroups.end(); it++)
-        {
-            std::string shortNamePattern = it->first;
-            std::map<std::string,std::string> keyinfo = it->second;
-            // shortname matched
-            if (regex_match(shortName, boost::regex(shortNamePattern)))
-            {
-                if (keyinfo.find("SwathFreeboardGroup") != keyinfo.end())
-                {
-                    std::string groupPattern = keyinfo.at("SwathFreeboardGroup");
-                    if (regex_search(group, boost::regex(groupPattern)))
-                    {
-                        matched = true;
-                        break;
-                    }
-                }
-            }
-        }
-        return matched;
+        const std::string patternName("SwathFreeboardGroup");
+        return isGroupPatternMatched(shortName, group, patternName);
     }
 
     /**
@@ -950,28 +893,8 @@ public:
      */
     bool isBeamFreeboardGroup(const std::string& shortName, const std::string& group)
     {
-        bool matched = false;
-        // check shortname and group match
-        for (std::map<std::string, std::map<std::string,std::string>>::iterator it = photonSegmentGroups.begin();
-             it != photonSegmentGroups.end(); it++)
-        {
-            std::string shortNamePattern = it->first;
-            std::map<std::string,std::string> keyinfo = it->second;
-            // shortname matched
-            if (regex_match(shortName, boost::regex(shortNamePattern)))
-            {
-                if (keyinfo.find("BeamFreeboardGroup") != keyinfo.end())
-                {
-                    std::string groupPattern = keyinfo.at("BeamFreeboardGroup");
-                    if (regex_search(group, boost::regex(groupPattern)))
-                    {
-                        matched = true;
-                        break;
-                    }
-                }
-            }
-        }
-        return matched;
+        const std::string patternName("BeamFreeboardGroup");
+        return isGroupPatternMatched(shortName, group, patternName);
     }
 
     /**
@@ -982,28 +905,8 @@ public:
      */
     bool isHeightsGroup(const std::string& shortName, const std::string& group)
     {
-        bool matched = false;
-        // check shortname and group match
-        for (std::map<std::string, std::map<std::string,std::string>>::iterator it = photonSegmentGroups.begin();
-             it != photonSegmentGroups.end(); it++)
-        {
-            std::string shortNamePattern = it->first;
-            std::map<std::string,std::string> keyinfo = it->second;
-            // shortname matched
-            if (regex_match(shortName, boost::regex(shortNamePattern)))
-            {
-                if (keyinfo.find("HeightsGroup") != keyinfo.end())
-                {
-                    std::string groupPattern = keyinfo.at("HeightsGroup");
-                    if (regex_search(group, boost::regex(groupPattern)))
-                    {
-                        matched = true;
-                        break;
-                    }
-                }
-            }
-        }
-        return matched;
+        const std::string patternName("HeightsGroup");
+        return isGroupPatternMatched(shortName, group, patternName);
     }
 
     /**
@@ -1014,28 +917,44 @@ public:
      */
     bool isGeophysicalGroup(const std::string& shortName, const std::string& group)
     {
-        bool matched = false;
-        // check shortname and group match
-        for (std::map<std::string, std::map<std::string,std::string>>::iterator it = photonSegmentGroups.begin();
-             it != photonSegmentGroups.end(); it++)
-        {
-            std::string shortNamePattern = it->first;
-            std::map<std::string,std::string> keyinfo = it->second;
-            // shortname matched
-            if (regex_match(shortName, boost::regex(shortNamePattern)))
-            {
-                if (keyinfo.find("GeophysicalGroup") != keyinfo.end())
-                {
-                    std::string groupPattern = keyinfo.at("GeophysicalGroup");
-                    if (regex_search(group, boost::regex(groupPattern)))
-                    {
-                        matched = true;
-                        break;
-                    }
-                }
-            }
-        }
-        return matched;
+        const std::string patternName("GeophysicalGroup");
+        return isGroupPatternMatched(shortName, group, patternName);
+    }
+
+    /**
+     * check if a group is a Freeboard Segment Heights Group
+     * @param shortName product shortname
+     * @param group group name
+     * @return whether the group is a photon group
+     */
+    bool isFreeboardSegmentHeightsGroup(const std::string& shortName, const std::string& group)
+    {
+        const std::string patternName("FreeboardSegmentHeightsGroup");
+        return isGroupPatternMatched(shortName, group, patternName);
+    }
+
+    /**
+     * check if a group is a geophysical group
+     * @param shortName product shortname
+     * @param group group name
+     * @return whether the group is a photon group
+     */
+    bool isFreeboardSegmentGeophysicalGroup(const std::string& shortName, const std::string& group)
+    {
+        const std::string patternName("FreeboardSegmentGeophysicalGroup");
+        return isGroupPatternMatched(shortName, group, patternName);
+    }
+
+    /**
+     * check if a dataset if beam index begin dataset
+     * @param shortName product shortname
+     * @param datasetName dataset name
+     * @return whether the group is a beam index dataset
+     */
+    bool isBeamIndex(const std::string& shortName, const std::string datasetName)
+    {
+        const std::string patternName("BeamIndex");
+        return isGroupPatternMatched(shortName, datasetName, patternName);
     }
 
     /*
@@ -1048,8 +967,8 @@ public:
     {
         bool matched = false;
 
-        if (isSwathFreeboardGroup(shortName, group) || isBeamFreeboardGroup(shortName, group)
-                 || isHeightsGroup(shortName, group) || isGeophysicalGroup(shortName, group))
+        if (isSwathFreeboardGroup(shortName, group) || isBeamFreeboardGroup(shortName, group) || 
+            isHeightsGroup(shortName, group) || isGeophysicalGroup(shortName, group))
         {
             matched = true;
         }
@@ -1057,6 +976,26 @@ public:
         return matched;
     }
 
+    /*
+     * check if a group needs Leads group for subsetting
+     * @param shortname product shortname
+     * @param group groupname
+     * @return whether the group needs leads group for subsetting
+     */
+    bool isFreeboardRateGroup(const std::string& shortName, const std::string& group)
+    {
+        bool matched = false;
+
+        if (isFreeboardSegmentGroup(shortName, group) || 
+            isFreeboardSegmentHeightsGroup(shortName, group) || 
+            isFreeboardSegmentGeophysicalGroup(shortName, group))
+        {
+            matched = true;
+        }
+
+        return matched;
+    }
+    
     /**
      * get corresponding referenced group for a given group
      * @param shortName product shortname
@@ -1065,6 +1004,8 @@ public:
      */
     std::string getReferencedGroupname(const std::string& shortName, const std::string& group)
     {
+        std::cout << "Configuration::getReferencedGroupname() ENTER group:" << group << std::endl;
+
         std::string referencedGroupname;
 
         if (isPhotonGroup(shortName, group))
@@ -1081,7 +1022,7 @@ public:
         }
         else if (isHeightSegmentRateGroup(shortName, group) && !isSwathFreeboardGroup(shortName, group))
         {
-            referencedGroupname = getBeamSegmentGroup(shortName, group);
+            referencedGroupname = getFreeboardBeamSegmentGroup(shortName, group);
         }
         else if (isLeadsGroup(shortName, group))
         {
@@ -1089,9 +1030,13 @@ public:
             {
                 referencedGroupname = getSwathSegmentGroup(shortName, group);
             }
-            else
+            else if (getVersionNumber(shortName) == ATL10v005)
             {
-                referencedGroupname = getBeamSegmentGroup(shortName, group);
+                referencedGroupname = getFreeboardBeamSegmentGroup(shortName, group);
+            }
+            else if (getVersionNumber(shortName) == ATL10v006)
+            {
+                referencedGroupname = getReferenceSurfaceSectionGroup(shortName, group);
             }
         }
         else if (isFreeboardBeamSegmentGroup(shortName, group))
@@ -1102,9 +1047,28 @@ public:
             }
             else
             {
-                referencedGroupname = getBeamSegmentGroup(shortName, group);
+                referencedGroupname = getFreeboardBeamSegmentGroup(shortName, group);
             }
         }
+        else if (isFreeboardRateGroup(shortName, group))
+        {
+            referencedGroupname = getReferenceSurfaceSectionGroup(shortName, group);
+        }        
+        else if (isReferenceSurfaceSectionGroup(shortName, group))
+        {
+            if (freeboardSwathSegment)
+            {
+                referencedGroupname = getSwathSegmentGroup(shortName, group);
+            }
+            else
+            {
+                referencedGroupname = getReferenceSurfaceSectionGroup(shortName, group);
+            }
+        }
+
+        std::cout << "Configuration::getReferencedGroupname() group:" << group 
+                  << " referencedGroupname: " << referencedGroupname << std::endl;
+
         return referencedGroupname;
     }
 
@@ -1116,6 +1080,8 @@ public:
      */
     std::string getTargetGroupname(const std::string& shortName, const std::string& group, const std::string& datasetName = "")
     {
+        std::cout << "Configuration::getTargetGroupname(): ENTER group:" << group << std::endl;
+
         std::string targetGroupname;
 
         if (isSegmentGroup(shortName, group))
@@ -1124,7 +1090,7 @@ public:
         }
         else if (isHeightSegmentRateGroup(shortName, group) && !isSwathFreeboardGroup(shortName, group))
         {
-            targetGroupname = getBeamSegmentGroup(shortName, group);
+            targetGroupname = getFreeboardBeamSegmentGroup(shortName, group);
         }
         else if (isSwathFreeboardGroup(shortName, group))
         {
@@ -1134,9 +1100,12 @@ public:
         {
             targetGroupname = getLeadsGroup(shortName, group, datasetName);
         }
-        else if (isFreeboardBeamSegmentGroup(shortName, group))
+        else if (isFreeboardBeamSegmentGroup(shortName, group) || isReferenceSurfaceSectionGroup(shortName, group))
         {
-            if (isBeamIndex(shortName, datasetName)) targetGroupname = getLeadsGroup(shortName, group, datasetName);
+            if (isBeamIndex(shortName, datasetName))
+            {
+                targetGroupname = getLeadsGroup(shortName, group, datasetName);
+            }
             else if (isSwathHeightIndex(shortName, datasetName))
             {
                 if (freeboardSwathSegment)
@@ -1151,8 +1120,23 @@ public:
         }
         else if (isLeadsGroup(shortName, group))
         {
-            targetGroupname = getHeightSegmentRateGroup(shortName, group);
+            if (getVersionNumber(shortName) == ATL10v005)
+            {
+                targetGroupname = getHeightSegmentRateGroup(shortName, group);
+            }
+            else if (getVersionNumber(shortName) == ATL10v006)
+            {
+                targetGroupname = getFreeboardSegmentHeightsGroup(shortName, group);
+            }   
         }
+        else if (isFreeboardRateGroup(shortName, group))
+        {
+            targetGroupname = getReferenceSurfaceSectionGroup(shortName, group);
+        }          
+
+        std::cout << "Configuration::getTargetGroupname() group:" << group 
+                  << "targetGroupname: " << targetGroupname << std::endl;
+
         return targetGroupname;
     }
 
@@ -1302,9 +1286,9 @@ public:
      * @param group group name
      * @return string corresponding segment group or empty string
      */
-    std::string getBeamSegmentGroup(const std::string& shortName, const std::string& group)
+    std::string getFreeboardBeamSegmentGroup(const std::string& shortName, const std::string& group)
     {
-        std::string beamSegmentGroup;
+        std::string freeboardBeamSegmentGroup;
         std::vector<std::string> paths;
         std::string pathDelim("/");
         std::string groundTrack;
@@ -1320,18 +1304,18 @@ public:
                 std::map<std::string, std::string> keyinfo = it->second;
                 if (regex_match(shortName, boost::regex(shortNamePattern)))
                 {
-                    beamSegmentGroup = keyinfo.at("FreeboardBeamSegmentGroup");
+                    freeboardBeamSegmentGroup = keyinfo.at("FreeboardBeamSegmentGroup");
                     split(paths, group, boost::is_any_of(pathDelim));
                     groundTrack = paths.at(1);
                     paths.clear();
-                    split(paths, beamSegmentGroup, boost::is_any_of(pathDelim));
+                    split(paths, freeboardBeamSegmentGroup, boost::is_any_of(pathDelim));
                     groundTrackPattern = paths.at(1);
                     paths.clear();
-                    boost::replace_last(beamSegmentGroup, groundTrackPattern, groundTrack);
+                    boost::replace_last(freeboardBeamSegmentGroup, groundTrackPattern, groundTrack);
                 }
             }
         }
-        return beamSegmentGroup;
+        return freeboardBeamSegmentGroup;
     }
 
     /**
@@ -1371,6 +1355,45 @@ public:
         return beamFreeboardGroup;
     }
 
+/**
+     * get corresponding freeboard segment group for a given group
+     * @param shortName product shortname
+     * @param group group name
+     * @return string corresponding segment group or empty string
+     */
+    std::string getFreeboardSegmentGroup(const std::string& shortName, const std::string& group)
+    {
+        std::string freeboardSegmentGroup;
+        std::vector<std::string> paths;
+        std::string pathDelim("/");
+        std::string groundTrack;
+        std::string groundTrackPattern;
+
+        if (isFreeboardSegmentHeightsGroup(shortName, group) || 
+            isFreeboardSegmentGeophysicalGroup(shortName, group) ||
+            isSwathHeightIndex(shortName, group))
+        {
+            for (std::map<std::string, std::map<std::string, std::string>>::iterator it = photonSegmentGroups.begin();
+                 it != photonSegmentGroups.end(); it++)
+            {
+                std::string shortNamePattern = it->first;
+                std::map<std::string, std::string> keyinfo = it->second;
+                if (regex_match(shortName, boost::regex(shortNamePattern)))
+                {
+                    freeboardSegmentGroup = keyinfo.at("FreeboardSegmentGroup");
+                    split(paths, group, boost::is_any_of(pathDelim));
+                    groundTrack = paths.at(1);
+                    paths.clear();
+                    split(paths, freeboardSegmentGroup, boost::is_any_of(pathDelim));
+                    groundTrackPattern = paths.at(1);
+                    paths.clear();
+                    boost::replace_last(freeboardSegmentGroup, groundTrackPattern, groundTrack);
+                }
+            }
+        }
+        return freeboardSegmentGroup;
+    }
+
     /**
      * get corresponding leads group for a given beam freeboard/swath freeboard group
      * @param shortName product shortname
@@ -1397,6 +1420,7 @@ public:
                 std::string groundTrack;
                 if (isSwathFreeboardGroup(shortName, group)) groundTrack = paths.at(2);
                 else if (isFreeboardBeamSegmentGroup(shortName, group)) groundTrack = paths.at(1);
+                else if (isReferenceSurfaceSectionGroup(shortName, group)) groundTrack = paths.at(1);
                 else if (isFreeboardSwathSegmentGroup(shortName, group))
                 {
                     paths.clear();
@@ -1414,6 +1438,51 @@ public:
             }
         }
         return leadsGroup;
+    }
+
+    /**
+     * get corresponding Reference Surface Section for a given group
+     * @param shortName product shortname
+     * @param group group name
+     * @return string corresponding segment group or empty string
+     */
+    std::string getReferenceSurfaceSectionGroup(const std::string& shortName, const std::string& group)
+    {
+        std::string referenceSurfaceSectionGroup;
+        std::vector<std::string> paths;
+        std::string pathDelim("/");
+        std::string groundTrack;
+        std::string groundTrackPattern;
+
+        std::cout << "Configuration::getReferenceSurfaceSectionGroup(): ENTER group:" 
+                  << group << std::endl;
+ 
+        if (isFreeboardRateGroup(shortName, group) ||
+            isLeadsGroup(shortName, group) || isSwathHeightIndex(shortName, group))
+        {
+            for (std::map<std::string, std::map<std::string, std::string>>::iterator it = photonSegmentGroups.begin();
+                 it != photonSegmentGroups.end(); it++)
+            {
+                std::string shortNamePattern = it->first;
+                std::map<std::string, std::string> keyinfo = it->second;
+                if (regex_match(shortName, boost::regex(shortNamePattern)))
+                {
+                    referenceSurfaceSectionGroup = keyinfo.at("ReferenceSurfaceSectionGroup");
+                    split(paths, group, boost::is_any_of(pathDelim));
+                    groundTrack = paths.at(1);
+                    paths.clear();
+                    split(paths, referenceSurfaceSectionGroup, boost::is_any_of(pathDelim));
+                    groundTrackPattern = paths.at(1);
+                    paths.clear();
+                    boost::replace_last(referenceSurfaceSectionGroup, groundTrackPattern, groundTrack);
+                }
+            }
+        }
+
+        std::cout << "Configuration::getReferenceSurfaceSectionGroup() group:" 
+                  << group << " referenceSurfaceSectionGroup: " << referenceSurfaceSectionGroup << std::endl;
+
+        return referenceSurfaceSectionGroup;
     }
 
     /**
@@ -1454,6 +1523,42 @@ public:
     }
 
     /**
+     * get corresponding freeboard segment heights rate for a given leads group
+     * @param shortName product shortname
+     * @param group group name
+     * @return string corresponding segment group or empty string
+     */
+    std::string getFreeboardSegmentHeightsGroup(const std::string& shortName, const std::string& groupname)
+    {
+        std::string heightsGroupname;
+        std::string pathDelim("/");
+        std::vector<std::string> paths;
+
+        if (isLeadsGroup(shortName, groupname))
+        {
+            for (std::map<std::string, std::map<std::string, std::string>>::iterator it = photonSegmentGroups.begin();
+                 it != photonSegmentGroups.end(); it++)
+            {
+                std::string shortNamePattern = it->first;
+                std::map<std::string, std::string> keyinfo = it->second;
+                if (regex_match(shortName, boost::regex(shortNamePattern)))
+                {
+                    heightsGroupname = keyinfo.at("FreeboardSegmentHeightsGroup");
+                    split(paths, heightsGroupname, boost::is_any_of(pathDelim));
+                    std::string groundTrackPattern = paths.at(1);
+                    paths.clear();
+                    split(paths, groupname, boost::is_any_of(pathDelim));
+                    std::string groundTrack = paths.at(1);
+                    boost::replace_last(heightsGroupname, groundTrackPattern, groundTrack);
+
+                }
+            }
+        }
+
+        return heightsGroupname;
+    }
+
+    /**
      * get configured index begin and count dataset names based on group name
      * @param shortName product shortname
      * @param groupname: group name
@@ -1462,6 +1567,8 @@ public:
      */
     void getDatasetNames(const std::string& shortName, const std::string& groupname, std::string& indexBegin, std::string& count)
     {
+        std::cout << "Configuration::getDatasetNames(): ENTER groupname: " << groupname << std::endl;
+
         if (isPhotonGroup(shortName, groupname) || isPhotonDataset(shortName, groupname))
         {
             getSegmentDatasetNames(shortName, indexBegin, count);
@@ -1469,8 +1576,8 @@ public:
             {
                 getMatchedDatasetNames(groupname, indexBegin, count);
             }
-        }
-        else if (isHeightSegmentRateGroup(shortName, groupname))
+        }      
+        else if (isHeightSegmentRateGroup(shortName, groupname) || isFreeboardRateGroup(shortName, groupname))
         {
             getLeadsDatasetNames(shortName, indexBegin, count);
         }
@@ -1518,6 +1625,8 @@ public:
      */
     std::string getIndexBeginDatasetName(const std::string& shortName, const std::string& groupname, const std::string& datasetName="", bool repair = false)
     {
+        std::cout << "Configuration::getIndexBeginDatasetName(): ENTER groupname: " << groupname << std::endl;
+
         std::string indexBegin, count;
         if (isSegmentGroup(shortName, groupname))
         {
@@ -1528,7 +1637,8 @@ public:
         {
             getLeadsDatasetNames(shortName, indexBegin, count);
         }
-        else if (isBeamFreeboardGroup(shortName, groupname))
+        else if (isBeamFreeboardGroup(shortName, groupname) || 
+                isFreeboardSegmentGroup(shortName, groupname))
         {
             getBeamFreeboardIndexBegin(shortName, indexBegin);
         }
@@ -1536,7 +1646,11 @@ public:
         {
             if (!repair || isSwathHeightIndex(shortName, datasetName)) getBeamSegmentDatasetNames(shortName, indexBegin);
             else getBeamSegmentDatasetNames(shortName, indexBegin, count);
-
+        }
+        else if (isReferenceSurfaceSectionGroup(shortName, groupname))
+        {
+            if (isSwathHeightIndex(shortName, datasetName)) getBeamSegmentDatasetNames(shortName, indexBegin);
+            else getBeamSegmentDatasetNames(shortName, indexBegin, count);
         }
         else if (isSwathFreeboardGroup(shortName, groupname))
         {
@@ -1546,6 +1660,10 @@ public:
         {
             getSwathSegmentDatasetNames(shortName, groupname, indexBegin, count, datasetName);
         }
+        
+        std::cout << "Configuration::getIndexBeginDatasetName() groupname:" << groupname 
+                  << " datasetName:" << datasetName << " indexBegin:" << indexBegin << std::endl;
+
         return indexBegin;
     }
 
@@ -1556,6 +1674,8 @@ public:
      */
     std::string getCountDatasetName(const std::string& shortName, const std::string& groupname, const std::string& datasetName="")
     {
+        std::cout << "Configuration::getCountDatasetName(): ENTER groupname: " << groupname << std::endl;
+
         std::string indexBegin, count;
         if (isSegmentGroup(shortName, groupname))
         {
@@ -1570,10 +1690,14 @@ public:
         {
             getSwathSegmentDatasetNames(shortName, groupname, indexBegin, count,datasetName);
         }
-        else if (isFreeboardBeamSegmentGroup(shortName, groupname))
+        else if (isFreeboardBeamSegmentGroup(shortName, groupname) || isReferenceSurfaceSectionGroup(shortName, groupname))
         {
             getBeamSegmentDatasetNames(shortName, indexBegin, count);
         }
+
+        std::cout << "Configuration::getCountDatasetName() groupname:" << groupname << 
+                     " datasetName:" << datasetName << " indexBegin:" << indexBegin << 
+                     " count:" << count << std::endl;
 
         return count;
     }
@@ -1726,6 +1850,8 @@ public:
      */
     void getBeamFreeboardIndexBegin(const std::string& shortName, std::string& indexBegin)
     {
+        std::cout << "Configuration::getBeamFreeboardIndexBegin(): ENTER indexBegin: " << indexBegin << std::endl;
+
         for (std::map<std::string, std::map<std::string, std::string>>::iterator it = photonSegmentGroups.begin();
              it != photonSegmentGroups.end(); it++)
         {
@@ -1750,6 +1876,8 @@ public:
      */
     void getBeamSegmentDatasetNames(const std::string& shortName, std::string& indexBegin)
     {
+        std::cout << "Configuration::getBeamSegmentDatasetNames(): ENTER indexBegin: " << indexBegin << std::endl;
+
         for (std::map<std::string, std::map<std::string, std::string>>::iterator it = photonSegmentGroups.begin();
              it != photonSegmentGroups.end(); it++)
         {
@@ -1823,35 +1951,81 @@ public:
     }
 
     /**
-     * check if a dataset if beam index begin dataset
+     * Add shortname, group, and dataset from granule file to cache.
      * @param shortName product shortname
-     * @param datasetName dataset name
-     * @return whether the group is a beam index dataset
+     * @param group: group
      */
-    bool isBeamIndex(const std::string& shortName, const std::string datasetName)
+    void addShortNameGroupDatasetFromGranuleFile(const std::string& shortName, const std::string& group)
     {
-        bool matched = false;
+        shortNameGroupDatasetFromGranuleFile[shortName].push_back(group);
+    }
 
-        for (std::map<std::string, std::map<std::string, std::string>>::iterator it = photonSegmentGroups.begin();
-             it != photonSegmentGroups.end(); it++)
+    /**
+     * Check if shortname, group, or dataset exists granule file cache.
+     * @param shortName product shortname
+     * @param group: group
+     * @return Return TRUE if shortname, group, or dataset exists.  FALSE otherwise
+     */
+    bool isShortNameGroupDatasetFromGranuleFile(const std::string& shortName, const std::string& group)
+    {
+        std::cout << "Configuration::isShortNameGroupDatasetFromGranuleFile(): ENTER group: " << group << std::endl;
+
+        bool patternMatched = false;
+        std::string shortNamePattern("");
+
+        for (const auto& keyinfo : shortNameGroupDatasetFromGranuleFile) 
         {
-            std::string shortNamePattern = it->first;
-            std::map<std::string, std::string> keyinfo = it->second;
-            if (regex_match(shortName, boost::regex(shortNamePattern)))
+            shortNamePattern = keyinfo.first;
+            for (const auto& valueinfo : keyinfo.second) 
             {
-                if (keyinfo.find("BeamIndex") != keyinfo.end())
+                if(shortNamePattern == shortName && valueinfo == group)
                 {
-                    std::string datasetPattern = keyinfo.at("BeamIndex");
-                    if (regex_search(datasetName, boost::regex(datasetPattern)))
-                    {
-                        matched = true;
-                        break;
-                    }
+                    std::cout << "Configuration::isShortNameGroupDatasetFromGranuleFile() FOUND  shortName: " 
+                          << shortNamePattern << " group: " << valueinfo << std::endl;
+                    patternMatched = true;
+                    break;
                 }
             }
         }
 
-        return matched;
+        return patternMatched;
+    }
+
+    /**
+     * Retrieve the shortname+version number from the cache storage of the granule.
+     * @param shortName product shortname
+     * @return Return shortname/version number string of granule (Ex. ATL10v005)
+     */
+    std::string getVersionNumber(const std::string& shortName)
+    {
+        std::cout << "Configuration::getVersionNumber(): ENTER shortName: " << shortName << std::endl;
+
+        std::string version("");
+        const std::string atl10v005("/gt1l/freeboard_beam_segment/");
+        const std::string atl10v006("/gt1l/freeboard_segment/");
+
+        for (const auto& keyinfo : shortNameGroupDatasetFromGranuleFile) 
+        {
+            for (const auto& valueinfo : keyinfo.second) 
+            {
+                if(keyinfo.first == shortName && valueinfo == atl10v005)
+                {
+                    std::cout << "Configuration::getVersionNumber() FOUND version = 005 shortName: " 
+                              << keyinfo.first << " group: " << valueinfo << std::endl;
+                    version = ATL10v005;
+                    break;
+                }
+                else if(keyinfo.first == shortName && valueinfo == atl10v006)
+                {
+                    std::cout << "Configuration::getVersionNumber() FOUND version = 006 shortName: " 
+                              << keyinfo.first << " group: " << valueinfo << std::endl;
+                    version = ATL10v006;
+                    break;
+                }
+            }
+        }
+
+        return version;
     }
 
 private:
@@ -1976,5 +2150,16 @@ private:
     std::map<std::string, std::string> projections;
 
     bool freeboardSwathSegment;
+
+    /**
+     * Cache of shortname, group, and dataset from granule file
+     * key: shortname pattern
+     * value: list of group and dataset patterns
+     */
+    std::map<std::string, std::vector<std::string>> shortNameGroupDatasetFromGranuleFile;
+
+    const std::string ATL10v005 = "ATL10v005";
+    const std::string ATL10v006 = "ATL10v006";
+
 };
 #endif

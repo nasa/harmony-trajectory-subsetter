@@ -40,6 +40,8 @@ public:
     // parse comma-separated lists of "includedataset", and add it to "datasets"
     SubsetDataLayers(std::vector <std::string> dataset_to_include):dataset_to_include(dataset_to_include)
     {
+        std::cout << "SubsetDataLayers::SubsetDataLayers(): ENTER" << std::endl;
+
         // if "includeddataset" is specified, add each dataset to "datasets"
         if (!dataset_to_include.empty())
         {
@@ -54,7 +56,7 @@ public:
                 {
                     dataset=*iter;
                     if (*dataset.rbegin() != '/') dataset.push_back('/');
-                    std::cout << "adding dataset to include " << dataset << std::endl;
+                    std::cout << "SubsetDataLayers::SubsetDataLayers(): adding dataset to include " << dataset << std::endl;
                     add_dataset(dataset);
                 }
             }
@@ -64,7 +66,7 @@ public:
         // else, include all datasets
         else
         {
-            std::cout << "adding / dataset to include all" << std::endl;
+            std::cout << "SubsetDataLayers::SubsetDataLayers(): adding / dataset to include all" << std::endl;
             include_all = true;
             add_dataset("/");
         }
@@ -151,7 +153,7 @@ public:
     // prints all included datasets
     void print_datasets()
     {
-        std::cout << "printing the subset data layers" << std::endl;;
+        std::cout << "SubsetDataLayers::print_datasets(): printing the subset data layers" << std::endl;;
 
         int count = 0;
         std::vector< std::set <std::string> >::iterator it = datasets.begin();
@@ -177,6 +179,8 @@ public:
     // writes all included datasets to a json file
     void write_to_json(std::string json_out_name)
     {
+        std::cout << "SubsetDataLayers::write_to_json(): ENTER" << std::endl;
+
         property_tree::ptree root;
         property_tree::ptree data_set_layers; // list(node) stores included datasets
 
@@ -204,7 +208,7 @@ public:
         // add the list to the root
         root.add_child("data_set_layers", data_set_layers);
 
-        std::cout << "writing to the json file: " << json_out_name << std::endl;
+        std::cout << "SubsetDataLayers::write_to_json(): writing to the json file: " << json_out_name << std::endl;
 
         //write to json
         property_tree::write_json(json_out_name, root);
@@ -291,7 +295,7 @@ private:
         if (it->find(str) == it->end())
         {
             it->insert(str);
-            std::cout << "inserted dataset: " << str << std::endl;
+            std::cout << "SubsetDataLayers::add_dataset(): inserted dataset: " << str << std::endl;
 
             // Skip to the next level, purge any lower-level datasets
             // where the new dataset being added is an ancestor.
@@ -359,7 +363,7 @@ private:
     // read datasets to be included in the output from a json file
     void read_from_json(std::string json_in_name)
     {
-        std::cout << "reading from the json file: " << json_in_name << std::endl;
+        std::cout << "SubsetDataLayers::read_from_json(): reading from the json file: " << json_in_name << std::endl;
 
         property_tree::ptree root;
 

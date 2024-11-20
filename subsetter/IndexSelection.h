@@ -51,8 +51,12 @@ class IndexSelection
         // constraint. They are typically determined by the temporal constraints.
         void addRestriction(long newStart, long newLength)
         {
-            std::cout << "IndexSelection.addRestriction changing from (" << minIndexStart << "," << maxIndexEnd << ") to ("
-                 << newStart << "," << newStart+newLength << ")" << std::endl;
+            std::cout << "IndexSelection::addRestriction(): ENTER" << std::endl;
+
+            std::cout << "IndexSelection::addRestriction changing from (" << minIndexStart 
+                      << "," << maxIndexEnd << ") to (" << newStart << "," << newStart+newLength 
+                      << ")" << std::endl;
+
             minIndexStart = newStart;
             maxIndexEnd = newStart + newLength;
             // Reset the segments map with the new constraints in place.
@@ -68,6 +72,8 @@ class IndexSelection
         //   and limit to within restrictions
         void addSegment(long newStart, long newLength)
         {
+            std::cout << "IndexSelection::addSegment(): ENTER" << std::endl;
+
             std::map<long, long>::reverse_iterator it;
 
             // Check if segment start and length are within the bounds

@@ -21,6 +21,8 @@ public:
     Temporal(std::string s, std::string e, std::string epochTime="")
     : epochUpdateRequired(true)
     {
+        std::cout << "Temporal::Temporal(): ENTER" << std::endl;
+
         if (s.find(":") == std::string::npos)
             s += " 00:00:00.000000";
         if (e.find(":") == std::string::npos)
@@ -42,12 +44,12 @@ public:
         }
         catch (std::exception &ex)
         {
-            std::cerr << "ERROR: Temporal.ctor failed to parse the time strings " << s << " " << e << std::endl;
+            std::cerr << "Temporal::Temporal(): ERROR: Temporal.ctor failed to parse the time strings " << s << " " << e << std::endl;
             std::exception_ptr p = std::current_exception();
             rethrow_exception(p);
         }
         std::cout.setf(std::ios::fixed); // to print more precision
-        std::cout << "Temporal.ctor Temporal start end " << start << " " << end << std::endl;
+        std::cout << "Temporal::Temporal(): start end " << start << " " << end << std::endl;
         std::cout.unsetf(std::ios_base::floatfield); //set back
     }
 
@@ -105,13 +107,15 @@ public:
             replace(epoch.begin(), epoch.end(), 'T', ' ');
             replace(epoch.begin(), epoch.end(), 'Z', ' ');
             myReferenceTime = epoch;
-            return false;
         }
+
+        return false;
     }
 
     // update the reference time, start and end
     void updateReferenceTime(std::string referenceTime)
     {
+        std::cout << "Temporal::updateReferenceTime(): ENTER" << std::endl;
 
         // get the difference between old and new reference time
         replace(referenceTime.begin(), referenceTime.end(), 'T', ' ');
@@ -132,7 +136,7 @@ public:
             rethrow_exception(p);
         }
         std::cout.setf(std::ios::fixed); // to print more precision
-        std::cout << "Temporal::updateReferenceTime start end " << start << " " << end << std::endl;
+        std::cout << "Temporal::updateReferenceTime(): start end " << start << " " << end << std::endl;
         std::cout.unsetf(std::ios_base::floatfield); //set back
 
     }

@@ -34,11 +34,13 @@ public:
      static Coordinate* getCoordinate(H5::Group& root, H5::Group& ingroup, const std::string& shortName, SubsetDataLayers* subsetDataLayers,
             const std::string& groupname, std::vector<geobox>* geoboxes, Temporal* temporal, GeoPolygon* geoPolygon, Configuration* config)
     {
-        std::cout << "HeightSegmentCoordinates" << std::endl;
+        std::cout << "HeightSegmentCoordinates::getCoordinate(): ENTER groupname: " << groupname << std::endl;
 
         if (Coordinate::lookUp(groupname))
         {
-            std::cout << groupname << " already exists in lookUpMap(HeightSegmentCoordinate)" << std::endl;
+            std::cout << "HeightSegmentCoordinates::getCoordinate(): groupname: " << groupname
+                      << " already exists in lookUpMap(HeightSegmentCoordinate)" << std::endl;
+
             return lookUpMap["HeightSegmentRate"];
         }
 
@@ -73,21 +75,24 @@ public:
      */
     virtual IndexSelection* getIndexSelection()
     {
+        std::cout << "HeightSegmentCoordinates::getIndexSelection(): ENTER" << std::endl;
+
         indexes = new IndexSelection(coordinateSize);
 
         H5::DataSet *indexBegSet = NULL, *countSet = NULL;
 
         std::string indexBegName, countName;
 
-	config->getDatasetNames(shortname, groupname, indexBegName, countName);
+	    config->getDatasetNames(shortname, groupname, indexBegName, countName);
+
         if (!indexBegName.empty() && H5Lexists(leadsGroup.getLocId(), indexBegName.c_str(), H5P_DEFAULT) > 0)
             indexBegSet = new H5::DataSet(leadsGroup.openDataSet(indexBegName));
         if (!countName.empty() && H5Lexists(leadsGroup.getLocId(), countName.c_str(), H5P_DEFAULT) > 0)
             countSet = new H5::DataSet(leadsGroup.openDataSet(countName));
 
-	H5::DataSet* nonNullDataset = (indexBegSet != NULL)? indexBegSet : countSet;
+	    H5::DataSet* nonNullDataset = (indexBegSet != NULL)? indexBegSet : countSet;
         size_t coordinateSize = nonNullDataset->getSpace().getSimpleExtentNpoints();
-	hid_t native_type = H5Tget_native_type(H5Dget_type(indexBegSet->getId()), H5T_DIR_ASCEND);
+	    hid_t native_type = H5Tget_native_type(H5Dget_type(indexBegSet->getId()), H5T_DIR_ASCEND);
 
         // index begin datasets for ATL03 and ATL08 are 64-bit and 32-bit for ATL10
         int64_t* indexBeg = new int64_t[coordinateSize];

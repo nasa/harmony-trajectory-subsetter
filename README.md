@@ -162,7 +162,7 @@ if [ ! -f "${CURDIR}/hdfeos5/include/HE5_GctpFunc.h" ] || [ ! -f "${CURDIR}/hdfe
     cd ../
 fi
 
-/Path/to/conda/env/trajectory-subsetter-local-dev/bin/h5c++ -v -std=c++20 -g ./Subset.cpp \
+${CONDA_PREFIX}/bin/h5c++ -v -std=c++20 -g ./Subset.cpp \
 -DSDPS \
 -DH5_USE_18_API \
 -Og \

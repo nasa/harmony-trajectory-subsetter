@@ -47,27 +47,28 @@ add_executable(
   test_ForwardReferenceCoordinates.cpp
   gtest_utilities.cpp
   test_IndexSelection.cpp
+  test_ATL10_v005_Configuration.cpp
+  test_ATL10_v006_Configuration.cpp
 )
-target_link_libraries(
-  subsetter_test
-  GTest::gtest_main
-  geotiff
-  tiff
-  jpeg
-  Gctp
-  lzma
-  boost_program_options
-  boost_filesystem
-  boost_date_time
-  boost_regex
-  hdf5
-  hdf5_cpp
-  hdf5_hl
+
+target_link_libraries(subsetter_test
+                      GTest::gtest_main
+                      geotiff
+                      tiff
+                      jpeg
+                      Gctp
+                      lzma
+                      boost_program_options 
+                      boost_filesystem
+                      boost_date_time
+                      boost_regex
+                      hdf5
+                      hdf5_cpp
+                      hdf5_hl
 )
 
 include(GoogleTest)
 gtest_discover_tests(subsetter_test)
-
 
 #-----------------------------------------------------------------------------
 # Run google test after building
@@ -75,5 +76,3 @@ gtest_discover_tests(subsetter_test)
 add_custom_command(TARGET subsetter_test
                    POST_BUILD
                    COMMAND ctest)
-
-

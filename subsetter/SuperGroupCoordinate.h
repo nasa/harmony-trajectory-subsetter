@@ -35,10 +35,11 @@ public:
     static Coordinate* getCoordinate(H5::Group& root, H5::Group& ingroup, const std::string& shortname, SubsetDataLayers* subsetDataLayers,
             const std::string& groupname, std::vector<geobox>* geoboxes, Temporal* temporal, GeoPolygon* geoPolygon, Configuration* config)
     {
+        std::cout << "SuperGroupCoordinate::getCoordinate(): ENTER groupname: " << groupname << std::endl;
+        
         SuperGroupCoordinate* sgCoor = new SuperGroupCoordinate(groupname, geoboxes, temporal, geoPolygon, config);
         sgCoor->coordinateSize = 0;
 
-        std::cout << "superGroup getCoordinate" << std::endl;
         std::map<std::string, std::vector<std::string>> datasets;
         std::string superGroupname, latitudeName, longitudeName, timeName, otherName;
         bool inconsistentCoorDatasets = false;
@@ -56,7 +57,7 @@ public:
         // if the Coordinate group already exists, return it, else, continue processing
         if (sgCoor->lookUp(superGroupname))
         {
-            std::cout << superGroupname << " already exists in lookUpMap" << std::endl;
+            std::cout << "SuperGroupCoordinate::getCoordinate(): superGroupname: " << superGroupname << " already exists in lookUpMap" << std::endl;
             return lookUpMap[superGroupname];
         }
 
@@ -138,7 +139,8 @@ public:
 
     virtual IndexSelection* getIndexSelection()
     {
-        std::cout << "superGroup getIndexSelection" << std::endl;
+        std::cout << "SuperGroupCoordinate::getIndexSelection(): ENTER" << std::endl;
+
         H5::DataSet* timeSet = NULL;
         double* time = new double[coordinateSize];
 
@@ -157,7 +159,8 @@ public:
             timeSet->read(time, timeSet->getDataType());
             temporalSubset(time);
         }
-        else std::cout << "temporal constraint or temporal coordinate not found" << std::endl;
+        else std::cout << "SuperGroupCoordinate::getIndexSelection(): "
+                       << "temporal constraint or temporal coordinate not found" << std::endl;
 
 
         // read lat/lon datasets if spatial(bbox/polygon) constraints exist
@@ -175,10 +178,10 @@ public:
 
         // limit the index by spatial constraint
         if (geoboxes != NULL && this->coorDatasets.size() != 0) spatialBboxSubset();
-        else std::cout << "spatial constraint or lat/lon coordinates not found" << std::endl;
+        else std::cout << "SuperGroupCoordinate::getIndexSelection(): spatial constraint or lat/lon coordinates not found" << std::endl;
         // limit the index by polygon
         if (geoPolygon != NULL && this->coorDatasets.size() != 0) spatialPolygonSubset();
-        else std::cout << "polygon or lat/lon coordinates not found" << std::endl;
+        else std::cout << "SuperGroupCoordinate::getIndexSelection(): polygon or lat/lon coordinates not found" << std::endl;
 
         indexesProcessed = true;
 
@@ -195,7 +198,8 @@ private:
     // limit the index range by spatial constraints
     void spatialBboxSubset()
     {
-        std::cout << "superGroup spatialBboxSubset" << std::endl;
+        std::cout << "SuperGroupCoordinate::spatialBboxSubset(): ENTER" << std::endl;
+
         bool contains = false;
 
         long indexBegin = indexes->minIndexStart, indexEnd = indexes->maxIndexEnd - 1;
@@ -242,17 +246,18 @@ private:
     // limit the index range by polygon
     void spatialPolygonSubset()
     {
-        std::cout << "superGroup spatialPolygonSubset" << std::endl;
+        std::cout << "SuperGroupCoordinate::spatialPolygonSubset(): ENTER" << std::endl;
+        
         IndexSelection* newIndexes = new IndexSelection(coordinateSize);
 
         geobox g = geoPolygon->getBbox();
         if (geoboxes == NULL) geoboxes = new std::vector<geobox>();
         geoboxes->push_back(g);
 
-        std::cout << "geoboxes.size(): " << geoboxes->size() << std::endl;
+        std::cout << "SuperGroupCoordinate::spatialPolygonSubset(): geoboxes.size(): " << geoboxes->size() << std::endl;
 
         spatialBboxSubset();
-        std::cout << "indexes->size(): " << indexes->size() << std::endl;
+        std::cout << "SuperGroupCoordinate::spatialPolygonSubset(): indexes->size(): " << indexes->size() << std::endl;
 
         if (indexes->size() == 0) return;
 

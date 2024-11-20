@@ -32,6 +32,8 @@ public:
      */
     void mapWriteDataset(H5::Group& outgroup, const std::string&groupname, const H5::DataSet& indataset, IndexSelection* indexes, IndexSelection* targetIndexes, SubsetDataLayers* subsetDataLayers)
     {
+        std::cout << "RvsRefDatasets::mapWriteDataset(): ENTER groupname: " << groupname << std::endl;
+
         size_t inDatasetSize = indataset.getSpace().getSimpleExtentNpoints(); // input dataset size
         size_t subsettedSize = indexes->size(); // subsetted dataset size
         int32_t* inData = new int32_t[inDatasetSize]; // array to store input dataset
@@ -104,6 +106,12 @@ public:
                             start = (it->first)+1;
                             length = it->second;
                             end = start + length;
+
+                            //Ensure that we do not decrement the iterator 
+                            //if it is at the beginning of targetIndexes->segments.begin()
+                            if(it == targetIndexes->segments.begin())
+                                continue;
+
                             it--;
                             prevLength = it->second;
                             diffIndex = true;

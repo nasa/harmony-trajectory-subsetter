@@ -12,7 +12,7 @@ public:
     SuperGroupSubsetter(SubsetDataLayers* subsetDataLayers, std::vector<geobox>* geoboxes, Temporal* temporal, GeoPolygon* geoPolygon, Configuration* config)
     : Subsetter(subsetDataLayers, geoboxes, temporal, geoPolygon, config)
     {
-        std::cout << "SuperGroupSubsetter ctor" << std::endl;
+        std::cout << "SuperGroupSubsetter::SuperGroupSubsetter(): constructor" << std::endl;
     }
 
 protected:
@@ -28,6 +28,8 @@ protected:
     virtual void writeDataset(const std::string& objname, const H5::DataSet& indataset, H5::Group& outgroup,
                         const std::string& groupname, IndexSelection* indexes)
     {
+        std::cout << "SuperGroupSubsetter::writeDataset(): ENTER groupname: " << groupname << std::endl;
+
         H5::H5File infile = getInputFile();
         if (indexes != NULL && indexes->getMaxSize() != indexes->size() && indexes->size() != 0 &&
             config->isSegmentGroup(this->getShortName(), groupname) &&
@@ -71,6 +73,8 @@ private:
     virtual Coordinate* getCoordinate(H5::Group& root, H5::Group& ingroup, const std::string& groupname,
         SubsetDataLayers* subsetDataLayers, std::vector<geobox>* geoboxes, Temporal* temporal, GeoPolygon* geoPolygon, Configuration* config, bool repair = false)
     {
+        std::cout << "SuperGroupSubsetter::getCoordinate(): ENTER groupname: " << groupname << std::endl;
+
         bool hasPhotonSegmentDataset = config->hasPhotonSegmentGroups(this->getShortName());
         bool isPhotonDataset = config->isPhotonDataset(this->getShortName(), groupname);
         if (hasPhotonSegmentDataset && isPhotonDataset)

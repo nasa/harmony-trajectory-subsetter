@@ -20,8 +20,8 @@ protected:
     ForwardReferenceCoordinatesTest()
     {
         std::string config_file_path = gtest_utilities::getFullPath("harmony_service/subsetter_config.json");
-        config = new Configuration(config_file_path);
-        coordinate_object = new ForwardReferenceCoordinates(groupname, geoboxes, temporal, geopolygon, config);
+        config = std::make_unique<Configuration>(config_file_path);
+        coordinate_object = std::make_unique<ForwardReferenceCoordinates>(groupname, geoboxes, temporal, geopolygon, config.get());
 
         // Read in test data.
         // This index begin dataset starts and ends with fill values (0).
@@ -31,13 +31,11 @@ protected:
 
     ~ForwardReferenceCoordinatesTest()
     {
-        delete config;
-        delete coordinate_object;
         delete index_begin_dataset;
     }
 
     int64_t* index_begin_dataset = nullptr;
-    ForwardReferenceCoordinates* coordinate_object = nullptr;
+    std::unique_ptr<ForwardReferenceCoordinates> coordinate_object;
 
 private:
 
@@ -45,7 +43,8 @@ private:
     std::vector<geobox>* geoboxes = nullptr;
     Temporal* temporal = nullptr;
     GeoPolygon* geopolygon = nullptr;
-    Configuration* config = nullptr;
+    
+    std::unique_ptr<Configuration> config;
 
 };
 

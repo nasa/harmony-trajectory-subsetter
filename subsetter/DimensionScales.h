@@ -59,6 +59,8 @@ public:
      */
     void trackDimensionScales(const H5::DataSet& dataset)
     {
+        std::cout << "DimensionScales::trackDimensionScales(): ENTER" << std::endl;
+        
         hid_t did = dataset.getId();
         std::string datasetName = getObjectName(did);
         // is a dimension scale dataset
@@ -96,8 +98,9 @@ public:
                     delete scale;
                 }
                 if (numscales != numValidScales)
-                    std::cout << "WARNING dataset " << datasetName << " has " << numscales-numValidScales
-                         << " invalid scale references in the dimension " << dimnum << std::endl;
+                    std::cout << "DimensionScales::trackDimensionScales(): WARNING dataset " << datasetName 
+                              << " has " << numscales-numValidScales << " invalid scale references in the dimension " 
+                              << dimnum << std::endl;
             }
         }
     }
@@ -107,9 +110,9 @@ public:
      */
     void recreateDimensionScales(H5::H5File& outfile)
     {
-        std::cout << "DimensionScales.recreateDimensionScales try to recreate "
-             << dimScaleDatasets->size() << " dimension scales, and re-attach to "
-             << datasetScales->size() << " datasets " << std::endl;
+        std::cout << "DimensionScales::recreateDimensionScales(): ENTER try to recreate "
+                  << dimScaleDatasets->size() << " dimension scales, and re-attach to "
+                  << datasetScales->size() << " datasets " << std::endl;
 
         // H5Lexists prints error message when any element before the final link doesn't exist,
         // so suppress the error message print

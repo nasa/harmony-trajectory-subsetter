@@ -1,3 +1,14 @@
+[version 0.2.2] 2024-11-12
+
+- **DAS-2272**
+ - Remove beam_refsur_ndx variable from ATL10 configuration since it no 
+   longer exists in the ATL10 version 6.
+
+- **DAS-2247**
+ - Add support for ATL10 v006 configuration and functionality while 
+   maintaining backward compatibility with ATL10 v005. Include unit 
+   tests for both ATL10 v005 and v006.
+
 [version 0.2.1] 2024-10-29
 
 - **DAS-2268**

@@ -36,7 +36,7 @@ public:
         IndexSelection* selectedElements,
         SubsetDataLayers* subsetDataLayers)
     {
-        std::cout << "ForwardReferenceDatasets.writeDataset" << std::endl;
+        std::cout << "ForwardReferenceDatasets::writeDataset(): ENTER groupname: " << groupname << std::endl;
 
         // Get output dataset data size from output count dataset.
         // Dataset size for fwd-ref-begin dataset should match the fwd-ref-count dataset

@@ -174,9 +174,13 @@ time that are used in this process.
                 # (FreeboardSwathSegmentGroup)
             "SegmentGroup": "/gt[\w]+/freeboard_beam_segment/",
                 # (FreeboardBeamSegmentGroup)
+            "SegmentGroup": "/gt[\w]+/freeboard_segment/",
+                # (FreeboardSegmentGroup)                
             "SparseSegmentGroup": "/gt\w]+/leads/",
                 # (LeadsGroup, Uncertain if sparse-segment-group
                 # is handled any differently from segment-group)
+            "SegmentGroup": "/gt[\w]+/reference_surface_section/",
+                # (ReferenceSurfaceSectionGroup)
             "SegmentedGroup": "/freeboard_swath_segment/gt[\\w]+/swath_freeboard/",
                 # (SwathFreeboardGroup)
             "SegmentedGroup": "/gt[\w]+/freeboard_beam_segment/beam_freeboard/",
@@ -185,6 +189,10 @@ time that are used in this process.
                 # (HeightsGroup)
             "SegmentedGroup": "/gt[\w]+/freeboard_beam_segment/geophysical/",
                 # (GeophysicalGroup)
+            "SegmentedGroup": "/gt[\w]+/freeboard_segment/heights/",
+                # (FreeboardSegmentHeightsGroup)
+            "SegmentedGroup": "/gt[\w]+/freeboard_segment/geophysical/",
+                # (FreeboardSegmentGeophysicalGroup)
             "SegmentIndexBegin": "fbswath_lead_ndx_gt[\w]+", # (SwathIndex)
             "SegmentIndexCount": "fbswath_lead_n_gt[\w]+",   # (SwathCount)
             "SegmentIndexBegin": "fbswath_ndx",   # (SwathHeightIndex)
@@ -193,8 +201,7 @@ time that are used in this process.
             "SegmentIndexCount": "beam_lead_n",   # (BeamCount)
             "SegmentIndexBegin": "ssh_ndx",       # (LeadsIndex)
             "SegmentIndexCount": "ssh_n",         # (LeadsCount)
-            "SegmentIndexBegin": "beam_refsur_ndx|beam_refsurf_ndx",
-                # (BeamFreeboardIndex)
+            "SegmentIndexBegin": "beam_refsurf_ndx", # (BeamFreeboardIndex)
             "SegmentIndexCount": "beam_refsur_n", # (BeamFreeboardCount)
             "SegmentLatitude": "latitude",        # (PhotonLatitude)
             "SegmentLongitude": "longitude",      # (PhotonLongitude)
@@ -303,9 +310,9 @@ time that are used in this process.
       Variable_Pattern: '/gt[123][lr]+/freeboard_beam_segment/beam_freeboard'
     Attributes:
       - Name: 'subset_control_variables'
-        Value: 'beam_refsur_ndx'
+        Value: 'beam_refsurf_ndx'
   - Applicability:
-      Variable_Pattern: '/gt[123][lr]+/freeboard_beam_segment/beam_freeboard/beam_refsur_ndx'
+      Variable_Pattern: '/gt[123][lr]+/freeboard_beam_segment/beam_freeboard/beam_refsurf_ndx'
     Attributes:
       - Name: 'segment_control_variable_type'
         Value: 'rvs_segment_index'

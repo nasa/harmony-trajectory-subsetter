@@ -31,7 +31,7 @@ public:
      static Coordinate* getCoordinate(H5::Group& root, H5::Group& ingroup, const std::string& shortName, SubsetDataLayers* subsetDataLayers,
             const std::string& groupname, std::vector<geobox>* geoboxes, Temporal* temporal, GeoPolygon* geoPolygon, Configuration* config)
     {
-        std::cout << "ReverseReferenceCoordinates" << std::endl;
+        std::cout << "ReverseReferenceCoordinates::getCoordinate(): ENTER groupname:" << groupname << std::endl;
 
         ReverseReferenceCoordinates* reverseCoor = new ReverseReferenceCoordinates(groupname, geoboxes, temporal, geoPolygon, config);
         reverseCoor->coordinateSize = 0;
@@ -53,11 +53,16 @@ public:
         else if (config->isFreeboardBeamSegmentGroup(reverseCoor->shortname, referencedGroupname))
             referencedCoor = ReverseReferenceCoordinates::getCoordinate(root, referencedGroup, reverseCoor->shortname,
                     subsetDataLayers, referencedGroupname, geoboxes, temporal, geoPolygon, config);
+        else if (config->isReferenceSurfaceSectionGroup(reverseCoor->shortname, referencedGroupname))
+            referencedCoor = Coordinate::getCoordinate(root, referencedGroup, referencedGroupname, reverseCoor->shortname,
+                    subsetDataLayers, geoboxes, temporal, geoPolygon, config);
 
         // if the index selection object has been created, get it
         // else create it
-        if (referencedCoor->indexesProcessed) reverseCoor->referencedIndexes = referencedCoor->indexes;
-        else reverseCoor->referencedIndexes = referencedCoor->getIndexSelection();
+        if (referencedCoor->indexesProcessed) 
+            reverseCoor->referencedIndexes = referencedCoor->indexes;
+        else 
+            reverseCoor->referencedIndexes = referencedCoor->getIndexSelection();
 
         return reverseCoor;
 
@@ -68,7 +73,7 @@ public:
      */
     virtual IndexSelection* getIndexSelection()
     {
-        std::cout << "ReverseReferenceCoordinates.getIndexSelection()" << std::endl;
+        std::cout << "ReverseReferenceCoordinates::getIndexSelection(): ENTER" << std::endl;
 
         // if both temporal and spatial constraints don't exist,
         // return null to include all in the output
@@ -78,43 +83,14 @@ public:
 
         indexes = new IndexSelection(coordinateSize);
 
-        H5::DataSet* indexBegSet = NULL;
+        std::shared_ptr<H5::DataSet> indexBegSet;
 
-        if (!indexBegName.empty())
+        if (!indexBegName.empty() and (H5Lexists(ingroup.getLocId(), indexBegName.c_str(), H5P_DEFAULT) > 0))
         {
-            //
-            // look for a bar as a string delimiter for potential two values of index Selection
-            //
-            std::string token;
-            std::string delimiter = "|";
-            bool found = false;
-            int pos;
-            while (((pos = indexBegName.find(delimiter)) != std::string::npos) and (!found))
-            {
-               //
-               // Isolate the first token found before the bar
-               //
-               token = indexBegName.substr(0, pos);
-               std::cout << "getIndexSelection Token is: " << token << std::endl;
-               if (H5Lexists(ingroup.getLocId(), token.c_str(), H5P_DEFAULT) > 0)
-               {
-                  indexBegSet = new H5::DataSet(ingroup.openDataSet(token));
-                  // It existed so set our boolean
-                  found = true;
-               }
-               //
-               // Keep searching through the string
-               //
-               indexBegName.erase(0, pos + delimiter.length());
-            }
-
-            if ((!found) and (H5Lexists(ingroup.getLocId(), indexBegName.c_str(), H5P_DEFAULT) > 0))
-            {
-               indexBegSet = new H5::DataSet(ingroup.openDataSet(indexBegName));
-            }
+            indexBegSet = std::make_shared<H5::DataSet>(ingroup.openDataSet(indexBegName));
         }
 
-        reverseSubset(indexBegSet);
+        reverseSubset(indexBegSet.get());
 
         indexesProcessed = true;
 
@@ -132,10 +108,10 @@ private:
      */
     void reverseSubset(H5::DataSet* indexBegSet)
     {
-        std::cout << "reverseSubset" << std::endl;
+        std::cout << "ReverseReferenceCoordinates::reverseSubset(): ENTER" << std::endl;
 
         int32_t* indexBegin = new int32_t[coordinateSize];
-        std::cout << "coordinateSize: " << coordinateSize << std::endl;
+        std::cout << "ReverseReferenceCoordinates::reverseSubset(): coordinateSize:" << coordinateSize << std::endl;
         indexBegSet->read(indexBegin, indexBegSet->getDataType());
         long start = 0, length = 0, end = 0, count = 0, newStart = 0, newLength = 0;
 

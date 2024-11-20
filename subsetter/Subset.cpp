@@ -81,10 +81,10 @@ int process_args(int argc, char* argv[])
 
     // Access filename from the input command, if specified.
     infilename = variables_map["filename"].as<std::string>();
-    std::cout << "filename: " << infilename << std::endl;
+    std::cout << "Subset::process_args(): filename: " << infilename << std::endl;
     if (!std::ifstream(infilename.c_str()))
     {
-        std::cout << "ERROR: Could not open input file " << infilename << std::endl;
+        std::cout << "Subset::process_args(): ERROR: Could not open input file " << infilename << std::endl;
         return 1;
     }
 
@@ -92,7 +92,7 @@ int process_args(int argc, char* argv[])
     if (variables_map.count("outfile")) outfilename = variables_map["outfile"].as<std::string>();
     if (outfilename.find("--") == 0 || !std::ofstream(outfilename.c_str()))
     {
-        std::cout << "ERROR: Could not open output file " << outfilename << std::endl;
+        std::cout << "Subset::process_args(): ERROR: Could not open output file " << outfilename << std::endl;
         return 1;
     }
 
@@ -112,11 +112,11 @@ int process_args(int argc, char* argv[])
         {
             if (!regex_match((*it), regex_results, bbox_format))
             {
-                std::cout << "ERROR: Invalid bounding box: " << *it << std::endl;
+                std::cout << "Subset::process_args(): ERROR: Invalid bounding box: " << *it << std::endl;
                 return 1;
             }
 
-            std::cout << "Adding bounding box " << *it << std::endl;
+            std::cout << "Subset::process_args(): Adding bounding box " << *it << std::endl;
             bounding_box += *it;
             boost::char_separator<char> sep(",");
             boost::tokenizer<boost::char_separator<char> > tokens(*it, sep);
@@ -144,13 +144,14 @@ int process_args(int argc, char* argv[])
         boost::regex date_format("[']?[\\d]{4}-[\\d]{2}-[\\d]{2}(T[\\d]{2}:[\\d]{2}:[\\d]{2}[\\.[\\d]*]?)?[']?");
         if (!regex_match(startString, regex_results, date_format) || !regex_match(endString, regex_results, date_format))
         {
-            std::cout << "ERROR: Invalid start or end parameter " << std::endl;
+            std::cout << "Subset::process_args(): ERROR: Invalid start or end parameter " << std::endl;
             return 1;
         }
     }
     else if (variables_map.count("start") || variables_map.count("end"))
     {
-        std::cout << "ERROR: Invalid temporal parameters, must pass in both --start and --end parameters" << std::endl;
+        std::cout << "Subset::process_args(): ERROR: Invalid temporal parameters, must pass in "
+                  << "both --start and --end parameters" << std::endl;
         return 1;
     }
 
@@ -158,7 +159,7 @@ int process_args(int argc, char* argv[])
     if (variables_map.count("includedataset"))
     {
         datasetList = variables_map["includedataset"].as<std::string>();
-        std::cout << "includedataset" << std::endl;
+        std::cout << "Subset::process_args(): includedataset" << std::endl;
     }
 
     // Access bounding shape, if specfied.
@@ -180,7 +181,7 @@ int process_args(int argc, char* argv[])
     // Access reformatting, if specified.
     if (variables_map.count("reformat"))
     {
-        std::cout << "reformat" << std::endl;
+        std::cout << "Subset::process_args(): reformat" << std::endl;
         originalOutputFormat = outputFormat = variables_map["reformat"].as<std::string>();
         if (outputFormat == "GeoTIFF" || outputFormat == "GTiff" || outputFormat == "GEO" || outputFormat=="KML")
         {
@@ -190,7 +191,7 @@ int process_args(int argc, char* argv[])
         {
             outputFormat = "NetCDF-3";
         }
-        std::cout << "Reformatting to " << originalOutputFormat << std::endl;
+        std::cout << "Subset::process_args(): Reformatting to " << originalOutputFormat << std::endl;
     }
 
     // Access coordinate reference system / reprojection, if specified.
@@ -262,7 +263,7 @@ int main(int argc, char* argv[])
         // polygon contains no data, return an error.
         if (geoPolygon != NULL and geoPolygon->isEmpty())
         {
-            std::cout << "ERROR: no polygon found for the given GeoJSON/KML/Shapefile" << std::endl;
+            std::cout << "Subset::main(): ERROR: no polygon found for the given GeoJSON/KML/Shapefile" << std::endl;
             return 6;
         }
 
@@ -313,23 +314,28 @@ int main(int argc, char* argv[])
     }
     catch (H5::Exception e)
     {
-        std::cerr << "ERROR: caught H5 Exception " << e.getDetailMsg() << std::endl;
-        e.printErrorStack();
+        std::string msg = e.getDetailMsg();
+        std::cerr << "\nSubset::main(): ERROR: caught H5 Exception: " << msg << std::endl;
 
-        if (e.getDetailMsg().compare("HFcreate") != 0)
+        if (msg.find("H5Fcreate") != std::string::npos)
         {
-            std::cerr << "\nOutput file could not be created, check if it's currently open in another application.\n" << std::endl;
+            std::cerr << "Output file could not be created, check if it's "
+                      << "currently open in another application.\n" << std::endl;
+        }
+        else if (msg.find("H5Gopen") != std::string::npos)
+        {
+            std::cerr << "HDF5 Group could not be opened.\n" << std::endl;
         }
         return -1;
     }
     catch (std::exception &e)
     {
-        std::cerr << "ERROR: caught std::exception " << e.what() << std::endl;
+        std::cerr << "\nSubset::main(): ERROR: caught std::exception " << e.what() << std::endl;
         return -1;
     }
     catch (...)
     {
-        std::cerr << "ERROR: unknown exception occurred";
+        std::cerr << "\nSubset::main(): ERROR: unknown exception occurred";
         return -1;
     }
     return ErrorCode;
