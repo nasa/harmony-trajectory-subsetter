@@ -1,3 +1,10 @@
+[version 0.2.3] 2024-11-27
+
+- **DAS-2245**
+ - Update configuration files (trajectorysubsetter_varinfo_config.json, 
+   subsetter_config) to reflect ATL10 v006's current architecture so 
+   that ATL10 subset. Update earthdata-varinfo==3.0.0
+
 [version 0.2.2] 2024-11-12
 
 - **DAS-2272**
