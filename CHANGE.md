@@ -1,4 +1,13 @@
-[version 0.2.3] 2024-11-27
+[version 0.2.3] 2025-01-02
+
+- **DAS-2273**
+ - Working on the CI/CD team for the Trajectory Subsetter build, we 
+   are still experiencing intermittent failures, though they have 
+   decreased in frequency. To further reduce these failures, the 
+   following changes were implemented.
+ - Add "--no-cache" to tests.Dockerfile 
+ - Update to "rockylinux:8" per suggestion from CI/CD
+ - Remove "channel default" per DAS-2237
 
 - **DAS-2245**
  - Update configuration files (trajectorysubsetter_varinfo_config.json, 

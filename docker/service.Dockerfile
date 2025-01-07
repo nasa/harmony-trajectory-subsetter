@@ -9,13 +9,13 @@
 # into the Docker image, before environment variables are set to activate the
 # created conda environment.
 #
-FROM oraclelinux:8.10
+FROM rockylinux:8
 
 WORKDIR /home
 # Add needed libraries
 RUN dnf -y upgrade && \
-    dnf -y install oracle-epel-release-el8 && \
-    dnf config-manager --set-enabled ol8_codeready_builder && \
+    dnf -y install epel-release && \
+    dnf config-manager --set-enabled powertools && \
     dnf -y install --skip-broken gcc-c++ make libjpeg-turbo hdf-devel libtool libxslt-devel \
         file gcc-gfortran redhat-rpm-config libgeotiff-devel java-1.8.0-openjdk-devel  proj-devel \
         netcdf-devel libaec-devel autogen boost-static mc which && \
@@ -65,8 +65,7 @@ RUN rm -rf ./subsetter ./hdfeos ./hdfeos5 ./hdf5
 ENV PATH="/opt/conda/bin:$PATH"
 
 RUN conda create -y --name trajectorysubsetter python=3.11 -q \
-    --channel conda-forge \
-    --channel defaults
+    --channel conda-forge
 
 # Copy additional Pip dependencies into the container
 COPY harmony_service/pip_requirements.txt harmony_service/pip_requirements.txt
