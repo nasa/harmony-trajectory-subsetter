@@ -1,6 +1,6 @@
 {
   "Identification": "trajectorysubsetter_varinfo_config",
-  "Version": 3,
+  "Version": 4,
   "CollectionShortNamePath": [
     "/HDF5_GLOBAL/short_name",
     "/NC_GLOBAL/short_name",
@@ -59,7 +59,8 @@
     {
       "Applicability": {
         "Mission": "GEDI",
-        "ShortNamePath": "GEDI_L[1234][AB]|GEDI0[1234]_[AB]"
+        "ShortNamePath": "GEDI_L[1234][AB]|GEDI0[1234]_[AB]",
+        "VariablePattern": "/$"
       },
       "Attributes": [
         {
@@ -70,6 +71,7 @@
     },
     {
       "Applicability": {
+        "Mission": "GEDI",
         "ShortNamePath": "GEDI_L1[AB]|GEDI01_[AB]",
         "VariablePattern": "/BEAM[\\d]+/geolocation/"
       },
@@ -87,6 +89,7 @@
     },
     {
       "Applicability": {
+        "Mission": "GEDI",
         "ShortNamePath": "GEDI_L2A|GEDI02_A",
         "VariablePattern": "/BEAM[\\d]+/"
       },
@@ -104,6 +107,7 @@
     },
     {
       "Applicability": {
+        "Mission": "GEDI",
         "ShortNamePath": "GEDI_L1[AB]|GEDI01_[AB]",
         "VariablePattern": "/BEAM[\\d]+/rxwaveform"
       },
@@ -121,6 +125,7 @@
     },
     {
       "Applicability": {
+        "Mission": "GEDI",
         "ShortNamePath": "GEDI_L1[AB]|GEDI01_[AB]",
         "VariablePattern": "/BEAM[\\d]+/rx_sample_start_index"
       },
@@ -134,6 +139,7 @@
     },
     {
       "Applicability": {
+        "Mission": "GEDI",
         "ShortNamePath": "GEDI_L1[AB]|GEDI01_[AB]",
         "VariablePattern": "/BEAM[\\d]+/rx_sample_count"
       },
@@ -147,6 +153,7 @@
     },
     {
       "Applicability": {
+        "Mission": "GEDI",
         "ShortNamePath": "GEDI_L1[AB]|GEDI01_[AB]",
         "VariablePattern": "/BEAM[\\d]+/txwaveform"
       },
@@ -164,6 +171,7 @@
     },
     {
       "Applicability": {
+        "Mission": "GEDI",
         "ShortNamePath": "GEDI_L1[AB]|GEDI01_[AB]",
         "VariablePattern": "/BEAM[\\d]+/tx_sample_start_index"
       },
@@ -177,6 +185,7 @@
     },
     {
       "Applicability": {
+        "Mission": "GEDI",
         "ShortNamePath": "GEDI_L1[AB]|GEDI01_[AB]",
         "VariablePattern": "/BEAM[\\d]+/tx_sample_count"
       },
@@ -190,6 +199,7 @@
     },
     {
       "Applicability": {
+        "Mission": "GEDI",
         "ShortNamePath": "GEDI_L2B|GEDI02_B",
         "VariablePattern": "/BEAM[\\d]+/pgap_theta_z"
       },
@@ -207,6 +217,7 @@
     },
     {
       "Applicability": {
+        "Mission": "GEDI",
         "ShortNamePath": "GEDI_L2B|GEDI02_B",
         "VariablePattern": "/BEAM[\\d]+/rx_sample_start_index"
       },
@@ -220,6 +231,7 @@
     },
     {
       "Applicability": {
+        "Mission": "GEDI",
         "ShortNamePath": "GEDI_L2B|GEDI02_B",
         "VariablePattern": "/BEAM[\\d]+/rx_sample_count"
       },
@@ -234,7 +246,8 @@
     {
       "Applicability": {
         "Mission": "ICESat2",
-        "ShortNamePath": "ATL0[2-9]|ATL1[0123]"
+        "ShortNamePath": "ATL0[2-9]|ATL1[0123]",
+        "VariablePattern": "/$"
       },
       "Attributes": [
         {
@@ -245,6 +258,7 @@
     },
     {
       "Applicability": {
+        "Mission": "ICESat2",
         "ShortNamePath": "ATL03",
         "VariablePattern": "/gt[123][lr]/geolocation/.*"
       },
@@ -257,6 +271,7 @@
     },
     {
       "Applicability": {
+        "Mission": "ICESat2",
         "ShortNamePath": "ATL03",
         "VariablePattern": "/gt[123][lr]/geophys_corr/.*"
       },
@@ -273,6 +288,7 @@
     },
     {
       "Applicability": {
+        "Mission": "ICESat2",
         "ShortNamePath": "ATL03",
         "VariablePattern": "/gt[123][lr]/heights/.*"
       },
@@ -289,6 +305,7 @@
     },
     {
       "Applicability": {
+        "Mission": "ICESat2",
         "ShortNamePath": "ATL03",
         "VariablePattern": "/gt[123][lr]/geolocation/ph_index_beg"
       },
@@ -301,6 +318,7 @@
     },
     {
       "Applicability": {
+        "Mission": "ICESat2",
         "ShortNamePath": "ATL03",
         "VariablePattern": "/gt[123][lr]/geolocation/ph_index_beg"
       },
@@ -313,6 +331,7 @@
     },
     {
       "Applicability": {
+        "Mission": "ICESat2",
         "ShortNamePath": "ATL03",
         "VariablePattern": "/gt[123][lr]/bckgrd_atlas/.*"
       },
@@ -326,6 +345,7 @@
     },
     {
       "Applicability": {
+        "Mission": "ICESat2",
         "ShortNamePath": "ATL03",
         "VariablePattern": "/gt[123][lr]/signal_find_output/.*"
       },
@@ -339,6 +359,7 @@
     },
     {
       "Applicability": {
+        "Mission": "ICESat2",
         "ShortNamePath": "ATL08",
         "VariablePattern": "/gt[123][lr]/signal_photons/.*"
       },
@@ -355,6 +376,7 @@
     },
     {
       "Applicability": {
+        "Mission": "ICESat2",
         "ShortNamePath": "ATL08",
         "VariablePattern": "/gt[123][lr]/land_segments/ph_ndx_beg"
       },
@@ -367,6 +389,7 @@
     },
     {
       "Applicability": {
+        "Mission": "ICESat2",
         "ShortNamePath": "ATL08",
         "VariablePattern": "/gt[123][lr]/land_segments/n_seg_ph"
       },
@@ -379,6 +402,7 @@
     },
     {
       "Applicability": {
+        "Mission": "ICESat2",
         "ShortNamePath": "ATL10",
         "VariablePattern": "/gt[123][lr]/freeboard_beam_segment/.*"
       },
@@ -391,6 +415,7 @@
     },
     {
       "Applicability": {
+        "Mission": "ICESat2",
         "ShortNamePath": "ATL10",
         "VariablePattern": "/gt[123][lr]/freeboard_beam_segment/beam_lead_ndx"
       },
@@ -403,6 +428,7 @@
     },
     {
       "Applicability": {
+        "Mission": "ICESat2",
         "ShortNamePath": "ATL10",
         "VariablePattern": "/gt[123][lr]/freeboard_beam_segment/beam_lead_n"
       },
@@ -415,6 +441,7 @@
     },
     {
       "Applicability": {
+        "Mission": "ICESat2",
         "ShortNamePath": "ATL10",
         "VariablePattern": "/gt[123][lr]/freeboard_beam_segment/beam_freeboard/.*"
       },
@@ -427,6 +454,7 @@
     },
     {
       "Applicability": {
+        "Mission": "ICESat2",
         "ShortNamePath": "ATL10",
         "VariablePattern": "/gt[123][lr]/freeboard_beam_segment/beam_freeboard/beam_refsurf_ndx"
       },
@@ -439,6 +467,7 @@
     },
     {
       "Applicability": {
+        "Mission": "ICESat2",
         "ShortNamePath": "ATL10",
         "VariablePattern": "/gt[123][lr]/freeboard_segment/.*"
       },
@@ -451,6 +480,7 @@
     },
     {
       "Applicability": {
+        "Mission": "ICESat2",
         "ShortNamePath": "ATL10",
         "VariablePattern": "/gt[123][lr]/reference_surface_section/beam_lead_ndx"
       },
@@ -463,6 +493,7 @@
     },
     {
       "Applicability": {
+        "Mission": "ICESat2",
         "ShortNamePath": "ATL10",
         "VariablePattern": "/gt[123][lr]/reference_surface_section/beam_lead_n"
       },
@@ -475,6 +506,7 @@
     },
     {
       "Applicability": {
+        "Mission": "ICESat2",
         "ShortNamePath": "ATL10",
         "VariablePattern": "/gt[123][lr]/freeboard_segment/beam_refsurf_ndx"
       },
@@ -487,6 +519,7 @@
     },
     {
       "Applicability": {
+        "Mission": "ICESat2",
         "ShortNamePath": "ATL10",
         "VariablePattern": "/gt[123][lr]/freeboard_segment/heights/.*"
       },
@@ -499,6 +532,7 @@
     },
     {
       "Applicability": {
+        "Mission": "ICESat2",
         "ShortNamePath": "ATL10",
         "VariablePattern": "/gt[123][lr]/leads/.*"
       },
@@ -511,6 +545,8 @@
     },
     {
       "Applicability": {
+        "Mission": "ICESat2",
+        "ShortNamePath": "ATL10",
         "VariablePattern": "/gt[123][lr]/leads/ssh_ndx"
       },
       "Attributes": [
@@ -522,6 +558,8 @@
     },
     {
       "Applicability": {
+        "Mission": "ICESat2",
+        "ShortNamePath": "ATL10",
         "VariablePattern": "/gt[123][lr]/leads/ssh_n"
       },
       "Attributes": [

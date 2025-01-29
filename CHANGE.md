@@ -1,3 +1,10 @@
+[version 0.2.4] 2025-01-22
+
+- **DAS-2289**
+ - Update the missing datasets in the Applicability attributes 
+   of trajectorysubsetter_varinfo_config.json to support 
+   earthdata-varinfo==3.0.1
+
 [version 0.2.3] 2025-01-02
 
 - **DAS-2273**
