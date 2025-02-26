@@ -42,10 +42,12 @@ add_compile_options(-v -DSDPS -DH5_USE_18_API -Og)
 include_directories(${HDFEOS5_INCLUDE} ${HDF5_INCLUDE})
 link_directories(${HDFEOS5_LIB} ${HDF5_LIB})
 
+include(GoogleTest)
+
 add_executable(
   subsetter_test
-  test_ForwardReferenceCoordinates.cpp
   gtest_utilities.cpp
+  test_ForwardReferenceCoordinates.cpp
   test_IndexSelection.cpp
   test_ATL10_v005_Configuration.cpp
   test_ATL10_v006_Configuration.cpp
@@ -58,7 +60,7 @@ target_link_libraries(subsetter_test
                       jpeg
                       Gctp
                       lzma
-                      boost_program_options 
+                      boost_program_options
                       boost_filesystem
                       boost_date_time
                       boost_regex
@@ -67,12 +69,41 @@ target_link_libraries(subsetter_test
                       hdf5_hl
 )
 
-include(GoogleTest)
 gtest_discover_tests(subsetter_test)
+
+# A second executable had to be added due to global variable access.
+# Both the Subsetter and ForwardReferenceCoordinates tests access the global
+# variables Temporal::unixEpochTime and Coordinate::lookUpMap, resulting
+# in duplicate linker symbols.
+add_executable(
+  subsetter_requiring_temporal_subsetting_test
+  gtest_utilities.cpp
+  test_Subsetter.cpp
+)
+
+target_link_libraries(subsetter_requiring_temporal_subsetting_test
+                      GTest::gtest_main
+                      GTest::gmock_main
+                      geotiff
+                      tiff
+                      jpeg
+                      Gctp
+                      lzma
+                      boost_program_options
+                      boost_filesystem
+                      boost_date_time
+                      boost_regex
+                      hdf5
+                      hdf5_cpp
+                      hdf5_hl
+)
+
+gtest_discover_tests(subsetter_requiring_temporal_subsetting_test)
 
 #-----------------------------------------------------------------------------
 # Run google test after building
 #-----------------------------------------------------------------------------
-add_custom_command(TARGET subsetter_test
-                   POST_BUILD
-                   COMMAND ctest)
+  add_custom_command(TARGET subsetter_test
+                    subsetter_requiring_temporal_subsetting_test
+                    POST_BUILD
+                    COMMAND ctest)

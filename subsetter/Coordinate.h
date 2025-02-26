@@ -85,7 +85,6 @@ public:
             return coor;
         }
 
-
         // loop through all datasets in a group
         // to get coordinate datasets from coordinate attributes
         for (i = 0; i < numOfObjs; i++)
@@ -109,6 +108,7 @@ public:
         // match datasets in the group with the coordinate dataset names in the configuration file
         config->getMatchingCoordinateDatasetNames(shortname, allDatasets, timeNameInGroup, latitudeNameInGroup, longitudeNameInGroup,
                                                                         ignoreNameInGroup);
+
         // use groupname as coorGroupname(key for lookup map) if the coordinate dataset names are
         // retrieved by walking through the datasets in the group
         if (coorGroupname.empty()) coorGroupname = groupname;
@@ -166,6 +166,15 @@ public:
             data = new H5::DataSet(coorGroup.openDataSet(timeName));
             coor->checkCoorDatasetSize(data, inconsistentCoorDatasets);
             coor->coorDatasets.insert(std::pair<std::string, H5::DataSet*>("time", data));
+        }
+
+        // This is significant when there is a spatial-only subset, but no
+        // spatial coordinates exist.
+        if (!timeName.empty() && latitudeName.empty() && longitudeName.empty())
+        {
+            std::cout << "Group " << groupname << " has temporal coordinates ";
+            std::cout << "and no spatial coordinates.\n";
+            coor->temporalOnlyCoordinates = true;
         }
 
         // if lat/lon/time datasets do not exist in the group,
@@ -310,6 +319,12 @@ public:
         delete lon;
 
         return indexes;
+    }
+
+    bool hasTemporalOnlyCoordinates() { return temporalOnlyCoordinates; }
+    void setTemporalOnlyCoordinates(const bool temporalOnly)
+    {
+        temporalOnlyCoordinates = temporalOnly;
     }
 
 protected:
@@ -462,6 +477,7 @@ protected:
         if (coordinateSize == 0) coordinateSize = olddims[0];
         if ((coordinateSize != olddims[0]) && (!inconsistentCoorDatasets)) inconsistentCoorDatasets = true;
     }
+
 private:
 
     // limit the index range by spatial constraints
@@ -649,6 +665,8 @@ private:
     // values are acutal coordinate datasets
     // e.g. key:/profile_1/delta_time, value: /profile_1/delta_time dataset object
     std::map<std::string, H5::DataSet*> coorDatasets;
+
+    bool temporalOnlyCoordinates = false;
 
 };
 boost::unordered_map<std::string, Coordinate*> Coordinate::lookUpMap;

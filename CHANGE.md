@@ -1,35 +1,42 @@
+[version 0.2.5] 2025-02-21
+
+- **DAS-2310**
+ - Correct how requested groups with no spatial coordinates in subsets
+   with only spatial constraints are determined and added for special
+   temporal subsetting.
+
 [version 0.2.4] 2025-01-22
 
 - **DAS-2289**
- - Update the missing datasets in the Applicability attributes 
-   of trajectorysubsetter_varinfo_config.json to support 
+ - Update the missing datasets in the Applicability attributes
+   of trajectorysubsetter_varinfo_config.json to support
    earthdata-varinfo==3.0.1
 
 [version 0.2.3] 2025-01-02
 
 - **DAS-2273**
- - Working on the CI/CD team for the Trajectory Subsetter build, we 
-   are still experiencing intermittent failures, though they have 
-   decreased in frequency. To further reduce these failures, the 
+ - Working on the CI/CD team for the Trajectory Subsetter build, we
+   are still experiencing intermittent failures, though they have
+   decreased in frequency. To further reduce these failures, the
    following changes were implemented.
- - Add "--no-cache" to tests.Dockerfile 
+ - Add "--no-cache" to tests.Dockerfile
  - Update to "rockylinux:8" per suggestion from CI/CD
  - Remove "channel default" per DAS-2237
 
 - **DAS-2245**
- - Update configuration files (trajectorysubsetter_varinfo_config.json, 
-   subsetter_config) to reflect ATL10 v006's current architecture so 
+ - Update configuration files (trajectorysubsetter_varinfo_config.json,
+   subsetter_config) to reflect ATL10 v006's current architecture so
    that ATL10 subset. Update earthdata-varinfo==3.0.0
 
 [version 0.2.2] 2024-11-12
 
 - **DAS-2272**
- - Remove beam_refsur_ndx variable from ATL10 configuration since it no 
+ - Remove beam_refsur_ndx variable from ATL10 configuration since it no
    longer exists in the ATL10 version 6.
 
 - **DAS-2247**
- - Add support for ATL10 v006 configuration and functionality while 
-   maintaining backward compatibility with ATL10 v005. Include unit 
+ - Add support for ATL10 v006 configuration and functionality while
+   maintaining backward compatibility with ATL10 v005. Include unit
    tests for both ATL10 v005 and v006.
 
 [version 0.2.1] 2024-10-29
