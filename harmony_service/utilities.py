@@ -11,8 +11,8 @@ from subprocess import PIPE, Popen
 from typing import List, Optional
 
 from dateutil.parser import parse as parse_datetime
-from harmony.message import Message
-from harmony.message import Variable as HarmonyVariable
+from harmony_service_lib.message import Message
+from harmony_service_lib.message import Variable as HarmonyVariable
 from varinfo import VarInfoFromNetCDF4
 
 from harmony_service.exceptions import (

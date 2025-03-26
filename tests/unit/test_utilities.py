@@ -3,7 +3,7 @@ from tempfile import NamedTemporaryFile, TemporaryDirectory
 from unittest import TestCase
 from unittest.mock import Mock, patch
 
-from harmony.message import Message
+from harmony_service_lib.message import Message
 
 from harmony_service.exceptions import (
     InternalError,

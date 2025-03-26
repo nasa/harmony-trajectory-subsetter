@@ -1,3 +1,10 @@
+[version 0.3.0] 2025-03-24
+
+- **DAS-2327**
+ - Raise harmony-defined 'NoDataException' when the service finds no 
+   data to process (e.g., no data found by the service in the subset
+   region)
+
 [version 0.2.5] 2025-02-21
 
 - **DAS-2310**

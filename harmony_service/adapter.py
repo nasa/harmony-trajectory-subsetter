@@ -26,9 +26,10 @@ from sys import argv
 from tempfile import mkdtemp
 from typing import Any, Dict, List, Optional
 
-from harmony import BaseHarmonyAdapter, run_cli, setup_cli
-from harmony.message import Source
-from harmony.util import (
+from harmony_service_lib import BaseHarmonyAdapter, run_cli, setup_cli
+from harmony_service_lib.exceptions import NoDataException
+from harmony_service_lib.message import Source
+from harmony_service_lib.util import (
     Config,
     HarmonyException,
     download,
@@ -37,6 +38,7 @@ from harmony.util import (
 )
 from pystac import Asset, Item
 
+from harmony_service.exceptions import NoMatchingData
 from harmony_service.utilities import (
     convert_harmony_datetime,
     execute_command,
@@ -103,6 +105,8 @@ class HarmonyAdapter(BaseHarmonyAdapter):
                                           media_type=mime, roles=['data'])
 
             return result
+        except NoMatchingData as exception:
+            raise NoDataException from exception
         except Exception as exception:
             raise HarmonyException('L2 Trajectory Subsetter failed with '
                                    f'error: {str(exception)}') from exception

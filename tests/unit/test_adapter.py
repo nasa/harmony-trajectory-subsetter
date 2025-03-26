@@ -5,8 +5,9 @@ from shutil import rmtree
 from unittest import TestCase
 from unittest.mock import patch
 
-from harmony.message import Message, Source
-from harmony.util import HarmonyException, bbox_to_geometry, config
+from harmony_service_lib.message import Message, Source
+from harmony_service_lib.exceptions import NoDataException, ServerException
+from harmony_service_lib.util import HarmonyException, bbox_to_geometry, config
 from pystac import Asset, Catalog, Item
 
 from harmony_service.adapter import (
@@ -15,6 +16,7 @@ from harmony_service.adapter import (
     HarmonyAdapter,
     main,
 )
+from harmony_service.exceptions import NoMatchingData
 
 
 @patch('harmony_service.adapter.include_support_variables')
@@ -57,6 +59,17 @@ class TestAdapter(TestCase):
         """ Fixtures that must be created individually for all tests. """
         makedirs(self.temp_dir, exist_ok=True)
 
+        self.input_catalog = Catalog(id='input', description='test input')
+        input_item = Item(id='input_granule',
+                          geometry=bbox_to_geometry([-180, -90, 180, 90]),
+                          bbox=[-180, -90, 180, 90],
+                          datetime=datetime(2001, 1, 1), properties=None)
+        input_item.add_asset('input',
+                             Asset('https://www.example.com/file.h5',
+                                   media_type='application/x-hdf',
+                                   roles=['data']))
+        self.input_catalog.add_item(input_item)
+
     def tearDown(self):
         """ Clean-up after each test. """
         if exists(self.temp_dir):
@@ -86,19 +99,8 @@ class TestAdapter(TestCase):
                            'stagingLocation': self.staging_location,
                            'user': self.user})
 
-        input_catalog = Catalog(id='input', description='test input')
-        input_item = Item(id='input_granule',
-                          geometry=bbox_to_geometry([-180, -90, 180, 90]),
-                          bbox=[-180, -90, 180, 90],
-                          datetime=datetime(2001, 1, 1), properties=None)
-        input_item.add_asset('input',
-                             Asset('https://www.example.com/file.h5',
-                                   media_type='application/x-hdf',
-                                   roles=['data']))
-        input_catalog.add_item(input_item)
-
         subsetter = HarmonyAdapter(message, config=self.config,
-                                   catalog=input_catalog)
+                                   catalog=self.input_catalog)
         _, output_catalog = subsetter.invoke()
 
         expected_command = (f'{SUBSETTER_BINARY_PATH} '
@@ -142,7 +144,8 @@ class TestAdapter(TestCase):
                            'stagingLocation': self.staging_location,
                            'user': self.user})
 
-        subsetter = HarmonyAdapter(message, config=self.config)
+        subsetter = HarmonyAdapter(message, config=self.config, 
+                                   catalog=self.input_catalog)
 
         with self.assertRaises(HarmonyException) as context_manager:
             subsetter.invoke()
@@ -154,6 +157,42 @@ class TestAdapter(TestCase):
         mock_mkdtemp.assert_called_once()
         mock_get_mimetype.assert_not_called()
         mock_stage.assert_not_called()
+
+
+    @patch('harmony_service.adapter.execute_command')
+    def test_no_matching_data_exception(self, mock_execute_command,
+                              mock_download, mock_stage,
+                              mock_get_mimetype, mock_mkdtemp,
+                              mock_support_variables):
+        """ Ensure a request that has no data found matching the subset 
+            constraints raises the harmony-defined NoDataException
+
+        """
+        mock_execute_command.side_effect = NoMatchingData()
+        local_input_path = f'{self.temp_dir}/{self.granule["url"]}'
+        staged_output_url = 'tests/to/staged/output_subsetted.h5'
+        mock_download.return_value = local_input_path
+        mock_get_mimetype.return_value = self.mimetype
+        mock_stage.return_value = staged_output_url
+        mock_support_variables.side_effect = self.side_effect_fxn
+
+        message = Message({'accessToken': self.access_token,
+                           'callback': self.callback,
+                           'sources': [{'collection': self.collection,
+                                        'granules': [self.granule],
+                                        'variables': None}],
+                           'stagingLocation': self.staging_location,
+                           'user': self.user})
+
+        subsetter = HarmonyAdapter(message, config=self.config, 
+                                   catalog=self.input_catalog)
+        
+        with self.assertRaises(NoDataException) as context_manager:
+            subsetter.invoke()
+
+        self.assertEqual(context_manager.exception.message,
+                         ('No data found to process'))
+
 
     def test_missing_granules(self, mock_download, mock_stage,
                               mock_get_mimetype, mock_mkdtemp,
@@ -197,7 +236,8 @@ class TestAdapter(TestCase):
                            'stagingLocation': self.staging_location,
                            'user': self.user})
 
-        subsetter = HarmonyAdapter(message, config=self.config)
+        subsetter = HarmonyAdapter(message, config=self.config, 
+                                   catalog=self.input_catalog)
 
         with self.assertRaises(Exception) as context_manager:
             subsetter.invoke()
@@ -242,7 +282,8 @@ class TestAdapter(TestCase):
                                                 'end': temporal_end},
                                    'user': self.user})
 
-                subsetter = HarmonyAdapter(message, config=self.config)
+                subsetter = HarmonyAdapter(message, config=self.config, 
+                                           catalog=self.input_catalog)
 
                 with self.assertRaises(Exception) as context_manager:
                     subsetter.invoke()
@@ -267,7 +308,8 @@ class TestAdapter(TestCase):
                                             'end': end_time},
                                'user': self.user})
 
-            subsetter = HarmonyAdapter(message, config=self.config)
+            subsetter = HarmonyAdapter(message, config=self.config, 
+                                       catalog=self.input_catalog)
             subsetter.invoke()
 
             expected_local_out = f'{self.temp_dir}/{self.subsetted_filename}'
@@ -314,7 +356,8 @@ class TestAdapter(TestCase):
                 'user': self.user,
             })
 
-            subsetter = HarmonyAdapter(message, config=self.config)
+            subsetter = HarmonyAdapter(message, config=self.config, 
+                                       catalog=self.input_catalog)
 
             with self.assertRaises(Exception) as context_manager:
                 subsetter.invoke()
@@ -340,7 +383,8 @@ class TestAdapter(TestCase):
                 'user': self.user,
             })
 
-            subsetter = HarmonyAdapter(message, config=self.config)
+            subsetter = HarmonyAdapter(message, config=self.config, 
+                                       catalog=self.input_catalog)
             subsetter.invoke()
 
             expected_local_out = f'{self.temp_dir}/{self.subsetted_filename}'
