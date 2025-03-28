@@ -1,7 +1,14 @@
+[version 0.3.1] 2025-03-27
+
+- **DAS-2233**
+ - Fix bug that caused ATL03, ATL08, and ATL10 subsets to write out random
+   values to the index begin dataset when a subset has only temporal
+   constraints.
+
 [version 0.3.0] 2025-03-24
 
 - **DAS-2327**
- - Raise harmony-defined 'NoDataException' when the service finds no 
+ - Raise harmony-defined 'NoDataException' when the service finds no
    data to process (e.g., no data found by the service in the subset
    region)
 

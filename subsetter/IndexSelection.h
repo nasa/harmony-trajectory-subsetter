@@ -53,8 +53,8 @@ class IndexSelection
         {
             std::cout << "IndexSelection::addRestriction(): ENTER" << std::endl;
 
-            std::cout << "IndexSelection::addRestriction changing from (" << minIndexStart 
-                      << "," << maxIndexEnd << ") to (" << newStart << "," << newStart+newLength 
+            std::cout << "IndexSelection::addRestriction changing from (" << minIndexStart
+                      << "," << maxIndexEnd << ") to (" << newStart << "," << newStart+newLength
                       << ")" << std::endl;
 
             minIndexStart = newStart;
@@ -66,6 +66,32 @@ class IndexSelection
             for (it = original_segments.begin(); it != original_segments.end(); it++)
                 addSegment(it->first, it->second);
         }
+
+        /**
+         * @brief This retrieves the subset index segments.
+         *
+         *        Spatial segments already incorporate temporal constraints,
+         *        so the segment map can simply be returned.
+         *
+         *        However, when there are only temporal constraints, the
+         *        temporal subset indexes must be added as to the segment
+         *        map before it is returned.
+         *
+         * @return The subset index segments.
+         */
+        std::map<long, long> getSegments()
+        {
+            if (segments.empty() and
+            this->size() != 0 and
+            this->size() != this->getMaxSize())
+            {
+                segments[this->minIndexStart] = this->maxIndexEnd - this->minIndexStart;
+            }
+
+            return segments;
+
+        }
+
 
         // Add segment:
         //   union new segment with existing segments,

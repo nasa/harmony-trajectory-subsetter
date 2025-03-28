@@ -112,10 +112,10 @@ public:
         int64_t segmentBeginOut = 0;
 
         // For each selected element group, write to the segment begin output/subset dataset.
-        for ( std::map<long, long>::iterator it
-                 = selectedElements->segments.begin();
-              it != selectedElements->segments.end();
-              it++ )
+        std::map<long, long> allSegments = selectedElements->getSegments();
+        for ( std::map<long, long>::iterator it = allSegments.begin();
+             it != allSegments.end();
+             it++ )
         {
 
             long segmentBeginIn = it->first;

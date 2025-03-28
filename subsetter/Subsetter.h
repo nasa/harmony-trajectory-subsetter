@@ -530,6 +530,7 @@ private:
 
         }
 
+
         // Iterate through the links in the group and save the information,
         // ignoring the METADATA group (case insensitive) and its subgroups.
         // Note: It appears that ICESat-2 doesn't have dataset links.
@@ -645,7 +646,7 @@ private:
             // Check if this time coordinate has been subset (either temporally
             // or spatially), so we can glean the subset time range.
             // If so, extract the dataset's time range.
-            if (indexes->size() != indexes->getMaxSize())
+            if (indexes->size() != 0 and indexes->size() != indexes->getMaxSize())
             {
                 size_t inputCoordinateSize = indataset.getSpace().getSimpleExtentNpoints();
                 std::vector<double> dataVector(inputCoordinateSize);
