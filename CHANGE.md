@@ -1,3 +1,13 @@
+[version 0.3.2] 2025-06-25
+
+- **DAS-2364**
+ - Add SMAP L2 EASE grid row and column datasets as `ancillary_variables` in
+   the `earthdata-varinfo` configuration file to ensure that only the EASE
+   variables associated with the requested variables are included.
+ - Explicitly remove the `defaults` channel from the Miniconda installation in
+   service.Dockerfile, and add the `nodefaults` channel to the environment
+   creation to avoid an Anaconda rate limit error.
+
 [version 0.3.1] 2025-03-27
 
 - **DAS-2233**

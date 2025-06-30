@@ -15,7 +15,8 @@
   ],
   "Mission": {
     "GEDI_L[1234][AB]|GEDI0[1234]_[AB]": "GEDI",
-    "ATL\\d{2}": "ICESat2"
+    "ATL\\d{2}": "ICESat2",
+    "SPL2SM(A|AP|P|P_E)$": "SMAP"
   },
   "ExcludedScienceVariables": [
     {
@@ -566,6 +567,48 @@
         {
           "Name": "segment_control_variable_type",
           "Value": "sparse_segment_index_cnt"
+        }
+      ]
+    },
+    {
+      "Applicability": {
+        "Mission": "SMAP",
+        "ShortNamePath": "SPL2SM(A|AP|P|P_E)$",
+        "VariablePattern": "/Soil_Moisture_Retrieval_Data/.*"
+
+      },
+      "Attributes": [
+        {
+          "Name": "ancillary_variables",
+          "Value": "/Soil_Moisture_Retrieval_Data/EASE_column_index,/Soil_Moisture_Retrieval_Data/EASE_row_index"
+        }
+      ]
+    },
+    {
+      "Applicability": {
+        "Mission": "SMAP",
+        "ShortNamePath": "SPL2SMAP",
+        "VariablePattern": "/Soil_Moisture_Retrieval_Data_3km/.*"
+
+      },
+      "Attributes": [
+        {
+          "Name": "ancillary_variables",
+          "Value": "/Soil_Moisture_Retrieval_Data_3km/EASE_column_index_3km,/Soil_Moisture_Retrieval_Data_3km/EASE_row_index_3km"
+        }
+      ]
+    },
+    {
+      "Applicability": {
+        "Mission": "SMAP",
+        "ShortNamePath": "SPL2SMP_E",
+        "VariablePattern": "/Soil_Moisture_Retrieval_Data_Polar/.*"
+
+      },
+      "Attributes": [
+        {
+          "Name": "ancillary_variables",
+          "Value": "/Soil_Moisture_Retrieval_Data_Polar/EASE_column_index,/Soil_Moisture_Retrieval_Data_Polar/EASE_row_index"
         }
       ]
     }

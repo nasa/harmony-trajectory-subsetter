@@ -64,8 +64,9 @@ RUN rm -rf ./subsetter ./hdfeos ./hdfeos5 ./hdf5
 # Create Conda environment
 ENV PATH="/opt/conda/bin:$PATH"
 
+RUN conda config --remove channels defaults
 RUN conda create -y --name trajectorysubsetter python=3.11 -q \
-    --channel conda-forge
+    --channel conda-forge --channel nodefaults
 
 # Copy additional Pip dependencies into the container
 COPY harmony_service/pip_requirements.txt harmony_service/pip_requirements.txt
