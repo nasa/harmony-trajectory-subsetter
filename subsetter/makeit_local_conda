@@ -1,0 +1,21 @@
+#!/bin/bash
+
+CURDIR=$(pwd)
+
+if [ ! -f "${CURDIR}/hdfeos5/include/HE5_GctpFunc.h" ] || [ ! -f "${CURDIR}/hdfeos5/lib/libGctp.a" ]; then
+    echo "The required header and library files do not exist - building  hdfeos5 library..."
+    git clone https://git.earthdata.nasa.gov/scm/sitc/hdfeos5.git && cd hdfeos5
+    ./configure --prefix=${CURDIR}/hdfeos5 && make && make install
+    cd ../
+fi
+
+${CONDA_PREFIX}/bin/h5c++ -v -std=c++20 -g ./Subset.cpp \
+-DSDPS \
+-DH5_USE_18_API \
+-Og \
+-I${CURDIR}/hdfeos5/include \
+-L${CURDIR}/hdfeos5/lib \
+-lgeotiff -ltiff -ljpeg -lGctp -llzma \
+-lboost_program_options -lboost_filesystem \
+-lboost_date_time       -lboost_regex \
+-o subset

@@ -79,6 +79,7 @@ add_executable(
   subsetter_requiring_temporal_subsetting_test
   gtest_utilities.cpp
   test_Subsetter.cpp
+  test_Temporal.cpp
 )
 
 target_link_libraries(subsetter_requiring_temporal_subsetting_test

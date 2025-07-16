@@ -150,11 +150,19 @@ private:
     // convert to the date time std::string in format YYYY-MM-DDTHH:MM:SS.ffffff
     std::string convertToDateTimeString(double timeInSeconds)
     {
-        // parse the integer and fractional part
-        double intpart;
-        double fractpart = modf(timeInSeconds, &intpart);
-        boost::posix_time::ptime t = boost::posix_time::time_from_string(myReferenceTime) + boost::posix_time::seconds((long)intpart) + boost::posix_time::microseconds((long)(fractpart*1000000.0));
-        return to_iso_extended_string(t);
+        try
+        {
+            // parse the integer and fractional part
+            double intpart;
+            double fractpart = modf(timeInSeconds, &intpart);
+            boost::posix_time::ptime t = boost::posix_time::time_from_string(myReferenceTime) + boost::posix_time::seconds((long)intpart) + boost::posix_time::microseconds((long)(fractpart*1000000.0));
+            return to_iso_extended_string(t);
+        }
+        catch(const std::exception &ex)
+        {
+            std::cerr << "INFO: " << ex.what() << ", setting date time to 00:00:00.000000" << std::endl;
+            return std::string("00:00:00.000000");
+        }   
     }
 
     // seconds since reference time
@@ -170,9 +178,8 @@ private:
     bool epochUpdateRequired;
 
     // use as default epoch time
-    static std::string unixEpochTime;
+    std::string unixEpochTime = "1970-01-01 00:00:00.000000";
 
 };
-std::string Temporal::unixEpochTime = "1970-01-01 00:00:00.000000";
 
 #endif

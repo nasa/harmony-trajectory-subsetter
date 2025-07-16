@@ -36,7 +36,7 @@ environment, itself within a Docker container. To recreate the same conda
 environment in a local terminal, use the following commands:
 
 ```bash
-conda create --name trajectory python=3.9 --channel conda-forge
+conda create --name trajectory python=3.11 --channel conda-forge
 conda activate trajectory
 pip install -r ./harmony_service/pip_requirements.txt
 ```
@@ -147,34 +147,7 @@ and activate the environment:
 conda activate trajectory-subsetter-local-dev
 ```
 
-Create a `makeit_local_conda` file and place in it the code below. Remember to replace the file path to h5c++. Note that the first build may take longer.<br>
-Note: When the latest version of `hdfeos5` is available in conda (newer than 5.1.16), the if statement may be removed.
-
-```
-#!/bin/bash
-
-CURDIR=$(pwd)
-
-if [ ! -f "${CURDIR}/hdfeos5/include/HE5_GctpFunc.h" ] || [ ! -f "${CURDIR}/hdfeos5/lib/libGctp.a" ]; then
-    echo "The required header and library files do not exist - building  hdfeos5 library..."
-    git clone https://git.earthdata.nasa.gov/scm/sitc/hdfeos5.git && cd hdfeos5
-    ./configure --prefix=${CURDIR}/hdfeos5 && make && make install
-    cd ../
-fi
-
-${CONDA_PREFIX}/bin/h5c++ -v -std=c++20 -g ./Subset.cpp \
--DSDPS \
--DH5_USE_18_API \
--Og \
--I${CURDIR}/hdfeos5/include \
--L${CURDIR}/hdfeos5/lib \
--lgeotiff -ltiff -ljpeg -lGctp -llzma \
--lboost_program_options -lboost_filesystem \
--lboost_date_time       -lboost_regex \
--o subset
-```
-
-Build the source code (you may have to make it executable via `chmod 755 makeit_local_conda`):
+Build the source code:
 ```
 ./makeit_local_conda
 ```
