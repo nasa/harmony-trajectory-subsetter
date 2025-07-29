@@ -14,6 +14,7 @@
 #include <boost/tokenizer.hpp>
 #include <boost/foreach.hpp>
 #include <boost/regex.hpp>
+#include <boost/algorithm/string.hpp>
 
 #include "Configuration.h"
 #include "geobox.h"
@@ -37,6 +38,7 @@ std::string boundingShape;
 std::string originalOutputFormat;
 std::string outputFormat;
 std::string datasetList;
+std::string collShortName;
 bool reproject;
 
 std::vector<geobox>* geoboxes = NULL; // Multiple bounding boxes can be specified.
@@ -65,7 +67,8 @@ int process_args(int argc, char* argv[])
             ("includedataset,i", program_options::value<std::string>(), "Only include the specified datasets to include in output product")
             ("boundingshape,p", program_options::value<std::string>(), "Bounding shape(polygon)")
             ("reformat,r", program_options::value<std::string>(), "Change the output format (-r GeoTIFF)")
-            ("crs,j", program_options::value<std::string>(), "Reproject to the coordinate reference system (e.g. EPSG:4326");
+            ("crs,j", program_options::value<std::string>(), "Reproject to the coordinate reference system (e.g. EPSG:4326")
+            ("shortname,n", program_options::value<std::string>(), "The collection shortName for granules that do not contain a shortName variable (ATL24)");
 
     program_options::variables_map variables_map;
     program_options::store(program_options::command_line_parser(argc, argv).options(description).run(), variables_map);
@@ -204,6 +207,10 @@ int process_args(int argc, char* argv[])
         reproject=false;
     }
 
+    // Access shortname from the input command, otherwise assign these variables to an empty string
+    collShortName = (variables_map.count("shortname"))? variables_map["shortname"].as<std::string>() : "";
+    boost::trim_right(collShortName);
+
     return 0;
 }
 
@@ -271,7 +278,20 @@ int main(int argc, char* argv[])
         // a Subsetter class function into a Configuration instance function.
         Subsetter* getMission = new Subsetter(subsetDataLayers, geoboxes, temporal, geoPolygon, config, outputFormat);
         H5::H5File infile = H5::H5File(infilename,H5F_ACC_RDONLY);
+
         std::string shortname = getMission->retrieveShortName(infile);
+        if(shortname.empty() && !collShortName.empty())
+        {
+            shortname = collShortName;
+            std::cout << "Subset::main(): shortname: " << shortname << std::endl;
+        }
+        else if (shortname.empty() && collShortName.empty())
+        {
+            std::cout << "Subset::main(): ERROR: The short name could not be retrieved \
+                        from the collection or was not defined in the command line arguments" 
+            << std::endl;
+        }
+
         std::string mission = config->getMissionFromShortName(shortname);
         delete getMission;
 
@@ -289,7 +309,7 @@ int main(int argc, char* argv[])
         {
             subsetter = new Subsetter(subsetDataLayers, geoboxes, temporal, geoPolygon, config, outputFormat);
         }
-        ErrorCode = subsetter->subset(infilename, outfilename);
+        ErrorCode = subsetter->subset(infilename, outfilename, shortname);
 
         // Release dynamic memory.
         delete config;

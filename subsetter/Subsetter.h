@@ -60,7 +60,7 @@ public:
      * @param outfilename The output granule file path.
      * @return Error code (0 - success, 3 - no match data found)
      */
-    int subset(std::string infilename, std::string outfilename)
+    int subset(std::string infilename, std::string outfilename, std::string collShortName)
     {
         std::cout << "Subsetter::subset(): ENTER" << std::endl;
 
@@ -82,6 +82,16 @@ public:
         H5Pclose(fileAccessPropList);
 
         this->shortName = retrieveShortName(infile);
+        if(this->shortName.empty() && !collShortName.empty())
+        {
+            this->shortName = collShortName;
+        }
+        else if (this->shortName.empty() && collShortName.empty())
+        {
+            std::cout << "Subsetter::subset(): ERROR: The short name could not be retrieved \
+                        from the collection or was not defined in the command line arguments" 
+            << std::endl;
+        }
 
         // Update epoch time if it's configured for this product,
         // otherwise return an empty string.
@@ -157,6 +167,14 @@ public:
         H5::Group root = file.openGroup("/");
         std::vector<std::string> shortnamePaths = config->getShortnamePath();
         size_t found;
+
+        H5E_auto2_t oldFunction;
+        void *oldClientData;
+
+        H5Eget_auto2(H5E_DEFAULT, &oldFunction, &oldClientData);
+        //  Turn off error handling
+        H5Eset_auto2(H5E_DEFAULT, NULL, NULL);
+
         for (std::vector<std::string>::iterator it = shortnamePaths.begin(); it != shortnamePaths.end(); it++)
         {
             shortnameFullPath = *it;
@@ -210,6 +228,9 @@ public:
                 }
             }
         }
+
+        //  Restore previous error handler
+        H5Eset_auto2(H5E_DEFAULT, oldFunction, oldClientData);
 
         std::cout << "Subsetter::retrieveShortName(): Processing file of type " << std::string(str) << std::endl;
         return std::string(str);
@@ -413,7 +434,7 @@ protected:
         H5::DataSpace outspace(dimnum, newdims, maxdims);
         H5::DataType datatype(indataset.getDataType());
         H5::DSetCreatPropList plist = indataset.getCreatePlist();
-        if (indataset.getCreatePlist().getLayout() == H5D_CONTIGUOUS)
+        if (indataset.getCreatePlist().getLayout() == H5D_CONTIGUOUS && dimnum > 0)
         {
             plist.setLayout(H5D_CHUNKED);
             plist.setChunk(dimnum, olddims);

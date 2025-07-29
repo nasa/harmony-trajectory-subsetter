@@ -176,6 +176,7 @@ not required). Remember to replace file paths as needed.
               "--outfile","/Path/to/output/file",
               "--includedataset","/Path/to/variable1,/Path/to/variable2",
               "--bbox","W,S,E,N",
+              "--shortname","ATLxx",
               "--start","'YYYY-MM-DDTHH:MM:SS'",
               "--end","'YYYY-MM-DDTHH:MM:SS'"
               ],

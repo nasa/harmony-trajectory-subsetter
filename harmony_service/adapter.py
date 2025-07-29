@@ -214,6 +214,8 @@ class HarmonyAdapter(BaseHarmonyAdapter):
             * `--bbox` - A bounding box of format "[W,S,E,N]".
             * `--boundingshape` - A local file path for a shape file to be used
               for polygon spatial subsetting.
+            * `--shortname` - The collection shortName for granules that
+              do not contain a shortName variable.
 
             Other binary parameters currently not used:
 
@@ -270,6 +272,8 @@ class HarmonyAdapter(BaseHarmonyAdapter):
                 bounding_shape = json.dumps(json.load(file_handler))
 
             binary_parameters['--boundingshape'] = f'\'{bounding_shape}\''
+
+        binary_parameters['--shortname'] = source.shortName
 
         binary_parameters['--outfile'] = join_path(
             working_directory,

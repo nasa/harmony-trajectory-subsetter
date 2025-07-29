@@ -49,6 +49,7 @@ class TestAdapter(TestCase):
         cls.subsetted_filename = 'file_subsetted.h5'
         cls.temp_dir = 'tests/temp'
         cls.user = 'tglennan'
+        cls.shortname = 'ATL24'
 
     @staticmethod
     def side_effect_fxn(input, short_name):
@@ -95,7 +96,8 @@ class TestAdapter(TestCase):
                            'callback': self.callback,
                            'sources': [{'collection': self.collection,
                                         'granules': [self.granule],
-                                        'variables': None}],
+                                        'variables': None,
+                                        'shortName': self.shortname}],
                            'stagingLocation': self.staging_location,
                            'user': self.user})
 
@@ -106,6 +108,7 @@ class TestAdapter(TestCase):
         expected_command = (f'{SUBSETTER_BINARY_PATH} '
                             f'--configfile {SUBSETTER_CONFIG} '
                             f'--filename {local_input_path} '
+                            f'--shortname {self.shortname} '
                             f'--outfile {local_input_path}')
 
         mock_mkdtemp.assert_called_once()
@@ -140,7 +143,8 @@ class TestAdapter(TestCase):
                            'callback': self.callback,
                            'sources': [{'collection': self.collection,
                                         'granules': [self.granule],
-                                        'variables': None}],
+                                        'variables': None,
+                                        'shortName': self.shortname}],
                            'stagingLocation': self.staging_location,
                            'user': self.user})
 
@@ -180,7 +184,8 @@ class TestAdapter(TestCase):
                            'callback': self.callback,
                            'sources': [{'collection': self.collection,
                                         'granules': [self.granule],
-                                        'variables': None}],
+                                        'variables': None,
+                                        'shortName': self.shortname}],
                            'stagingLocation': self.staging_location,
                            'user': self.user})
 
@@ -232,7 +237,8 @@ class TestAdapter(TestCase):
                            'isSynchronous': True,
                            'sources': [{'collection': self.collection,
                                         'granules': [self.granule,
-                                                     self.granule]}],
+                                                     self.granule],
+                                        'shortName': self.shortname}],
                            'stagingLocation': self.staging_location,
                            'user': self.user})
 
@@ -276,7 +282,8 @@ class TestAdapter(TestCase):
                 message = Message({'accessToken': self.access_token,
                                    'callback': self.callback,
                                    'sources': [{'collection': self.collection,
-                                                'granules': [self.granule]}],
+                                                'granules': [self.granule],
+                                                'shortName': self.shortname}],
                                    'stagingLocation': self.staging_location,
                                    'temporal': {'start': temporal_start,
                                                 'end': temporal_end},
@@ -302,7 +309,8 @@ class TestAdapter(TestCase):
             message = Message({'accessToken': self.access_token,
                                'callback': self.callback,
                                'sources': [{'collection': self.collection,
-                                            'granules': [self.granule]}],
+                                            'granules': [self.granule],
+                                            'shortName': self.shortname}],
                                'stagingLocation': self.staging_location,
                                'temporal': {'start': start_time,
                                             'end': end_time},
@@ -318,6 +326,7 @@ class TestAdapter(TestCase):
                                 f'--filename {self.granule["url"]} '
                                 f'--start {start_time} '
                                 f'--end {end_time} '
+                                f'--shortname {self.shortname} '
                                 f'--outfile {expected_local_out}')
 
             mock_mkdtemp.assert_called_once()
@@ -349,7 +358,8 @@ class TestAdapter(TestCase):
                 'accessToken': self.access_token,
                 'callback': self.callback,
                 'sources': [{'collection': self.collection,
-                             'granules': [self.granule]}],
+                             'granules': [self.granule],
+                             'shortName': self.shortname}],
                 'stagingLocation': self.staging_location,
                 'subset': {'shape': {'href': 'url.notgeojson',
                                      'type': 'other MIME type'}},
@@ -376,7 +386,8 @@ class TestAdapter(TestCase):
                 'accessToken': self.access_token,
                 'callback': self.callback,
                 'sources': [{'collection': self.collection,
-                             'granules': [self.granule]}],
+                             'granules': [self.granule],
+                             'shortName': self.shortname}],
                 'stagingLocation': self.staging_location,
                 'subset': {'shape': {'href': 'url.geo.json',
                                      'type': 'application/geo+json'}},
@@ -392,6 +403,7 @@ class TestAdapter(TestCase):
                                 f'--configfile {SUBSETTER_CONFIG} '
                                 f'--filename {self.granule["url"]} '
                                 f'--boundingshape {self.bounding_shape} '
+                                f'--shortname {self.shortname} '
                                 f'--outfile {expected_local_out}')
 
             mock_mkdtemp.assert_called_once()
@@ -415,7 +427,8 @@ class TestAdapter(TestCase):
         """
         base_source = {'collection': self.collection,
                        'granules': [self.granule],
-                       'variables': []}
+                       'variables': [],
+                       'shortName': self.shortname}
 
         base_message = {'accessToken': self.access_token,
                         'callback': self.callback,
@@ -442,7 +455,8 @@ class TestAdapter(TestCase):
             expected_parameters = {
                 '--configfile': SUBSETTER_CONFIG,
                 '--filename': local_input_path,
-                '--outfile': f'{self.temp_dir}/{self.granule["url"]}'
+                '--outfile': f'{self.temp_dir}/{self.granule["url"]}',
+                '--shortname': self.shortname,
             }
             message_content = base_message.copy()
             message_content['sources'] = [base_source]
@@ -467,7 +481,8 @@ class TestAdapter(TestCase):
                 '--configfile': SUBSETTER_CONFIG,
                 '--filename': local_input_path,
                 '--includedataset': join(self.temp_dir, "source_vars.json"),
-                '--outfile': f'{self.temp_dir}/{self.subsetted_filename}'
+                '--outfile': f'{self.temp_dir}/{self.subsetted_filename}',
+                '--shortname': self.shortname
             }
             message_content = base_message.copy()
             source_content = base_source.copy()
@@ -502,7 +517,8 @@ class TestAdapter(TestCase):
                 '--bbox': '10,20,30,40',
                 '--configfile': SUBSETTER_CONFIG,
                 '--filename': local_input_path,
-                '--outfile': f'{self.temp_dir}/{self.subsetted_filename}'
+                '--outfile': f'{self.temp_dir}/{self.subsetted_filename}',
+                '--shortname': self.shortname
             }
             message_content = base_message.copy()
             message_content.update({'sources': [base_source],
@@ -527,7 +543,8 @@ class TestAdapter(TestCase):
                 '--boundingshape': self.bounding_shape,
                 '--configfile': SUBSETTER_CONFIG,
                 '--filename': local_input_path,
-                '--outfile': f'{self.temp_dir}/{self.subsetted_filename}'
+                '--outfile': f'{self.temp_dir}/{self.subsetted_filename}',
+                '--shortname': self.shortname
             }
             message_content = base_message.copy()
             message_content.update({
@@ -561,6 +578,7 @@ class TestAdapter(TestCase):
                 '--end': end_time,
                 '--filename': local_input_path,
                 '--outfile': f'{self.temp_dir}/{self.subsetted_filename}',
+                '--shortname': self.shortname,
                 '--start': start_time,
             }
             message_content = base_message.copy()
@@ -592,6 +610,7 @@ class TestAdapter(TestCase):
                 '--filename': local_input_path,
                 '--includedataset': join(self.temp_dir, "source_vars.json"),
                 '--outfile': f'{self.temp_dir}/{self.subsetted_filename}',
+                '--shortname': self.shortname,
                 '--start': start_time,
             }
             source_content = base_source.copy()
@@ -642,7 +661,8 @@ class TestAdapter(TestCase):
         message = Message({'accessToken': self.access_token,
                            'callback': self.callback,
                            'sources': [{'collection': self.collection,
-                                        'granules': [self.granule]}],
+                                        'granules': [self.granule],
+                                        'shortName': self.shortname}],
                            'stagingLocation': self.staging_location,
                            'user': self.user})
 

@@ -1,8 +1,16 @@
+[version 0.3.4] 2025-07-17
+
+- **DAS-2329**
+ - Add shortName to harmony adapter and command line arguments for collection
+   that do not contain a shortName variable
+
 [version 0.3.3] 2025-07-08
 
 - **DAS-2376**
- - Add exception handling to the boost::posix_time API to manage cases where the value is 0.
- - Add make_local_conda script for building TS, replacing the need to copy instructions from README.md
+ - Add exception handling to the boost::posix_time API to manage cases
+   where the value is 0.
+ - Add make_local_conda script for building TS, replacing the need
+   to copy instructions from README.md
  - Add a Google Unit Test (test_Temporal.cpp) to verify exception handling.
 
 [version 0.3.2] 2025-06-25
