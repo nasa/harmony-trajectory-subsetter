@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <exception>
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include "LogLevel.h"
 
 // class to test whether dataset temporal value is within the range provided by user
 class Temporal
@@ -21,7 +22,7 @@ public:
     Temporal(std::string s, std::string e, std::string epochTime="")
     : epochUpdateRequired(true)
     {
-        std::cout << "Temporal::Temporal(): ENTER" << std::endl;
+        LOG_DEBUG("Temporal::Temporal(): ENTER");
 
         if (s.find(":") == std::string::npos)
             s += " 00:00:00.000000";
@@ -44,12 +45,12 @@ public:
         }
         catch (std::exception &ex)
         {
-            std::cerr << "Temporal::Temporal(): ERROR: Temporal.ctor failed to parse the time strings " << s << " " << e << std::endl;
+            LOG_ERROR("Temporal::Temporal(): ERROR: Temporal.ctor failed to parse the time strings " << s << " " << e);
             std::exception_ptr p = std::current_exception();
             rethrow_exception(p);
         }
         std::cout.setf(std::ios::fixed); // to print more precision
-        std::cout << "Temporal::Temporal(): start end " << start << " " << end << std::endl;
+        LOG_DEBUG("Temporal::Temporal(): start end " << start << " " << end);
         std::cout.unsetf(std::ios_base::floatfield); //set back
     }
 
@@ -115,7 +116,7 @@ public:
     // update the reference time, start and end
     void updateReferenceTime(std::string referenceTime)
     {
-        std::cout << "Temporal::updateReferenceTime(): ENTER" << std::endl;
+        LOG_DEBUG("Temporal::updateReferenceTime(): ENTER");
 
         // get the difference between old and new reference time
         replace(referenceTime.begin(), referenceTime.end(), 'T', ' ');
@@ -131,12 +132,12 @@ public:
         }
         catch (std::exception &ex)
         {
-            std::cerr << "ERROR: Temporal.updateReferenceTime failed to parse the time strings " << referenceTime << std::endl;
+            LOG_ERROR("ERROR: Temporal.updateReferenceTime failed to parse the time strings " << referenceTime);
             std::exception_ptr p = std::current_exception();
             rethrow_exception(p);
         }
         std::cout.setf(std::ios::fixed); // to print more precision
-        std::cout << "Temporal::updateReferenceTime(): start end " << start << " " << end << std::endl;
+        LOG_DEBUG("Temporal::updateReferenceTime(): start end " << start << " " << end);
         std::cout.unsetf(std::ios_base::floatfield); //set back
 
     }
@@ -160,7 +161,7 @@ private:
         }
         catch(const std::exception &ex)
         {
-            std::cerr << "INFO: " << ex.what() << ", setting date time to 00:00:00.000000" << std::endl;
+            LOG_INFO(ex.what() << ", setting date time to 00:00:00.000000");
             return std::string("00:00:00.000000");
         }   
     }

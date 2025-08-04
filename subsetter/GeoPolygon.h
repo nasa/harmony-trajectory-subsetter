@@ -16,7 +16,7 @@
 #include <boost/type_traits/is_empty.hpp>
 
 #include "geobox.h"
-
+#include "LogLevel.h"
 
 namespace property_tree = boost::property_tree;
 
@@ -50,7 +50,7 @@ public:
 
         boost::geometry::envelope(polygons, box);
 
-        std::cout << "box: " << boost::geometry::dsv(box) << std::endl;
+        LOG_DEBUG("box: " << boost::geometry::dsv(box));
 
         w = box.min_corner().get<0>();
         s = box.min_corner().get<1>();
@@ -138,7 +138,7 @@ private:
      */
     void readPolygon(property_tree::ptree tree)
     {
-        std::cout << "GeoPolygon::readPolygon(): ENTER" << std::endl;
+        LOG_DEBUG("GeoPolygon::readPolygon(): ENTER");
 
         std::vector<std::string> objTypes = {"Polygon", "MultiPolygon"};
 
@@ -176,7 +176,7 @@ private:
      */
     void getCoordinatesFromGeoJSON(property_tree::ptree tree)
     {
-        std::cout << "GeoPolygon::getCoordinatesFromGeoJSON(): ENTER" << std::endl;
+        LOG_DEBUG("GeoPolygon::getCoordinatesFromGeoJSON(): ENTER");
 
         bool isPolygon = (getType(tree) == "Polygon") ? true : false;
         bool isMultiPolygon = (getType(tree) == "MultiPolygon") ? true : false;
@@ -211,7 +211,7 @@ private:
      */
     void getPolygon(polygon_type &poly, property_tree::ptree tree, bool outer, int inner)
     {
-        std::cout << "GeoPolygon::getPolygon(): ENTER" << std::endl;
+        LOG_DEBUG("GeoPolygon::getPolygon(): ENTER");
 
         std::vector<double> point;
 
@@ -241,7 +241,7 @@ private:
      */
     void getMultiPolygon(property_tree::ptree tree, polygon_type &poly)
     {
-        std::cout << "GeoPolygon::getMultiPolygon(): ENTER" << std::endl;
+        LOG_DEBUG("GeoPolygon::getMultiPolygon(): ENTER");
 
         bool outer = true;
         int inner = 0;

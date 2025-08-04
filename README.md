@@ -177,6 +177,8 @@ not required). Remember to replace file paths as needed.
               "--includedataset","/Path/to/variable1,/Path/to/variable2",
               "--bbox","W,S,E,N",
               "--shortname","ATLxx",
+              "--loglevel","INFO",
+              "--logfile","/Path/to/log_output/file",
               "--start","'YYYY-MM-DDTHH:MM:SS'",
               "--end","'YYYY-MM-DDTHH:MM:SS'"
               ],

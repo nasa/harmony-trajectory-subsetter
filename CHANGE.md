@@ -1,3 +1,12 @@
+[version 0.3.5] 2025-07-31
+
+- **DAS-2398**
+ - Add support to pass the logging level from Harmony using the --loglevel argument
+ - Add support to pass the log file from command line using the --logfile argument
+ - Update std::cout with log level API LOG_DEBUG(), LOG_INFO(), LOG_WARNING()
+   LOG_ERROR(), and LOG_CRITICAL()
+ - Add a Google Unit Test (test_LogLevel.cpp) to verify code.
+
 [version 0.3.4] 2025-07-17
 
 - **DAS-2329**

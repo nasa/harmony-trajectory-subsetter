@@ -9,7 +9,7 @@
 #include <H5Exception.h>
 
 #include "Configuration.h"
-
+#include "LogLevel.h"
 
 //libgeotiff
 #include "tiff.h"
@@ -74,7 +74,7 @@ public:
     geotiff_converter(std::string outfilename, std::string shortName,
     H5::Group& outgroup, SubsetDataLayers* subsetDataLayers, Configuration* config)
     {
-        std::cout << "geotiff_converter::geotiff_converter(): ENTER" << std::endl;
+        LOG_DEBUG("geotiff_converter::geotiff_converter(): ENTER");
 
         SubsetDataLayers* osub = new SubsetDataLayers(std::vector<std::string>());
         osub->expand_group(outgroup, "");
@@ -91,7 +91,7 @@ public:
             for (std::set<std::string>::iterator it = set_it->begin(); it != set_it->end(); it++)
             {
                 datasetName = *it;
-                std::cout << "geotiff_converter::geotiff_converter(): converting " << datasetName << " to GeoTIFF" << std::endl;
+                LOG_DEBUG("geotiff_converter::geotiff_converter(): converting " << datasetName << " to GeoTIFF");
 
                 if (subsetDataLayers->is_dataset_included(datasetName))
                 {
@@ -102,8 +102,8 @@ public:
                     tifFileName = outfilename + "_";
                     fileDatasetName = datasetName.substr(1);
                     std::replace(fileDatasetName.begin(), fileDatasetName.end(), '/', '.');
-                    std::cout << "geotiff_converter::geotiff_converter(): tifFileName: " << tifFileName << std::endl;
-                    std::cout << "geotiff_converter::geotiff_converter(): fileDatasetName: " << fileDatasetName << std::endl;
+                    LOG_DEBUG("geotiff_converter::geotiff_converter(): tifFileName: " << tifFileName);
+                    LOG_DEBUG("geotiff_converter::geotiff_converter(): fileDatasetName: " << fileDatasetName);
                     tifFileName += fileDatasetName + "tif";
 
                     // ToDo: need to refactor this to get lat/lon/row/col and resolution once for the whole group
@@ -132,16 +132,16 @@ public:
     void convert_to_geotiff(const char* outfilename, const char* ds_name, H5::DataSet& row, H5::DataSet& col, H5::DataSet& ds,
         const char* outputformat, const char* projection, short resolution=36, bool crop = false, H5::DataSet* lat=0, H5::DataSet* lon=0)
     {
-        std::cout << "geotiff_converter::convert_to_geotiff(): ENTER" << std::endl;
+        LOG_DEBUG("geotiff_converter::convert_to_geotiff(): ENTER");
 
         std::vector<TIFF*> tifs;
         std::vector<GTIF*> gtifs;
 
         if (get_data_type(ds)==0 || get_size(row)==0)
         {
-            std::cout << "geotiff_converter::convert_to_geotiff(): Skipping " << outfilename 
+            LOG_DEBUG("geotiff_converter::convert_to_geotiff(): Skipping " << outfilename 
                       << " because it is a type that can not be output to GeoTIFF or it has no matching data" 
-                      << std::endl;
+                     );
             return;  //no data
         }
 
@@ -153,7 +153,7 @@ public:
             std::string filename = outfilename;
             // multiple bands
             if (numfiles > 1) filename = filename.erase(filename.length()-4) + "_" + boost::lexical_cast<std::string>(i+1) + ".tif";
-            std::cout << "geotiff_converter::convert_to_geotiff(): processing : " << filename << std::endl;
+            LOG_DEBUG("geotiff_converter::convert_to_geotiff(): processing : " << filename);
             tifs.push_back(XTIFFOpen(filename.c_str(),"w"));
             gtifs.push_back(GTIFNew(tifs[i]));
             assert(gtifs.back());
@@ -313,7 +313,7 @@ public:
     //   This fill value is used for off-earth points outside the swath
     void* get_off_earth_fill_value(H5::DataSet& ds, const char* outputformat)
     {
-        std::cout << "geotiff_converter::get_off_earth_fill_value(): ENTER" << std::endl;
+        LOG_DEBUG("geotiff_converter::get_off_earth_fill_value(): ENTER");
 
         size_t size = ds.getDataType().getSize();
         void* buf = malloc(size);
@@ -323,7 +323,7 @@ public:
             attr.read(attr.getDataType(), buf);
         } else
         {
-            std::cout << "geotiff_converter::get_off_earth_fill_value(): Fill Value not found in dataset setting to 0" << std::endl;
+            LOG_DEBUG("geotiff_converter::get_off_earth_fill_value(): Fill Value not found in dataset setting to 0");
             memset(buf, 0, size);
         }
 
@@ -363,8 +363,8 @@ public:
         }
         else
         {
-            std::cout << "geotiff_converter::get_off_earth_fill_value(): "
-                      << "Unknown data type size when calculating off earth fill value. Defaulting to float" << std::endl;
+            LOG_DEBUG("geotiff_converter::get_off_earth_fill_value(): "
+                      << "Unknown data type size when calculating off earth fill value. Defaulting to float");
             float fill = -9997;
             memcpy(buf, &fill, size);
         }
@@ -375,7 +375,7 @@ public:
     //   This fill value is used for on-earth points outside the swath
     void* get_fill_value(H5::DataSet& ds, const char* outputformat)
     {
-        std::cout << "geotiff_converter::get_fill_value(): ENTER" << std::endl;
+        LOG_DEBUG("geotiff_converter::get_fill_value(): ENTER");
 
         size_t size = ds.getDataType().getSize();
         void* buf = malloc(size);
@@ -429,8 +429,8 @@ public:
         }
         else
         {
-            std::cout << "geotiff_converter::get_fill_value(): "
-                      << "Unknown data type size when calculating fill value defaulting to flaot" << std::endl;
+            LOG_DEBUG("geotiff_converter::get_fill_value(): "
+                      << "Unknown data type size when calculating fill value defaulting to flaot");
             float fill = -9998;
             memcpy(buf, &fill, size);
         }
@@ -534,7 +534,7 @@ public:
         {
             H5::Attribute attr = ds.openAttribute("units");
             attr.read(attr.getDataType(), buf);
-            std::cout << "geotiff_converter::get_units(): Attribute units exists:" << buf << std::endl;
+            LOG_DEBUG("geotiff_converter::get_units(): Attribute units exists:" << buf);
             return buf;
         }
     }
@@ -559,7 +559,7 @@ public:
     }
     void set_geotiff_keys(GTIF* gtif, const char* projection)
     {
-        std::cout << "geotiff_converter::set_geotiff_keys()" << std::endl;
+        LOG_DEBUG("geotiff_converter::set_geotiff_keys()");
 
         if (strcmp(projection, "GEO")==0)
         {

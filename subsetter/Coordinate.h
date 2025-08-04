@@ -20,6 +20,7 @@
 #include "SubsetDataLayers.h"
 #include "GeoPolygon.h"
 #include "Configuration.h"
+#include "LogLevel.h"
 
 
 // This class captures a reference from one dataset to a set of other coordinate
@@ -63,7 +64,7 @@ public:
     static Coordinate* getCoordinate(H5::Group& root, H5::Group& ingroup, const std::string& groupname, const std::string& shortname,
         SubsetDataLayers* subsetDataLayers, std::vector<geobox>* geoboxes, Temporal* temporal, GeoPolygon* geoPolygon, Configuration* config)
     {
-        std::cout << "Coordinate::getCoordinate(): ENTER groupname: " << groupname << std::endl;
+        LOG_DEBUG("Coordinate::getCoordinate(): ENTER groupname: " << groupname);
 
         std::string typeName, objName;
         int numOfObjs, inGroupCount=0;
@@ -116,7 +117,7 @@ public:
         // if the Coordinate group already exists, return it, else, continue processing
         if (coor->lookUp(coorGroupname))
         {
-            std::cout << "Coordinate::getCoordinate():" << coorGroupname << " already exists in lookUpMap" << std::endl;
+            LOG_DEBUG("Coordinate::getCoordinate():" << coorGroupname << " already exists in lookUpMap");
             return lookUpMap[coorGroupname];
         }
 
@@ -172,8 +173,8 @@ public:
         // spatial coordinates exist.
         if (!timeName.empty() && latitudeName.empty() && longitudeName.empty())
         {
-            std::cout << "Group " << groupname << " has temporal coordinates ";
-            std::cout << "and no spatial coordinates.\n";
+            LOG_DEBUG("Group " << groupname << " has temporal coordinates ");
+            LOG_DEBUG("and no spatial coordinates.");
             coor->temporalOnlyCoordinates = true;
         }
 
@@ -185,7 +186,7 @@ public:
             (!longitudeName.empty() && H5Lexists(coorGroup.getLocId(), longitudeName.c_str(), H5P_DEFAULT) <= 0) ||
             (!timeName.empty() && H5Lexists(coorGroup.getLocId(), timeName.c_str(), H5P_DEFAULT) <= 0))
         {
-            std::cout << "Coordinate::getCoordinate(): coordinate dataset(s) does not exist" << std::endl;
+            LOG_DEBUG("Coordinate::getCoordinate(): coordinate dataset(s) does not exist");
             coor->indexes = new IndexSelection(arraySize);
             coor->indexes->addRestriction(0,0);
             coor->indexesProcessed = true;
@@ -196,7 +197,7 @@ public:
         // return Index Selection with retstriction, start=0, length=0
         if (inconsistentCoorDatasets)
         {
-            std::cout << "Coordinate::getCoordinate(): coordinate datasets(lat/lon/time) have different dataset size" << std::endl;
+            LOG_DEBUG("Coordinate::getCoordinate(): coordinate datasets(lat/lon/time) have different dataset size");
             coor->indexes = new IndexSelection(coor->coordinateSize);
             coor->indexes->addRestriction(0,0);
             coor->indexesProcessed = true;
@@ -213,7 +214,7 @@ public:
 
         if (count != (coor->datasetNames.size() + inGroupCount))
         {
-            std::cout << "Coordinate::getCoordinate(): Invalid coordinate reference" << std::endl;
+            LOG_DEBUG("Coordinate::getCoordinate(): Invalid coordinate reference");
             coor->indexes = new IndexSelection(coor->coordinateSize);
             coor->indexes->addRestriction(0,0);
             coor->indexesProcessed = true;
@@ -241,7 +242,7 @@ public:
      */
     void readLatLonDatasets(H5::DataSet* latSet, H5::DataSet* lonSet, double* lat, double* lon)
     {
-        std::cout << "Coordinate::readLatLonDatasets(): ENTER" << std::endl;
+        LOG_DEBUG("Coordinate::readLatLonDatasets(): ENTER");
 
         if (latSet->getDataType().getSize() == 8) // double
         {
@@ -272,7 +273,7 @@ public:
     // if it does not exist, create one
     virtual IndexSelection* getIndexSelection()
     {
-        std::cout << "Coordinate::getIndexSelection(): ENTER" << std::endl;
+        LOG_DEBUG("Coordinate::getIndexSelection(): ENTER");
 
         H5::DataSet *latSet = NULL, *lonSet=NULL, *timeSet=NULL;
         double* lat = new double[coordinateSize];
@@ -301,17 +302,17 @@ public:
             timeSet->read(time, timeSet->getDataType());
             temporalSubset(time);
         }
-        else std::cout << "Coordinate::getIndexSelection(): temporal constraint or temporal coordinate not found" << std::endl;
+        else LOG_DEBUG("Coordinate::getIndexSelection(): temporal constraint or temporal coordinate not found");
 
         // read lat/lon datasets if spatial(bbox/polygon) constraints exist
         if ((geoboxes != NULL || geoPolygon != NULL) && (latSet != NULL && lonSet !=NULL)) readLatLonDatasets(latSet, lonSet, lat, lon);
 
         // limit the index by spatial constraint
         if (geoboxes != NULL && latSet != NULL && lonSet !=NULL) spatialBboxSubset(lat, lon);
-        else std::cout << "Coordinate::getIndexSelection(): spatial constraint or lat/lon coordinates not found" << std::endl;
+        else LOG_DEBUG("Coordinate::getIndexSelection(): spatial constraint or lat/lon coordinates not found");
         // limit the index by polygon
         if (geoPolygon != NULL && latSet != NULL && lonSet != NULL) spatialPolygonSubset(lat, lon);
-        else std::cout << "Coordinate::getIndexSelection(): polygon or lat/lon coordinates not found" << std::endl;
+        else LOG_DEBUG("Coordinate::getIndexSelection(): polygon or lat/lon coordinates not found");
 
         indexesProcessed = true;
 
@@ -344,7 +345,7 @@ protected:
 
     virtual void getCoordinateByGroup(H5::Group ingroup)
     {
-        std::cout << "Coordinate::getIndexSelection(): ENTER" << std::endl;
+        LOG_DEBUG("Coordinate::getIndexSelection(): ENTER");
 
         std::vector<std::string>* coordinateSets = getCoordinateDatasetNames();
         H5::DataSet *latitudeSet = NULL, *longitudeSet = NULL, *timeSet = NULL;
@@ -370,7 +371,7 @@ protected:
     // sets the maximum coordinate size for the output for photon groups
     void setCoordinateSize(H5::Group& group)
     {
-        std::cout << "Coordinate::setCoordinateSize(): ENTER" << std::endl;
+        LOG_DEBUG("Coordinate::setCoordinateSize(): ENTER");
 
         std::string objName, typeName;
         hsize_t arraySize = 0;
@@ -395,7 +396,7 @@ protected:
 
     void temporalSubset(double* time)
     {
-        std::cout << "Coordinate::temporalSubset(): ENTER" << std::endl;
+        LOG_DEBUG("Coordinate::temporalSubset(): ENTER");
 
         long start = 0, end = 0, length = 0;
 
@@ -431,7 +432,7 @@ protected:
 
     void updateEpochTime(H5::DataSet* time)
     {
-        std::cout << "Coordinate::updateEpochTime(): ENTER" << std::endl;
+        LOG_DEBUG("Coordinate::updateEpochTime(): ENTER");
 
         H5::Attribute attr;
         std::string attrName, attrValue;
@@ -484,7 +485,7 @@ private:
     // lat/lon datasets for SMAP are 32-bit floating-point and 64-bit for ICESat
     void spatialBboxSubset(double* lat, double* lon)
     {
-        std::cout << "Coordinate::spatialBboxSubset(): ENTER" << std::endl;
+        LOG_DEBUG("Coordinate::spatialBboxSubset(): ENTER");
 
         long indexBegin = indexes->minIndexStart, indexEnd = indexes->maxIndexEnd - 1;
         long start = 0, length = 0;
@@ -532,7 +533,7 @@ private:
     // limit the index range by polygon
     void spatialPolygonSubset(double* lat, double* lon)
     {
-        std::cout << "Coordinate::spatialPolygonSubset(): ENTER" << std::endl;
+        LOG_DEBUG("Coordinate::spatialPolygonSubset(): ENTER");
 
         IndexSelection* newIndexes = new IndexSelection(coordinateSize);
 
@@ -541,7 +542,7 @@ private:
         geoboxes->push_back(g);
 
         spatialBboxSubset(lat, lon);
-        std::cout << "Coordinate::spatialPolygonSubset(): indexes->size(): " << indexes->size() << std::endl;
+        LOG_DEBUG("Coordinate::spatialPolygonSubset(): indexes->size(): " << indexes->size());
 
         if (indexes->size() == 0) return;
 
@@ -649,7 +650,7 @@ private:
                     coorGroupname = absPath.substr(0, absPath.find_last_of("/\\")+1);
                     if (std::find(datasetNames.begin(),datasetNames.end(), attrDataset) == datasetNames.end())
                     {
-                        std::cout << "Coordinate::getCoordinateDatasetNames(): adding " << attrDataset << std::endl;
+                        LOG_DEBUG("Coordinate::getCoordinateDatasetNames(): adding " << attrDataset);
                         datasetNames.push_back(attrDataset);
 
                         // get matching coordinate dataset names with the configuration file

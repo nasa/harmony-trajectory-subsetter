@@ -28,6 +28,7 @@
 #include "HeightSegmentCoordinates.h"
 #include "GeoPolygon.h"
 #include "geotiff_converter.h"
+#include "LogLevel.h"
 
 
 /**
@@ -62,19 +63,19 @@ public:
      */
     int subset(std::string infilename, std::string outfilename, std::string collShortName)
     {
-        std::cout << "Subsetter::subset(): ENTER" << std::endl;
+        LOG_DEBUG("Subsetter::subset(): ENTER");
 
         int returnCode = 0;
 
         // Open the input HDF5 file.
-        std::cout << "Subsetter::subset(): Opening " << infilename << std::endl;
+        LOG_DEBUG("Subsetter::subset(): Opening " << infilename);
         this->infile = H5::H5File( infilename, H5F_ACC_RDONLY );
 
         // Create (or overwrite the existing) output file with
         // the creation properties of the input file and with
         // the default access property list of the latest HDF5
         // library release version.
-        std::cout << "Subsetter::subset(): Opening " << outfilename << std::endl;
+        LOG_DEBUG("Subsetter::subset(): Opening " << outfilename);
         hid_t fileAccessPropList = H5Pcreate(H5P_FILE_ACCESS);
         H5Pset_libver_bounds(fileAccessPropList, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST);
         H5::FileAccPropList fileAccessPropListObj(fileAccessPropList);
@@ -85,12 +86,12 @@ public:
         if(this->shortName.empty() && !collShortName.empty())
         {
             this->shortName = collShortName;
+            LOG_INFO("Subsetter::subset(): shortname: " << collShortName);
         }
         else if (this->shortName.empty() && collShortName.empty())
         {
-            std::cout << "Subsetter::subset(): ERROR: The short name could not be retrieved \
-                        from the collection or was not defined in the command line arguments" 
-            << std::endl;
+            LOG_DEBUG("Subsetter::subset(): ERROR: The short name could not be retrieved \
+                        from the collection or was not defined in the command line arguments");
         }
 
         // Update epoch time if it's configured for this product,
@@ -128,9 +129,9 @@ public:
         {
             returnCode = 3;
             if (remove(outfilename.c_str()))
-                std::cout << "Subsetter::subset(): Error removing " << outfilename << " with no matching data in it." << std::endl;
+                LOG_ERROR("Subsetter::subset(): Error removing " << outfilename << " with no matching data in it.");
             else
-                std::cout << "Subsetter::subset(): Removed output file " << outfilename << " because there was no matching data for the constraints specified." << std::endl;
+                LOG_INFO("Subsetter::subset(): Removed output file " << outfilename << " because there was no matching data for the constraints specified.");
         }
 
         // Add an attribute that contains the specified parameters,
@@ -138,14 +139,14 @@ public:
         // if specified.
         addProcessingParameterAttribute(outgroup, infilename);
 
-        std::cout << "Subsetter::subset(): WRITING " << std::endl;
         outfile.flush(H5F_SCOPE_GLOBAL);
-        std::cout << "Subsetter::subset(): Datasets size: " << subsetDataLayers->getDatasets().size() << std::endl;
+        LOG_INFO("Subsetter::subset(): WRITING output file: " << outfilename);
+        LOG_INFO("Subsetter::subset(): Datasets size: " << subsetDataLayers->getDatasets().size());
 
         // If the specified output format is a GeoTIFF, call the GeoTIFF converter.
         if (outputFormat == "GeoTIFF")
         {
-            std::cout << "Subsetter::subset(): Outputting to GeoTIFF" << std::endl;
+            LOG_DEBUG("Subsetter::subset(): Outputting to GeoTIFF");
             geotiff_converter geotiff = geotiff_converter(outfilename, shortName, outgroup, subsetDataLayers, config);
         }
 
@@ -160,7 +161,7 @@ public:
      */
     virtual std::string retrieveShortName(const H5::H5File& file)
     {
-        std::cout << "Subsetter::retrieveShortName(): ENTER" << std::endl;
+        LOG_DEBUG("Subsetter::retrieveShortName(): ENTER");
 
         H5std_string str;
         std::string shortnameFullPath, shortnamePath, shortnameLabel;
@@ -178,7 +179,7 @@ public:
         for (std::vector<std::string>::iterator it = shortnamePaths.begin(); it != shortnamePaths.end(); it++)
         {
             shortnameFullPath = *it;
-            std::cout << shortnameFullPath << std::endl;
+            LOG_DEBUG(shortnameFullPath);
             // group
             // "/" is used in the config file to determine whether the short name attribute is under a
             // group or dataset
@@ -232,7 +233,7 @@ public:
         //  Restore previous error handler
         H5Eset_auto2(H5E_DEFAULT, oldFunction, oldClientData);
 
-        std::cout << "Subsetter::retrieveShortName(): Processing file of type " << std::string(str) << std::endl;
+        LOG_DEBUG("Subsetter::retrieveShortName(): Processing file of type " << std::string(str));
         return std::string(str);
     }
 
@@ -282,9 +283,9 @@ public:
 
                     if (coor->hasTemporalOnlyCoordinates())
                     {
-                        std::cout << "Group " << objectPath << " has no spatial ";
-                        std::cout << "coordinates but requires spatial subsetting. ";
-                        std::cout << "Temporal subsetting will be applied.\n";
+                        LOG_DEBUG("Group " << objectPath << " has no spatial ");
+                        LOG_DEBUG("coordinates but requires spatial subsetting. ");
+                        LOG_DEBUG("Temporal subsetting will be applied.\n");
                         this->groupsRequiringTemporalSubsetting.push_back(objectPath);
                     }
                     H5::Group objectGroup = this->infile.openGroup(objectPath);
@@ -322,7 +323,7 @@ protected:
      */
     void copyAttributes(const H5::H5Object& inputFile, H5::H5Object& outputFile, const std::string& groupname)
     {
-        std::cout << "Subsetter::copyAttributes(): ENTER groupname: " << groupname << std::endl;
+        LOG_DEBUG("Subsetter::copyAttributes(): ENTER groupname: " << groupname);
 
         for (int k = 0; k < inputFile.getNumAttrs(); k++)
         {
@@ -339,16 +340,16 @@ protected:
             {
                 if (attribute.getName() != "REFERENCE_LIST")
                 {
-                    std::cout << "Subsetter::copyAttributes(): Could not handle attribute " << attribute.getName()
-                    << " with type " << attribute.getDataType().getClass() << std::endl;
+                    LOG_DEBUG("Subsetter::copyAttributes(): Could not handle attribute " << attribute.getName()
+                    << " with type " << attribute.getDataType().getClass());
                 }
             }
             else if (attribute.getDataType().getClass() == H5T_VLEN)
             {
                 if (attribute.getName() != "DIMENSION_LIST")
                 {
-                    std::cout << "Subsetter::copyAttributes(): Could not handle attribute " << attribute.getName()
-                    << " with type " << attribute.getDataType().getClass() << std::endl;
+                    LOG_DEBUG("Subsetter::copyAttributes(): Could not handle attribute " << attribute.getName()
+                    << " with type " << attribute.getDataType().getClass());
                 }
             }
             // Otherwise, copy over the attribute to the output file.
@@ -381,13 +382,13 @@ protected:
     virtual void writeDataset(const std::string& objname, const H5::DataSet& indataset, H5::Group& outgroup, const std::string& groupname,
                       IndexSelection* indexes)
     {
-        std::cout << "Subsetter::writeDataset(): ENTER groupname: " << groupname << std::endl;
+        LOG_DEBUG("Subsetter::writeDataset(): ENTER groupname: " << groupname);
 
         // If the dataset is already included in the outgroup, don't create it again.
         // e.g. we create /geolocation/segment_ph_cnt before we write /geolocation/ph_index_beg dataset
         if (H5Lexists(outgroup.getLocId(), objname.c_str(), H5P_DEFAULT) > 0)
         {
-            std::cout << "Subsetter::writeDataset(): objname: " << objname << " already exists in output" << std::endl;
+            LOG_DEBUG("Subsetter::writeDataset(): objname: " << objname << " already exists in output");
             return;
         }
 
@@ -401,7 +402,7 @@ protected:
 
         // Calculate new dimensions.
         int dimnum = indataset.getSpace().getSimpleExtentNdims();
-        std::cout << "Subsetter::writeDataset(): objname: " << objname << " with " << dimnum << " dimensions" << std::endl;
+        LOG_DEBUG("Subsetter::writeDataset(): objname: " << objname << " with " << dimnum << " dimensions");
         hsize_t olddims[dimnum];
         hsize_t newdims[dimnum];
         hsize_t maxdims[dimnum];
@@ -426,7 +427,7 @@ protected:
             if (newdims[d] != olddims[d])
             {
                 dim = d;
-                std::cout << "Subsetter::writeDataset(): selecting " << newdims[d] << " instead of " << olddims[d] << " in outspace. " << std::endl;
+                LOG_DEBUG("Subsetter::writeDataset(): selecting " << newdims[d] << " instead of " << olddims[d] << " in outspace. ");
             }
         }
 
@@ -523,7 +524,7 @@ private:
      */
     int copyH5(H5::Group& in, H5::Group& inRootGroup, H5::Group& out, std::string groupname)
     {
-        std::cout << "Subsetter::copyH5(): ENTER groupname: " << groupname << std::endl;
+        LOG_DEBUG("Subsetter::copyH5(): ENTER groupname: " << groupname);
 
         // Check if the input group is a metadata group.
         std::string metadataGroup = "/METADATA/";
@@ -571,7 +572,7 @@ private:
             in.getObjTypeByIdx(i, type_name);
             std::string objectFullName = groupname + objname;
 
-            std::cout << "Subsetter::copyH5(): " << i << ":" << groupname + objname << ":" << type_name << std::endl;
+            LOG_DEBUG("Subsetter::copyH5(): " << i << ":" << groupname + objname << ":" << type_name);
 
             //Add groups and dataset to cache to verify granule version
             config->addShortNameGroupDatasetFromGranuleFile(shortName, objectFullName + "/");
@@ -622,7 +623,7 @@ private:
                 // being subset.
                 if (config->isPhotonDataset(this->getShortName(), groupname+objname))
                 {
-                    std::cout << "Subsetter::copyH5(): groupname+objname: " << groupname+objname << std::endl;
+                    LOG_DEBUG("Subsetter::copyH5(): groupname+objname: " << groupname+objname);
                     Coordinate* coor = getCoordinate(inRootGroup, in, groupname+objname, subsetDataLayers, geoboxes, temporal, geoPolygon, config);
                     IndexSelection* newIndexes = coor->getIndexSelection();
                     writeDataset(objname, indataset, out, groupname, newIndexes);
@@ -662,7 +663,7 @@ private:
                                                                         ignoreName);
         if (!timeName.empty())
         {
-            std::cout << "Subbsetter::updateTimeRange(): objname: " << objname << " is a time coordinate dataset.\n";
+            LOG_DEBUG("Subbsetter::updateTimeRange(): objname: " << objname << " is a time coordinate dataset.");
 
             // Check if this time coordinate has been subset (either temporally
             // or spatially), so we can glean the subset time range.
@@ -712,8 +713,8 @@ private:
                 }
             }
 
-            std::cout << "Subbsetter::updateTimeRange(): Current time range: (" << std::fixed
-                      << timeRange.first << ", " << timeRange.second << ")" << std::endl;
+            LOG_DEBUG("Subbsetter::updateTimeRange(): Current time range: (" << std::fixed
+                      << timeRange.first << ", " << timeRange.second << ")");
         }
 
     }
@@ -729,15 +730,15 @@ private:
      */
     void writeRequiredTemporalSubsets(H5::Group& rootGroup)
     {
-        std::cout << "Subsetter::writeRequiredTemporalSubsets(): ENTER" << std::endl;
+        LOG_DEBUG("Subsetter::writeRequiredTemporalSubsets(): ENTER");
 
         addGroupsRequiringTemporalSubsetting(rootGroup, rootGroup, "/");
 
         if (!groupsRequiringTemporalSubsetting.empty())
         {
             // Construct temporal constraints using calculated time range.
-            std::cout << "Applying temporal range (" << timeRange.first << ", ";
-            std::cout << timeRange.second << ") for groups requiring spatial subsetting.\n";
+            LOG_DEBUG("Applying temporal range (" << timeRange.first << ", ");
+            LOG_DEBUG(timeRange.second << ") for groups requiring spatial subsetting");
             this->temporal = new Temporal(timeRange.first, timeRange.second);
 
             // Write requested groups recursively.
@@ -826,7 +827,7 @@ private:
      */
     void addProcessingParameterAttribute(H5::H5Object& outobj, std::string& infilename)
     {
-        std::cout << "Subsetter::addProcessingParameterAttribute(): ENTER" << std::endl;
+        LOG_DEBUG("Subsetter::addProcessingParameterAttribute(): ENTER");
 
         SubsetDataLayers* fullDatasetList = subsetDataLayers;
 
@@ -900,12 +901,12 @@ private:
      */
     bool isMatchingDataFound()
     {
-        std::cout << "Subsetter::isMatchingDataFound(): ENTER" << std::endl;
+        LOG_DEBUG("Subsetter::isMatchingDataFound(): ENTER");
 
         bool matchingDataFound = false;
         H5::Group ingroup = infile.openGroup("/");
         H5::Group outgroup = outfile.openGroup("/");
-        std::cout << "Subsetter::isMatchingDataFound(): num of groups: " << outgroup.getNumObjs() << std::endl;
+        LOG_DEBUG("Subsetter::isMatchingDataFound(): num of groups: " << outgroup.getNumObjs());
 
         // There may be an instance where the first and only group in the
         // file is the metadata group, which is not subsettable.
@@ -987,7 +988,7 @@ private:
                     std::find(inconsistentDatasets.begin(), inconsistentDatasets.end(), datasetName.substr(0, datasetName.size()-1))
                         == inconsistentDatasets.end())
                 {
-                    std::cout << "Subsetter::containsSubsettableDatasets(): subsettable " << datasetName << std::endl;
+                    LOG_DEBUG("Subsetter::containsSubsettableDatasets(): subsettable " << datasetName);
                     subsettable = true;
                     break;
                 }
@@ -995,7 +996,7 @@ private:
             }
             it++;
         }
-        std::cout << "Subsetter::containsSubsettableDatasets(): containsSubsettableDatasets returns " << subsettable << std::endl;
+        LOG_DEBUG("Subsetter::containsSubsettableDatasets(): containsSubsettableDatasets returns " << subsettable);
         return subsettable;
     }
 

@@ -8,6 +8,7 @@
 
 #include <map>
 #include <iostream>
+#include "LogLevel.h"
 
 
 class IndexSelection
@@ -51,11 +52,11 @@ class IndexSelection
         // constraint. They are typically determined by the temporal constraints.
         void addRestriction(long newStart, long newLength)
         {
-            std::cout << "IndexSelection::addRestriction(): ENTER" << std::endl;
+            LOG_DEBUG("IndexSelection::addRestriction(): ENTER");
 
-            std::cout << "IndexSelection::addRestriction changing from (" << minIndexStart
+            LOG_DEBUG("IndexSelection::addRestriction changing from (" << minIndexStart
                       << "," << maxIndexEnd << ") to (" << newStart << "," << newStart+newLength
-                      << ")" << std::endl;
+                      << ")");
 
             minIndexStart = newStart;
             maxIndexEnd = newStart + newLength;
@@ -98,7 +99,7 @@ class IndexSelection
         //   and limit to within restrictions
         void addSegment(long newStart, long newLength)
         {
-            std::cout << "IndexSelection::addSegment(): ENTER" << std::endl;
+            LOG_DEBUG("IndexSelection::addSegment(): ENTER");
 
             std::map<long, long>::reverse_iterator it;
 
@@ -121,7 +122,7 @@ class IndexSelection
                 return;
             }
 
-            std::cout << "\tAdding segment (" << newStart << ", " << newLength << ")." << std::endl;
+            LOG_DEBUG("\tAdding segment (" << newStart << ", " << newLength << ").");
 
             // Potentially combine this segment with any existing overlapping segments
             //  [ ] - existing segment

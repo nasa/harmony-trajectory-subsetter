@@ -10,6 +10,7 @@
 #include "FwdRefBeginDataset.h"
 #include "RvsRefDatasets.h"
 #include "ReverseReferenceCoordinates.h"
+#include "LogLevel.h"
 
 
 // ICESAT2 specific implementation
@@ -36,7 +37,7 @@ protected:
     virtual void writeDataset(const std::string& objname, const H5::DataSet& indataset, H5::Group& outgroup,
                         const std::string& groupname, IndexSelection* indexes)
     {
-        std::cout << "IcesatSubsetter::writeDataset(): ENTER groupname: " << groupname << std::endl;
+        LOG_DEBUG("IcesatSubsetter::writeDataset(): ENTER groupname: " << groupname);
 
         // write index begin datasets for ATL03 and ATL08
         // if it's segment group with ph_index_beg and it's been subsetted,
@@ -92,8 +93,8 @@ protected:
 
             // get target group index selection
             std::string targetGroupname = config->getTargetGroupname(this->getShortName(), groupname, objname);
-            std::cout << "IcesatSubsetter::writeDataset() groupname: " << groupname 
-                      << " objname: " << objname << " targetGroupname: " << targetGroupname << std::endl;
+            LOG_DEBUG("IcesatSubsetter::writeDataset() groupname: " << groupname 
+                      << " objname: " << objname << " targetGroupname: " << targetGroupname);
 
             // if target group does not exist in input, write index begin as normal dataset
             if (H5Lexists(infile.getLocId(), targetGroupname.c_str(), H5P_DEFAULT) <= 0)
@@ -131,7 +132,7 @@ private:
     virtual Coordinate* getCoordinate(H5::Group& root, H5::Group& ingroup, const std::string& groupname,
         SubsetDataLayers* subsetDataLayers, std::vector<geobox>* geoboxes, Temporal* temporal, GeoPolygon* geoPolygon, Configuration* config, bool repair = false)
     {
-        std::cout << "IcesatSubsetter::getCoordinate(): ENTER groupname: " << groupname << std::endl;
+        LOG_DEBUG("IcesatSubsetter::getCoordinate(): ENTER groupname: " << groupname);
         
         bool hasPhotonSegmentGroup = config->hasPhotonSegmentGroups(this->getShortName());
         bool isPhotonGroup = config->isPhotonGroup(this->getShortName(), groupname);
@@ -152,7 +153,7 @@ private:
 
         if (hasPhotonSegmentGroup && (isPhotonGroup || isLeadsGroup) && (subsetDataLayers->is_included(groupname) || repair))
         {
-            std::cout << "IcesatSubsetter::getCoordinate(): Call ForwardReferenceCoordinates::getCoordinate(): " << groupname << std::endl;
+            LOG_DEBUG("IcesatSubsetter::getCoordinate(): Call ForwardReferenceCoordinates::getCoordinate(): " << groupname);
             return ForwardReferenceCoordinates::getCoordinate(root, ingroup, this->getShortName(), subsetDataLayers, groupname,
                     geoboxes, temporal, geoPolygon, config);
         }
@@ -175,20 +176,20 @@ private:
                 coorGroup = root.openGroup(coorGroupname);                
             }
 
-            std::cout << "IcesatSubsetter::getCoordinate(): Call ReverseReferenceCoordinates::getCoordinate(): groupname: " << groupname << std::endl;
+            LOG_DEBUG("IcesatSubsetter::getCoordinate(): Call ReverseReferenceCoordinates::getCoordinate(): groupname: " << groupname);
 
             return ReverseReferenceCoordinates::getCoordinate(root, coorGroup, this->getShortName(), subsetDataLayers,
                     coorGroupname, geoboxes, temporal, geoPolygon, config);
         }
         else if (config->subsetBySuperGroup(this->getShortName(), groupname))
         {
-            std::cout << "IcesatSubsetter::getCoordinate(): Call SuperGroupCoordinate::getCoordinate(): groupname: " << groupname << std::endl;
+            LOG_DEBUG("IcesatSubsetter::getCoordinate(): Call SuperGroupCoordinate::getCoordinate(): groupname: " << groupname);
             return SuperGroupCoordinate::getCoordinate(root, ingroup, this->getShortName(), subsetDataLayers,
                     groupname, geoboxes, temporal, geoPolygon, config);
         }
         else
         {
-            std::cout << "IcesatSubsetter::getCoordinate(): Call Subsetter::getCoordinate(): groupname: " << groupname << std::endl;
+            LOG_DEBUG("IcesatSubsetter::getCoordinate(): Call Subsetter::getCoordinate(): groupname: " << groupname);
             return Subsetter::getCoordinate(root, ingroup, groupname, subsetDataLayers, geoboxes, temporal, geoPolygon, config);
         }
     }

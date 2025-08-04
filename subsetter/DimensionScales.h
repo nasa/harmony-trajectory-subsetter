@@ -3,6 +3,7 @@
 
 #include "H5DSpublic.h"
 #include "H5Cpp.h"
+#include "LogLevel.h"
 #include <string.h>
 #include <stdlib.h>
 #include <vector>
@@ -59,7 +60,7 @@ public:
      */
     void trackDimensionScales(const H5::DataSet& dataset)
     {
-        std::cout << "DimensionScales::trackDimensionScales(): ENTER" << std::endl;
+        LOG_DEBUG("DimensionScales::trackDimensionScales(): ENTER");
         
         hid_t did = dataset.getId();
         std::string datasetName = getObjectName(did);
@@ -98,9 +99,9 @@ public:
                     delete scale;
                 }
                 if (numscales != numValidScales)
-                    std::cout << "DimensionScales::trackDimensionScales(): WARNING dataset " << datasetName 
+                    LOG_DEBUG("DimensionScales::trackDimensionScales(): WARNING dataset " << datasetName 
                               << " has " << numscales-numValidScales << " invalid scale references in the dimension " 
-                              << dimnum << std::endl;
+                              << dimnum);
             }
         }
     }
@@ -110,9 +111,9 @@ public:
      */
     void recreateDimensionScales(H5::H5File& outfile)
     {
-        std::cout << "DimensionScales::recreateDimensionScales(): ENTER try to recreate "
+        LOG_DEBUG("DimensionScales::recreateDimensionScales(): ENTER try to recreate "
                   << dimScaleDatasets->size() << " dimension scales, and re-attach to "
-                  << datasetScales->size() << " datasets " << std::endl;
+                  << datasetScales->size() << " datasets ");
 
         // H5Lexists prints error message when any element before the final link doesn't exist,
         // so suppress the error message print

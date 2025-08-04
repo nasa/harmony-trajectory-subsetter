@@ -2,7 +2,7 @@
 #define	REVERSEREFERENCECOORDINATES_H
 
 #include "Configuration.h"
-
+#include "LogLevel.h"
 
 class ReverseReferenceCoordinates: public Coordinate
 {
@@ -31,7 +31,7 @@ public:
      static Coordinate* getCoordinate(H5::Group& root, H5::Group& ingroup, const std::string& shortName, SubsetDataLayers* subsetDataLayers,
             const std::string& groupname, std::vector<geobox>* geoboxes, Temporal* temporal, GeoPolygon* geoPolygon, Configuration* config)
     {
-        std::cout << "ReverseReferenceCoordinates::getCoordinate(): ENTER groupname:" << groupname << std::endl;
+        LOG_DEBUG("ReverseReferenceCoordinates::getCoordinate(): ENTER groupname:" << groupname);
 
         ReverseReferenceCoordinates* reverseCoor = new ReverseReferenceCoordinates(groupname, geoboxes, temporal, geoPolygon, config);
         reverseCoor->coordinateSize = 0;
@@ -73,7 +73,7 @@ public:
      */
     virtual IndexSelection* getIndexSelection()
     {
-        std::cout << "ReverseReferenceCoordinates::getIndexSelection(): ENTER" << std::endl;
+        LOG_DEBUG("ReverseReferenceCoordinates::getIndexSelection(): ENTER");
 
         // if both temporal and spatial constraints don't exist,
         // return null to include all in the output
@@ -108,10 +108,10 @@ private:
      */
     void reverseSubset(H5::DataSet* indexBegSet)
     {
-        std::cout << "ReverseReferenceCoordinates::reverseSubset(): ENTER" << std::endl;
+        LOG_DEBUG("ReverseReferenceCoordinates::reverseSubset(): ENTER");
 
         int32_t* indexBegin = new int32_t[coordinateSize];
-        std::cout << "ReverseReferenceCoordinates::reverseSubset(): coordinateSize:" << coordinateSize << std::endl;
+        LOG_DEBUG("ReverseReferenceCoordinates::reverseSubset(): coordinateSize:" << coordinateSize);
         indexBegSet->read(indexBegin, indexBegSet->getDataType());
         long start = 0, length = 0, end = 0, count = 0, newStart = 0, newLength = 0;
 

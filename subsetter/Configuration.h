@@ -16,6 +16,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <iostream>
+#include "LogLevel.h"
 
 namespace property_tree = boost::property_tree;
 
@@ -237,7 +238,7 @@ public:
         }
         catch (std::exception &ex)
         {
-            std::cerr << "ERROR: failed to parse the configuration file " << configFile << std::endl;
+            LOG_ERROR("ERROR: failed to parse the configuration file " << configFile);
             std::exception_ptr p = std::current_exception();
             rethrow_exception(p);
         }
@@ -493,7 +494,7 @@ public:
      */
     bool isGroupSubsettable(const std::string& shortName, const std::string& group)
     {
-        std::cout << "Configuration::isGroupSubsettable(): Enter" << std::endl;
+        LOG_DEBUG("Configuration::isGroupSubsettable(): Enter");
 
         bool isSubsettable = true;
         //// first check subsettable groups
@@ -514,7 +515,7 @@ public:
         // if the shortName is configured and group is not specified, the group is not subsettable
         if (shortNameMatched && !patternMatched)
         {
-            std::cout << "Configuration::isGroupSubsettable() group: " << group << " is NOT subsettable " << std::endl;
+            LOG_DEBUG("Configuration::isGroupSubsettable() group: " << group << " is NOT subsettable ");
             return false;
         }
 
@@ -531,7 +532,7 @@ public:
             }
         }
 
-        std::cout << "Configuration::isGroupSubsettable() group: " << group << (isSubsettable ? " is subsettable" : " is NOT subsettable")  << std::endl;
+        LOG_DEBUG("Configuration::isGroupSubsettable() group: " << group << (isSubsettable ? " is subsettable" : " is NOT subsettable") );
 
         return isSubsettable;
     }
@@ -600,8 +601,8 @@ public:
                 break;
             }
         }
-        std::cout << "Configuration::getMatchingCoordinateDatasetNames(): matched " << timeName << ","
-             << latitudeName << "," << longitudeName << "," << ignoreName << std::endl;
+        LOG_DEBUG("Configuration::getMatchingCoordinateDatasetNames(): matched " << timeName << ","
+             << latitudeName << "," << longitudeName << "," << ignoreName);
     }
 
     /**
@@ -1004,7 +1005,7 @@ public:
      */
     std::string getReferencedGroupname(const std::string& shortName, const std::string& group)
     {
-        std::cout << "Configuration::getReferencedGroupname() ENTER group:" << group << std::endl;
+        LOG_DEBUG("Configuration::getReferencedGroupname() ENTER group:" << group);
 
         std::string referencedGroupname;
 
@@ -1066,8 +1067,8 @@ public:
             }
         }
 
-        std::cout << "Configuration::getReferencedGroupname() group:" << group 
-                  << " referencedGroupname: " << referencedGroupname << std::endl;
+        LOG_DEBUG("Configuration::getReferencedGroupname() group:" << group 
+                  << " referencedGroupname: " << referencedGroupname);
 
         return referencedGroupname;
     }
@@ -1080,7 +1081,7 @@ public:
      */
     std::string getTargetGroupname(const std::string& shortName, const std::string& group, const std::string& datasetName = "")
     {
-        std::cout << "Configuration::getTargetGroupname(): ENTER group:" << group << std::endl;
+        LOG_DEBUG("Configuration::getTargetGroupname(): ENTER group:" << group);
 
         std::string targetGroupname;
 
@@ -1134,8 +1135,8 @@ public:
             targetGroupname = getReferenceSurfaceSectionGroup(shortName, group);
         }          
 
-        std::cout << "Configuration::getTargetGroupname() group:" << group 
-                  << "targetGroupname: " << targetGroupname << std::endl;
+        LOG_DEBUG("Configuration::getTargetGroupname() group:" << group 
+                  << "targetGroupname: " << targetGroupname);
 
         return targetGroupname;
     }
@@ -1454,8 +1455,8 @@ public:
         std::string groundTrack;
         std::string groundTrackPattern;
 
-        std::cout << "Configuration::getReferenceSurfaceSectionGroup(): ENTER group:" 
-                  << group << std::endl;
+        LOG_DEBUG("Configuration::getReferenceSurfaceSectionGroup(): ENTER group:" 
+                  << group);
  
         if (isFreeboardRateGroup(shortName, group) ||
             isLeadsGroup(shortName, group) || isSwathHeightIndex(shortName, group))
@@ -1479,8 +1480,8 @@ public:
             }
         }
 
-        std::cout << "Configuration::getReferenceSurfaceSectionGroup() group:" 
-                  << group << " referenceSurfaceSectionGroup: " << referenceSurfaceSectionGroup << std::endl;
+        LOG_DEBUG("Configuration::getReferenceSurfaceSectionGroup() group:" 
+                  << group << " referenceSurfaceSectionGroup: " << referenceSurfaceSectionGroup);
 
         return referenceSurfaceSectionGroup;
     }
@@ -1567,7 +1568,7 @@ public:
      */
     void getDatasetNames(const std::string& shortName, const std::string& groupname, std::string& indexBegin, std::string& count)
     {
-        std::cout << "Configuration::getDatasetNames(): ENTER groupname: " << groupname << std::endl;
+        LOG_DEBUG("Configuration::getDatasetNames(): ENTER groupname: " << groupname);
 
         if (isPhotonGroup(shortName, groupname) || isPhotonDataset(shortName, groupname))
         {
@@ -1625,7 +1626,7 @@ public:
      */
     std::string getIndexBeginDatasetName(const std::string& shortName, const std::string& groupname, const std::string& datasetName="", bool repair = false)
     {
-        std::cout << "Configuration::getIndexBeginDatasetName(): ENTER groupname: " << groupname << std::endl;
+        LOG_DEBUG("Configuration::getIndexBeginDatasetName(): ENTER groupname: " << groupname);
 
         std::string indexBegin, count;
         if (isSegmentGroup(shortName, groupname))
@@ -1661,8 +1662,8 @@ public:
             getSwathSegmentDatasetNames(shortName, groupname, indexBegin, count, datasetName);
         }
         
-        std::cout << "Configuration::getIndexBeginDatasetName() groupname:" << groupname 
-                  << " datasetName:" << datasetName << " indexBegin:" << indexBegin << std::endl;
+        LOG_DEBUG("Configuration::getIndexBeginDatasetName() groupname:" << groupname 
+                  << " datasetName:" << datasetName << " indexBegin:" << indexBegin);
 
         return indexBegin;
     }
@@ -1674,7 +1675,7 @@ public:
      */
     std::string getCountDatasetName(const std::string& shortName, const std::string& groupname, const std::string& datasetName="")
     {
-        std::cout << "Configuration::getCountDatasetName(): ENTER groupname: " << groupname << std::endl;
+        LOG_DEBUG("Configuration::getCountDatasetName(): ENTER groupname: " << groupname);
 
         std::string indexBegin, count;
         if (isSegmentGroup(shortName, groupname))
@@ -1695,9 +1696,9 @@ public:
             getBeamSegmentDatasetNames(shortName, indexBegin, count);
         }
 
-        std::cout << "Configuration::getCountDatasetName() groupname:" << groupname << 
+        LOG_DEBUG("Configuration::getCountDatasetName() groupname:" << groupname << 
                      " datasetName:" << datasetName << " indexBegin:" << indexBegin << 
-                     " count:" << count << std::endl;
+                     " count:" << count);
 
         return count;
     }
@@ -1850,7 +1851,7 @@ public:
      */
     void getBeamFreeboardIndexBegin(const std::string& shortName, std::string& indexBegin)
     {
-        std::cout << "Configuration::getBeamFreeboardIndexBegin(): ENTER indexBegin: " << indexBegin << std::endl;
+        LOG_DEBUG("Configuration::getBeamFreeboardIndexBegin(): ENTER indexBegin: " << indexBegin);
 
         for (std::map<std::string, std::map<std::string, std::string>>::iterator it = photonSegmentGroups.begin();
              it != photonSegmentGroups.end(); it++)
@@ -1876,7 +1877,7 @@ public:
      */
     void getBeamSegmentDatasetNames(const std::string& shortName, std::string& indexBegin)
     {
-        std::cout << "Configuration::getBeamSegmentDatasetNames(): ENTER indexBegin: " << indexBegin << std::endl;
+        LOG_DEBUG("Configuration::getBeamSegmentDatasetNames(): ENTER indexBegin: " << indexBegin);
 
         for (std::map<std::string, std::map<std::string, std::string>>::iterator it = photonSegmentGroups.begin();
              it != photonSegmentGroups.end(); it++)
@@ -1968,7 +1969,7 @@ public:
      */
     bool isShortNameGroupDatasetFromGranuleFile(const std::string& shortName, const std::string& group)
     {
-        std::cout << "Configuration::isShortNameGroupDatasetFromGranuleFile(): ENTER group: " << group << std::endl;
+        LOG_DEBUG("Configuration::isShortNameGroupDatasetFromGranuleFile(): ENTER group: " << group);
 
         bool patternMatched = false;
         std::string shortNamePattern("");
@@ -1980,8 +1981,8 @@ public:
             {
                 if(shortNamePattern == shortName && valueinfo == group)
                 {
-                    std::cout << "Configuration::isShortNameGroupDatasetFromGranuleFile() FOUND  shortName: " 
-                          << shortNamePattern << " group: " << valueinfo << std::endl;
+                    LOG_DEBUG("Configuration::isShortNameGroupDatasetFromGranuleFile() FOUND  shortName: " 
+                          << shortNamePattern << " group: " << valueinfo);
                     patternMatched = true;
                     break;
                 }
@@ -1998,7 +1999,7 @@ public:
      */
     std::string getVersionNumber(const std::string& shortName)
     {
-        std::cout << "Configuration::getVersionNumber(): ENTER shortName: " << shortName << std::endl;
+        LOG_DEBUG("Configuration::getVersionNumber(): ENTER shortName: " << shortName);
 
         std::string version("");
         const std::string atl10v005("/gt1l/freeboard_beam_segment/");
@@ -2010,15 +2011,15 @@ public:
             {
                 if(keyinfo.first == shortName && valueinfo == atl10v005)
                 {
-                    std::cout << "Configuration::getVersionNumber() FOUND version = 005 shortName: " 
-                              << keyinfo.first << " group: " << valueinfo << std::endl;
+                    LOG_DEBUG("Configuration::getVersionNumber() FOUND version = 005 shortName: " 
+                              << keyinfo.first << " group: " << valueinfo);
                     version = ATL10v005;
                     break;
                 }
                 else if(keyinfo.first == shortName && valueinfo == atl10v006)
                 {
-                    std::cout << "Configuration::getVersionNumber() FOUND version = 006 shortName: " 
-                              << keyinfo.first << " group: " << valueinfo << std::endl;
+                    LOG_DEBUG("Configuration::getVersionNumber() FOUND version = 006 shortName: " 
+                              << keyinfo.first << " group: " << valueinfo);
                     version = ATL10v006;
                     break;
                 }

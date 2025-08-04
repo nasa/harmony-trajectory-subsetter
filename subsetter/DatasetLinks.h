@@ -4,6 +4,7 @@
 #include <map>
 #include <iostream>
 #include <string.h>
+#include "LogLevel.h"
 
 /**
  * class to track the link information within a group
@@ -50,7 +51,7 @@ public:
             else // the address has a dataset, the current dataset can then point to that dataset
             {
                 std::string sourceDataset = links->find(address)->second;
-                std::cout << "DatasetLinks::linkCallback() LINK found: type=" << linfo->type << " target " << name << " source " << sourceDataset << std::endl;
+                LOG_DEBUG("DatasetLinks::linkCallback() LINK found: type=" << linfo->type << " target " << name << " source " << sourceDataset);
                 hardlinks->insert(std::pair<std::string, std::string>(name, sourceDataset));
             }
         }
@@ -63,7 +64,7 @@ public:
      */
     void trackDatasetLinks(const H5::Group& group)
     {
-        std::cout << "DatasetLinks::trackDatasetLinks(): ENTER" << std::endl;
+        LOG_DEBUG("DatasetLinks::trackDatasetLinks(): ENTER");
 
         H5Literate(group.getLocId(), H5_INDEX_NAME, H5_ITER_INC, NULL, DatasetLinks::linkCallback, (void*)this);
     }

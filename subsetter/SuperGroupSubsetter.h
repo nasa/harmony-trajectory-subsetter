@@ -3,7 +3,7 @@
 
 #include "SuperGroupCoordinate.h"
 #include "Configuration.h"
-
+#include "LogLevel.h"
 
 // GEDI specific implementation
 class SuperGroupSubsetter : public Subsetter
@@ -12,7 +12,7 @@ public:
     SuperGroupSubsetter(SubsetDataLayers* subsetDataLayers, std::vector<geobox>* geoboxes, Temporal* temporal, GeoPolygon* geoPolygon, Configuration* config)
     : Subsetter(subsetDataLayers, geoboxes, temporal, geoPolygon, config)
     {
-        std::cout << "SuperGroupSubsetter::SuperGroupSubsetter(): constructor" << std::endl;
+        LOG_DEBUG("SuperGroupSubsetter::SuperGroupSubsetter(): constructor");
     }
 
 protected:
@@ -28,7 +28,7 @@ protected:
     virtual void writeDataset(const std::string& objname, const H5::DataSet& indataset, H5::Group& outgroup,
                         const std::string& groupname, IndexSelection* indexes)
     {
-        std::cout << "SuperGroupSubsetter::writeDataset(): ENTER groupname: " << groupname << std::endl;
+        LOG_DEBUG("SuperGroupSubsetter::writeDataset(): ENTER groupname: " << groupname);
 
         H5::H5File infile = getInputFile();
         if (indexes != NULL && indexes->getMaxSize() != indexes->size() && indexes->size() != 0 &&
@@ -73,7 +73,7 @@ private:
     virtual Coordinate* getCoordinate(H5::Group& root, H5::Group& ingroup, const std::string& groupname,
         SubsetDataLayers* subsetDataLayers, std::vector<geobox>* geoboxes, Temporal* temporal, GeoPolygon* geoPolygon, Configuration* config, bool repair = false)
     {
-        std::cout << "SuperGroupSubsetter::getCoordinate(): ENTER groupname: " << groupname << std::endl;
+        LOG_DEBUG("SuperGroupSubsetter::getCoordinate(): ENTER groupname: " << groupname);
 
         bool hasPhotonSegmentDataset = config->hasPhotonSegmentGroups(this->getShortName());
         bool isPhotonDataset = config->isPhotonDataset(this->getShortName(), groupname);

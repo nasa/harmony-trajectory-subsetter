@@ -3,6 +3,7 @@
 
 #include <stdlib.h>
 #include "Configuration.h"
+#include "LogLevel.h"
 
 
 /**
@@ -36,7 +37,7 @@ public:
         IndexSelection* selectedElements,
         SubsetDataLayers* subsetDataLayers)
     {
-        std::cout << "ForwardReferenceDatasets::writeDataset(): ENTER groupname: " << groupname << std::endl;
+        LOG_DEBUG("ForwardReferenceDatasets::writeDataset(): ENTER groupname: " << groupname);
 
         // Get output dataset data size from output count dataset.
         // Dataset size for fwd-ref-begin dataset should match the fwd-ref-count dataset

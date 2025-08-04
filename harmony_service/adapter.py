@@ -17,6 +17,7 @@
 
 """
 import json
+import logging
 from argparse import ArgumentParser
 from itertools import chain
 from os.path import basename
@@ -216,6 +217,8 @@ class HarmonyAdapter(BaseHarmonyAdapter):
               for polygon spatial subsetting.
             * `--shortname` - The collection shortName for granules that
               do not contain a shortName variable.
+            * `--loglevel` - The log level can be DEBUG, INFO, WARNING,
+              ERROR, or CRITICAL
 
             Other binary parameters currently not used:
 
@@ -274,6 +277,14 @@ class HarmonyAdapter(BaseHarmonyAdapter):
             binary_parameters['--boundingshape'] = f'\'{bounding_shape}\''
 
         binary_parameters['--shortname'] = source.shortName
+
+        binary_parameters['--loglevel'] = logging.getLevelName(
+            self.logger.getEffectiveLevel()
+        )
+
+        # User define logging (Harmony defaults 'info')
+        # Uncomment binary_parameters['--loglevel'] = 'DEBUG' for debug
+        # binary_parameters['--loglevel'] = 'DEBUG'
 
         binary_parameters['--outfile'] = join_path(
             working_directory,

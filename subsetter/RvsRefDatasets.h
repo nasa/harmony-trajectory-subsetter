@@ -2,7 +2,7 @@
 #define RVSREFDATASETS_H
 
 #include <stdlib.h>
-
+#include "LogLevel.h"
 
 /**
  * class to write index datasets for ATL10
@@ -32,7 +32,7 @@ public:
      */
     void mapWriteDataset(H5::Group& outgroup, const std::string&groupname, const H5::DataSet& indataset, IndexSelection* indexes, IndexSelection* targetIndexes, SubsetDataLayers* subsetDataLayers)
     {
-        std::cout << "RvsRefDatasets::mapWriteDataset(): ENTER groupname: " << groupname << std::endl;
+        LOG_DEBUG("RvsRefDatasets::mapWriteDataset(): ENTER groupname: " << groupname);
 
         size_t inDatasetSize = indataset.getSpace().getSimpleExtentNpoints(); // input dataset size
         size_t subsettedSize = indexes->size(); // subsetted dataset size

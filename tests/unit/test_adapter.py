@@ -6,7 +6,7 @@ from unittest import TestCase
 from unittest.mock import patch
 
 from harmony_service_lib.message import Message, Source
-from harmony_service_lib.exceptions import NoDataException, ServerException
+from harmony_service_lib.exceptions import NoDataException
 from harmony_service_lib.util import HarmonyException, bbox_to_geometry, config
 from pystac import Asset, Catalog, Item
 
@@ -50,6 +50,7 @@ class TestAdapter(TestCase):
         cls.temp_dir = 'tests/temp'
         cls.user = 'tglennan'
         cls.shortname = 'ATL24'
+        cls.loglevel = 'INFO'
 
     @staticmethod
     def side_effect_fxn(input, short_name):
@@ -109,6 +110,7 @@ class TestAdapter(TestCase):
                             f'--configfile {SUBSETTER_CONFIG} '
                             f'--filename {local_input_path} '
                             f'--shortname {self.shortname} '
+                            f'--loglevel {self.loglevel} '
                             f'--outfile {local_input_path}')
 
         mock_mkdtemp.assert_called_once()
@@ -327,6 +329,7 @@ class TestAdapter(TestCase):
                                 f'--start {start_time} '
                                 f'--end {end_time} '
                                 f'--shortname {self.shortname} '
+                                f'--loglevel {self.loglevel} '
                                 f'--outfile {expected_local_out}')
 
             mock_mkdtemp.assert_called_once()
@@ -404,6 +407,7 @@ class TestAdapter(TestCase):
                                 f'--filename {self.granule["url"]} '
                                 f'--boundingshape {self.bounding_shape} '
                                 f'--shortname {self.shortname} '
+                                f'--loglevel {self.loglevel} '
                                 f'--outfile {expected_local_out}')
 
             mock_mkdtemp.assert_called_once()
@@ -455,8 +459,9 @@ class TestAdapter(TestCase):
             expected_parameters = {
                 '--configfile': SUBSETTER_CONFIG,
                 '--filename': local_input_path,
-                '--outfile': f'{self.temp_dir}/{self.granule["url"]}',
                 '--shortname': self.shortname,
+                '--loglevel': self.loglevel,
+                '--outfile': f'{self.temp_dir}/{self.granule["url"]}',
             }
             message_content = base_message.copy()
             message_content['sources'] = [base_source]
@@ -481,8 +486,9 @@ class TestAdapter(TestCase):
                 '--configfile': SUBSETTER_CONFIG,
                 '--filename': local_input_path,
                 '--includedataset': join(self.temp_dir, "source_vars.json"),
+                '--shortname': self.shortname,
+                '--loglevel': self.loglevel,
                 '--outfile': f'{self.temp_dir}/{self.subsetted_filename}',
-                '--shortname': self.shortname
             }
             message_content = base_message.copy()
             source_content = base_source.copy()
@@ -517,8 +523,9 @@ class TestAdapter(TestCase):
                 '--bbox': '10,20,30,40',
                 '--configfile': SUBSETTER_CONFIG,
                 '--filename': local_input_path,
+                '--shortname': self.shortname,
+                '--loglevel': self.loglevel,
                 '--outfile': f'{self.temp_dir}/{self.subsetted_filename}',
-                '--shortname': self.shortname
             }
             message_content = base_message.copy()
             message_content.update({'sources': [base_source],
@@ -543,8 +550,9 @@ class TestAdapter(TestCase):
                 '--boundingshape': self.bounding_shape,
                 '--configfile': SUBSETTER_CONFIG,
                 '--filename': local_input_path,
+                '--shortname': self.shortname,
+                '--loglevel': self.loglevel,
                 '--outfile': f'{self.temp_dir}/{self.subsetted_filename}',
-                '--shortname': self.shortname
             }
             message_content = base_message.copy()
             message_content.update({
@@ -577,8 +585,9 @@ class TestAdapter(TestCase):
                 '--configfile': SUBSETTER_CONFIG,
                 '--end': end_time,
                 '--filename': local_input_path,
-                '--outfile': f'{self.temp_dir}/{self.subsetted_filename}',
                 '--shortname': self.shortname,
+                '--loglevel': self.loglevel,
+                '--outfile': f'{self.temp_dir}/{self.subsetted_filename}',
                 '--start': start_time,
             }
             message_content = base_message.copy()
@@ -609,8 +618,9 @@ class TestAdapter(TestCase):
                 '--end': end_time,
                 '--filename': local_input_path,
                 '--includedataset': join(self.temp_dir, "source_vars.json"),
-                '--outfile': f'{self.temp_dir}/{self.subsetted_filename}',
                 '--shortname': self.shortname,
+                '--loglevel': self.loglevel,
+                '--outfile': f'{self.temp_dir}/{self.subsetted_filename}',
                 '--start': start_time,
             }
             source_content = base_source.copy()

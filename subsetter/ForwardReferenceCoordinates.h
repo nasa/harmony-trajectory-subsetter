@@ -4,6 +4,7 @@
 #include "Coordinate.h"
 #include "Configuration.h"
 #include "SuperGroupCoordinate.h"
+#include "LogLevel.h"
 
 #include <boost/algorithm/string/find.hpp>
 
@@ -61,12 +62,12 @@ public:
           GeoPolygon*          geoPolygon,
           Configuration*       config )
     {
-        std::cout << "ForwardReferenceCoordinates::getCoordinate(): ENTER groupname: " << groupname << std::endl;
+        LOG_DEBUG("ForwardReferenceCoordinates::getCoordinate(): ENTER groupname: " << groupname);
         
         if (Coordinate::lookUp(groupname))
         {
-            std::cout << "ForwardReferenceCoordinates::getCoordinate(): groupname: " 
-                      << " already exists in lookUpMap(ForwardReferenceCoordinate)" << std::endl;
+            LOG_DEBUG("ForwardReferenceCoordinates::getCoordinate(): groupname: " 
+                      << " already exists in lookUpMap(ForwardReferenceCoordinate)");
             return lookUpMap[groupname];
         }
 
@@ -147,7 +148,7 @@ public:
      */
     virtual IndexSelection* getIndexSelection()
     {
-        std::cout << " ForwardReferenceCoordinates::getIndexSelection(): ENTER" << std::endl;
+        LOG_DEBUG(" ForwardReferenceCoordinates::getIndexSelection(): ENTER");
 
         // if both temporal and spatial constraints don't exist,
         // return null to include all in the output
@@ -274,7 +275,7 @@ public:
                            long maxIndexBegIdx, long maxTrajIndex,
                            int64_t indexBegDataset[] )
     {
-        std::cout << " ForwardReferenceCoordinates::defineOneSegment(): ENTER" << std::endl;
+        LOG_DEBUG(" ForwardReferenceCoordinates::defineOneSegment(): ENTER");
         
         long firstIdxNonFill = 0;  // first non-fill indexBeg value in
                                    // selected segment
@@ -351,7 +352,7 @@ private:
      */
     void segmentedTrajectorySubset( H5::DataSet* indexBegSet )
     {
-        std::cout << "ForwardReferenceCoordinates::segmentedTrajectorySubset(): ENTER" << std::endl;
+        LOG_DEBUG("ForwardReferenceCoordinates::segmentedTrajectorySubset(): ENTER");
 
         size_t idxBegSize = indexBegSet->getSpace().getSimpleExtentNpoints();
 
@@ -443,9 +444,9 @@ private:
             if (indexes->segments.empty())
             {
                 indexes->addRestriction(0, 0);
-                std::cout << "ForwardReferenceCoordinates::segmentedTrajectorySubset(): " 
+                LOG_DEBUG("ForwardReferenceCoordinates::segmentedTrajectorySubset(): " 
                           << "No data found in trajectory subset that matched the spatial/temporal constraints." 
-                          << std::endl;
+                         );
             }
 
             delete [] indexBeg;

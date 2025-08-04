@@ -3,6 +3,7 @@
 
 #include "Coordinate.h"
 #include "Configuration.h"
+#include "LogLevel.h"
 
 #include <boost/algorithm/string/find.hpp>
 
@@ -34,12 +35,12 @@ public:
      static Coordinate* getCoordinate(H5::Group& root, H5::Group& ingroup, const std::string& shortName, SubsetDataLayers* subsetDataLayers,
             const std::string& groupname, std::vector<geobox>* geoboxes, Temporal* temporal, GeoPolygon* geoPolygon, Configuration* config)
     {
-        std::cout << "HeightSegmentCoordinates::getCoordinate(): ENTER groupname: " << groupname << std::endl;
+        LOG_DEBUG("HeightSegmentCoordinates::getCoordinate(): ENTER groupname: " << groupname);
 
         if (Coordinate::lookUp(groupname))
         {
-            std::cout << "HeightSegmentCoordinates::getCoordinate(): groupname: " << groupname
-                      << " already exists in lookUpMap(HeightSegmentCoordinate)" << std::endl;
+            LOG_DEBUG("HeightSegmentCoordinates::getCoordinate(): groupname: " << groupname
+                      << " already exists in lookUpMap(HeightSegmentCoordinate)");
 
             return lookUpMap["HeightSegmentRate"];
         }
@@ -75,7 +76,7 @@ public:
      */
     virtual IndexSelection* getIndexSelection()
     {
-        std::cout << "HeightSegmentCoordinates::getIndexSelection(): ENTER" << std::endl;
+        LOG_DEBUG("HeightSegmentCoordinates::getIndexSelection(): ENTER");
 
         indexes = new IndexSelection(coordinateSize);
 

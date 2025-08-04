@@ -7,6 +7,7 @@
 #include <string>
 #include <fstream>
 #include <sstream>
+#include <memory>
 
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/parsers.hpp>
@@ -23,6 +24,7 @@
 #include "IcesatSubsetter.h"
 #include "SuperGroupSubsetter.h"
 #include "Temporal.h"
+#include "LogLevel.h"
 
 namespace program_options = boost::program_options;
 namespace property_tree = boost::property_tree;
@@ -39,6 +41,8 @@ std::string originalOutputFormat;
 std::string outputFormat;
 std::string datasetList;
 std::string collShortName;
+std::string logLevel;
+std::string logFile;
 bool reproject;
 
 std::vector<geobox>* geoboxes = NULL; // Multiple bounding boxes can be specified.
@@ -68,26 +72,39 @@ int process_args(int argc, char* argv[])
             ("boundingshape,p", program_options::value<std::string>(), "Bounding shape(polygon)")
             ("reformat,r", program_options::value<std::string>(), "Change the output format (-r GeoTIFF)")
             ("crs,j", program_options::value<std::string>(), "Reproject to the coordinate reference system (e.g. EPSG:4326")
-            ("shortname,n", program_options::value<std::string>(), "The collection shortName for granules that do not contain a shortName variable (ATL24)");
+            ("shortname,n", program_options::value<std::string>(), "The collection shortName for granules that do not contain a shortName variable (ATL24)")
+            ("loglevel,l", program_options::value<std::string>(), "The log level can be DEBUG, INFO, WARNING, ERROR, or CRITICAL)")
+            ("logfile,g", program_options::value<std::string>(), "Name of log output file");
 
     program_options::variables_map variables_map;
     program_options::store(program_options::command_line_parser(argc, argv).options(description).run(), variables_map);
     program_options::notify(variables_map);
 
+    // Access loglevel from the input command, otherwise assign these log level to "INFO"
+    logLevel = (variables_map.count("loglevel"))? variables_map["loglevel"].as<std::string>() : "INFO";
+    SET_LOG_LEVEL(logLevel);
+
+    // Access log file, if specified.
+    if (variables_map.count("logfile"))
+    {
+        logFile = variables_map["logfile"].as<std::string>();
+        OPEN_LOG_FILE(logFile);
+    }
+
     // Print out the defined command options when the user either types
     // "help" or does not include a filename.
     if (variables_map.count("help") || !variables_map.count("filename"))
     {
-        std::cout << description;
+        LOG_ERROR(description);
         return 2;
     }
 
     // Access filename from the input command, if specified.
     infilename = variables_map["filename"].as<std::string>();
-    std::cout << "Subset::process_args(): filename: " << infilename << std::endl;
+    LOG_INFO("Subset::process_args(): filename: " << infilename);
     if (!std::ifstream(infilename.c_str()))
     {
-        std::cout << "Subset::process_args(): ERROR: Could not open input file " << infilename << std::endl;
+        LOG_ERROR("Subset::process_args(): ERROR: Could not open input file " << infilename);
         return 1;
     }
 
@@ -95,7 +112,7 @@ int process_args(int argc, char* argv[])
     if (variables_map.count("outfile")) outfilename = variables_map["outfile"].as<std::string>();
     if (outfilename.find("--") == 0 || !std::ofstream(outfilename.c_str()))
     {
-        std::cout << "Subset::process_args(): ERROR: Could not open output file " << outfilename << std::endl;
+        LOG_ERROR("Subset::process_args(): ERROR: Could not open output file " << outfilename);
         return 1;
     }
 
@@ -115,11 +132,11 @@ int process_args(int argc, char* argv[])
         {
             if (!regex_match((*it), regex_results, bbox_format))
             {
-                std::cout << "Subset::process_args(): ERROR: Invalid bounding box: " << *it << std::endl;
+                LOG_ERROR("Subset::process_args(): ERROR: Invalid bounding box: " << *it);
                 return 1;
             }
 
-            std::cout << "Subset::process_args(): Adding bounding box " << *it << std::endl;
+            LOG_INFO("Subset::process_args(): Adding bounding box " << *it);
             bounding_box += *it;
             boost::char_separator<char> sep(",");
             boost::tokenizer<boost::char_separator<char> > tokens(*it, sep);
@@ -147,14 +164,14 @@ int process_args(int argc, char* argv[])
         boost::regex date_format("[']?[\\d]{4}-[\\d]{2}-[\\d]{2}(T[\\d]{2}:[\\d]{2}:[\\d]{2}[\\.[\\d]*]?)?[']?");
         if (!regex_match(startString, regex_results, date_format) || !regex_match(endString, regex_results, date_format))
         {
-            std::cout << "Subset::process_args(): ERROR: Invalid start or end parameter " << std::endl;
+            LOG_ERROR("Subset::process_args(): ERROR: Invalid start or end parameter ");
             return 1;
         }
     }
     else if (variables_map.count("start") || variables_map.count("end"))
     {
-        std::cout << "Subset::process_args(): ERROR: Invalid temporal parameters, must pass in "
-                  << "both --start and --end parameters" << std::endl;
+        LOG_ERROR("Subset::process_args(): ERROR: Invalid temporal parameters, must pass in "
+                  << "both --start and --end parameters");
         return 1;
     }
 
@@ -162,7 +179,7 @@ int process_args(int argc, char* argv[])
     if (variables_map.count("includedataset"))
     {
         datasetList = variables_map["includedataset"].as<std::string>();
-        std::cout << "Subset::process_args(): includedataset" << std::endl;
+        LOG_INFO("Subset::process_args(): includedataset");
     }
 
     // Access bounding shape, if specfied.
@@ -184,7 +201,7 @@ int process_args(int argc, char* argv[])
     // Access reformatting, if specified.
     if (variables_map.count("reformat"))
     {
-        std::cout << "Subset::process_args(): reformat" << std::endl;
+        LOG_INFO("Subset::process_args(): reformat");
         originalOutputFormat = outputFormat = variables_map["reformat"].as<std::string>();
         if (outputFormat == "GeoTIFF" || outputFormat == "GTiff" || outputFormat == "GEO" || outputFormat=="KML")
         {
@@ -194,7 +211,7 @@ int process_args(int argc, char* argv[])
         {
             outputFormat = "NetCDF-3";
         }
-        std::cout << "Subset::process_args(): Reformatting to " << originalOutputFormat << std::endl;
+        LOG_INFO("Subset::process_args(): Reformatting to " << originalOutputFormat);
     }
 
     // Access coordinate reference system / reprojection, if specified.
@@ -270,7 +287,7 @@ int main(int argc, char* argv[])
         // polygon contains no data, return an error.
         if (geoPolygon != NULL and geoPolygon->isEmpty())
         {
-            std::cout << "Subset::main(): ERROR: no polygon found for the given GeoJSON/KML/Shapefile" << std::endl;
+            LOG_ERROR("Subset::main(): ERROR: no polygon found for the given GeoJSON/KML/Shapefile");
             return 6;
         }
 
@@ -283,13 +300,12 @@ int main(int argc, char* argv[])
         if(shortname.empty() && !collShortName.empty())
         {
             shortname = collShortName;
-            std::cout << "Subset::main(): shortname: " << shortname << std::endl;
+            LOG_INFO("Subset::main(): shortname: " << shortname);
         }
         else if (shortname.empty() && collShortName.empty())
         {
-            std::cout << "Subset::main(): ERROR: The short name could not be retrieved \
-                        from the collection or was not defined in the command line arguments" 
-            << std::endl;
+            LOG_ERROR("Subset::main(): ERROR: The short name could not be retrieved \
+                        from the collection or was not defined in the command line arguments");
         }
 
         std::string mission = config->getMissionFromShortName(shortname);
@@ -310,6 +326,10 @@ int main(int argc, char* argv[])
             subsetter = new Subsetter(subsetDataLayers, geoboxes, temporal, geoPolygon, config, outputFormat);
         }
         ErrorCode = subsetter->subset(infilename, outfilename, shortname);
+        if (ErrorCode == 0)
+            LOG_INFO("Subset::main(): subset SUCCESS");
+        else
+            LOG_ERROR("Subset::main(): subset FAILED return code: " << ErrorCode);
 
         // Release dynamic memory.
         delete config;
@@ -324,43 +344,43 @@ int main(int argc, char* argv[])
         }
         delete subsetter;
 
-        endTime=clock();
-        double runTime = (double) (endTime - startTime) / CLOCKS_PER_SEC;
+        std::stringstream argvStream;
         for (int i = 0; i < argc; i++)
         {
-            std::cout << argv[i] <<  " ";
+            argvStream << argv[i] <<  " ";
         }
-        std::cout << " execution time: " << runTime << " seconds" << std::endl;
+        LOG_INFO(argvStream.str());
+
+        endTime=clock();
+        double runTime = (double) (endTime - startTime) / CLOCKS_PER_SEC;
+        LOG_INFO(" execution time: " << runTime << " seconds");
     }
     catch (H5::Exception e)
     {
         std::string msg = e.getDetailMsg();
-        std::cerr << "\nSubset::main(): ERROR: caught H5 Exception: " << msg << std::endl;
+        LOG_ERROR("\nSubset::main(): ERROR: caught H5 Exception: " << msg);
 
         if (msg.find("H5Fcreate") != std::string::npos)
         {
-            std::cerr << "Output file could not be created, check if it's "
-                      << "currently open in another application.\n" << std::endl;
+            LOG_ERROR("Output file could not be created, check if it's "
+                      << "currently open in another application.\n");
         }
         else if (msg.find("H5Gopen") != std::string::npos)
         {
-            std::cerr << "HDF5 Group could not be opened.\n" << std::endl;
+            LOG_ERROR("HDF5 Group could not be opened.\n");
         }
         return -1;
     }
     catch (std::exception &e)
     {
-        std::cerr << "\nSubset::main(): ERROR: caught std::exception " << e.what() << std::endl;
+        LOG_ERROR("\nSubset::main(): ERROR: caught std::exception " << e.what());
         return -1;
     }
     catch (...)
     {
-        std::cerr << "\nSubset::main(): ERROR: unknown exception occurred";
+        LOG_ERROR("\nSubset::main(): ERROR: unknown exception occurred");
         return -1;
     }
     return ErrorCode;
  }
-
-
-
 
