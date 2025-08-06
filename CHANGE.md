@@ -1,3 +1,9 @@
+[version 0.3.6] 2025-08-05
+
+- **DAS-2402**
+ - Makes version detection more robust by allowing any ground track to be
+   tested to guess the version of ATL10 data.
+
 [version 0.3.5] 2025-07-31
 
 - **DAS-2398**

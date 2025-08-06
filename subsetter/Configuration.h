@@ -2001,32 +2001,33 @@ public:
     {
         LOG_DEBUG("Configuration::getVersionNumber(): ENTER shortName: " << shortName);
 
-        std::string version("");
-        const std::string atl10v005("/gt1l/freeboard_beam_segment/");
-        const std::string atl10v006("/gt1l/freeboard_segment/");
+        const std::string atl10v005("/gt[\\w]+/freeboard_beam_segment/");
+        const std::string atl10v006("/gt[\\w]+/freeboard_segment/");
 
         for (const auto& keyinfo : shortNameGroupDatasetFromGranuleFile) 
         {
             for (const auto& valueinfo : keyinfo.second) 
             {
-                if(keyinfo.first == shortName && valueinfo == atl10v005)
+                if(keyinfo.first == shortName && regex_match(valueinfo, boost::regex(atl10v005)))
                 {
                     LOG_DEBUG("Configuration::getVersionNumber() FOUND version = 005 shortName: " 
                               << keyinfo.first << " group: " << valueinfo);
-                    version = ATL10v005;
-                    break;
+                    return ATL10v005;
                 }
-                else if(keyinfo.first == shortName && valueinfo == atl10v006)
+                else if(keyinfo.first == shortName && regex_match(valueinfo, boost::regex(atl10v006)))
                 {
                     LOG_DEBUG("Configuration::getVersionNumber() FOUND version = 006 shortName: " 
                               << keyinfo.first << " group: " << valueinfo);
-                    version = ATL10v006;
-                    break;
+                    return ATL10v006;
                 }
             }
         }
 
-        return version;
+        LOG_ERROR("Configuration::getVersionNumber() Failed to retrieve short name: " 
+                              << shortName << " version number");
+
+        // Return empty string
+        return std::string();
     }
 
 private:
