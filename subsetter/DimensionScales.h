@@ -117,7 +117,6 @@ public:
 
         // H5Lexists prints error message when any element before the final link doesn't exist,
         // so suppress the error message print
-        // save off error handler
         H5E_auto2_t func;
         void* client_data;
         H5::Exception::getAutoPrint(func, &client_data);

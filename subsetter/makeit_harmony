@@ -1,4 +1,5 @@
-/home/bin/h5c++ -v -std=c++11 -DHARMONY \
+/home/bin/h5c++ -v -std=c++14 -DHARMONY \
+-Wno-vla-extension \
 -I/home/hdfeos/gctp/include \
 -L/usr/lib64 \
 -I/usr/include \

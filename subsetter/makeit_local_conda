@@ -9,7 +9,7 @@ if [ ! -f "${CURDIR}/hdfeos5/include/HE5_GctpFunc.h" ] || [ ! -f "${CURDIR}/hdfe
     cd ../
 fi
 
-${CONDA_PREFIX}/bin/h5c++ -v -std=c++20 -g ./Subset.cpp \
+${CONDA_PREFIX}/bin/h5c++ -v -std=c++20 -g -Wno-vla-extension ./Subset.cpp \
 -DSDPS \
 -DH5_USE_18_API \
 -Og \

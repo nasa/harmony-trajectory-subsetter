@@ -77,7 +77,7 @@ public:
     bool isHardLink(const std::string& objname)
     {
         std::map<std::string, std::string>::iterator it = hardlinks->find(objname);
-        if (it != hardlinks->end()) return true;
+        return (it != hardlinks->end());
     }
 
     /**

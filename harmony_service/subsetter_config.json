@@ -14,7 +14,8 @@
         "ATL[\\d]{2}": {
             "time": [
                 "delta_time",
-                "transect_time"
+                "transect_time",
+                "bif_delta_time"
             ],
             "latitude": [
                 "latitude",
@@ -23,7 +24,9 @@
                 "lat_mean",
                 "reference_pt_lat",
                 "segment_lat",
-                "transect_lat"
+                "transect_lat",
+                "lat",
+                "bif_lat"
             ],
             "longitude": [
                 "longitude",
@@ -32,7 +35,9 @@
                 "lon_mean",
                 "reference_pt_lon",
                 "segment_lon",
-                "transect_lon"
+                "transect_lon",
+                "lon",
+                "bif_lon"
             ],
             "ignore": [
                 "cycle_number",

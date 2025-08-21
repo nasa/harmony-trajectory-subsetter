@@ -129,10 +129,12 @@ public:
         {
             returnCode = 3;
             if (remove(outfilename.c_str()))
-                LOG_ERROR("Subsetter::subset(): Error removing " << outfilename << " with no matching data in it.");
+                LOG_ERROR("Subsetter::subset(): No matching data for the constraints specified.  Unable to remove: " << outfilename);
             else
-                LOG_INFO("Subsetter::subset(): Removed output file " << outfilename << " because there was no matching data for the constraints specified.");
+                LOG_INFO("Subsetter::subset(): No matching data for the constraints specified. Removed output file " << outfilename);
         }
+        else
+            LOG_INFO("Subsetter::subset(): WRITING output file: " << outfilename);
 
         // Add an attribute that contains the specified parameters,
         // including the dataset list and the temporal and spatial bounds,
@@ -140,7 +142,6 @@ public:
         addProcessingParameterAttribute(outgroup, infilename);
 
         outfile.flush(H5F_SCOPE_GLOBAL);
-        LOG_INFO("Subsetter::subset(): WRITING output file: " << outfilename);
         LOG_INFO("Subsetter::subset(): Datasets size: " << subsetDataLayers->getDatasets().size());
 
         // If the specified output format is a GeoTIFF, call the GeoTIFF converter.
@@ -423,7 +424,10 @@ protected:
                 newdims[d] = olddims[d];
                 inconsistentDatasets.push_back(groupname+objname);
             }
-            if (newdims[d] == 0 || olddims[d] == 0) return;
+
+            if (newdims[d] == 0 || olddims[d] == 0)
+                return;
+
             if (newdims[d] != olddims[d])
             {
                 dim = d;
@@ -971,6 +975,7 @@ private:
         bool subsettable = false;
         std::vector < std::set <std::string> >::iterator it = datasets.begin();
         std::vector<std::string>* dimScales = dimensionScales->getDimScaleDatasets();
+
         while (it != datasets.end() && !subsettable)
         {
             std::set<std::string>::iterator set_iter = it->begin();

@@ -1,3 +1,10 @@
+[version 0.3.7] 2025-08-14
+
+- **DAS-2390**
+ - Update subsetter_config.json to support the new lat and lon variables in ATL07 v7 
+ - Update the build script to suppress Variable Length Arrays (VLAs) (-Wno-vla-extension)
+ - Resolve various warning messages.
+
 [version 0.3.6] 2025-08-05
 
 - **DAS-2402**

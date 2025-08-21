@@ -39,7 +39,7 @@ set (HDF5_LIB                 ${CONDA_PREFIX}/lib)
 #-----------------------------------------------------------------------------
 # Define compile options, include, and libraries to link in the project
 #-----------------------------------------------------------------------------
-add_compile_options(-v -DSDPS -DH5_USE_18_API -Og)
+add_compile_options(-v -DSDPS -DH5_USE_18_API -Og -Wno-vla-extension)
 include_directories(${HDFEOS5_INCLUDE} ${HDF5_INCLUDE})
 link_directories(${HDFEOS5_LIB} ${HDF5_LIB})
 

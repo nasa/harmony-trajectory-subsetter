@@ -340,12 +340,12 @@ public:
         else if (size == 4)
         {
             float val = *(float*)buf;
-            if (val == -9999 || val == 0) //is a float (val=0 means no fill (assume lat/lon))
+            if (val == -9999.0 || val == 0.0) //is a float (val=0 means no fill (assume lat/lon))
             {
                 float fill = -9997;
                 memcpy(buf, &fill, size);
             }
-            else if (val == 4294967294)
+            else if (*(uint32_t*)buf == 4294967294)
             {
                 unsigned long fill = 4294967294-2;
                 memcpy(buf, &fill, size);
@@ -406,12 +406,12 @@ public:
         }
         else if (size == 4)
         {
-            if (*(float*)buf == -9999) //is a float
+            if (*(float*)buf == -9999.0) //is a float
             {
-                float fill = -9998;
+                float fill = -9998.0;
                 memcpy(buf, &fill, size);
             }
-            else if (*(int32_t*)buf == 4294967294)
+            else if (*(uint32_t*)buf == 4294967294)
             {
                 unsigned long fill = 4294967294-1;
                 memcpy(buf, &fill, size);
@@ -537,6 +537,8 @@ public:
             LOG_DEBUG("geotiff_converter::get_units(): Attribute units exists:" << buf);
             return buf;
         }
+        else
+            return std::string();
     }
 
     void set_tiff_keys(TIFF* tif, size_t data_type_size, int data_type, int num_rows, int num_cols, double* geotiepoints, double* pixelscale, std::string units)

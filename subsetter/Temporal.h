@@ -161,7 +161,7 @@ private:
         }
         catch(const std::exception &ex)
         {
-            LOG_INFO(ex.what() << ", setting date time to 00:00:00.000000");
+            LOG_INFO("Temporal::convertToDateTimeString: " << ex.what() << ", setting date time to 00:00:00.000000");
             return std::string("00:00:00.000000");
         }   
     }

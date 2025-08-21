@@ -316,8 +316,8 @@ public:
 
         indexesProcessed = true;
 
-        delete lat;
-        delete lon;
+        delete [] lat;
+        delete [] lon;
 
         return indexes;
     }
@@ -547,9 +547,6 @@ private:
         if (indexes->size() == 0) return;
 
         long start = 0, length = 0;
-
-
-
 
         for (std::map<long, long>::iterator it = indexes->segments.begin(); it != indexes->segments.end(); it++)
         {
