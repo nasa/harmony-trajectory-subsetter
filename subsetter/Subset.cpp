@@ -9,14 +9,7 @@
 #include <sstream>
 #include <memory>
 
-#include <boost/program_options/options_description.hpp>
-#include <boost/program_options/parsers.hpp>
-#include <boost/program_options/variables_map.hpp>
-#include <boost/tokenizer.hpp>
-#include <boost/foreach.hpp>
-#include <boost/regex.hpp>
-#include <boost/algorithm/string.hpp>
-
+#include "ProcessArguments.h"
 #include "Configuration.h"
 #include "geobox.h"
 #include "SubsetDataLayers.h"
@@ -26,210 +19,6 @@
 #include "Temporal.h"
 #include "LogLevel.h"
 
-namespace program_options = boost::program_options;
-namespace property_tree = boost::property_tree;
-
-std::string infilename;
-std::string outfilename;
-std::string configFile;
-std::string subsettype;
-std::string bounding_box;
-std::string startString;
-std::string endString;
-std::string boundingShape;
-std::string originalOutputFormat;
-std::string outputFormat;
-std::string datasetList;
-std::string collShortName;
-std::string logLevel;
-std::string logFile;
-bool reproject;
-
-std::vector<geobox>* geoboxes = NULL; // Multiple bounding boxes can be specified.
-std::vector<std::string> datasetsToInclude;
-property_tree::ptree boundingShapePt;
-
-/**
- * @brief Process the input arguments of the subset request.
- *
- * @param argc The number of input arguments.
- * @param argv The vector of input arguments.
- * @return Error code (0 - success, 1 - fail)
- */
-int process_args(int argc, char* argv[])
-{
-    program_options::options_description description("Available Options");
-    description.add_options()
-            ("help,h", "Display this help message")
-            ("filename,f", program_options::value<std::string>(), "Name of file to subset")
-            ("outfile,o", program_options::value<std::string>(), "Name of output file")
-            ("configfile,c", program_options::value<std::string>(), "Configure file")
-            ("subsettype,t", program_options::value<std::string>(), "Subset type (ICESAT, SMAP, GLAS)")
-            ("bbox,b", program_options::value<std::vector<std::string> >(), "Bounding Boxes (West,South,East,North) degrees")
-            ("start,s", program_options::value<std::string>(), "Temporal search start")
-            ("end,e", program_options::value<std::string>(), "Temporal search end")
-            ("includedataset,i", program_options::value<std::string>(), "Only include the specified datasets to include in output product")
-            ("boundingshape,p", program_options::value<std::string>(), "Bounding shape(polygon)")
-            ("reformat,r", program_options::value<std::string>(), "Change the output format (-r GeoTIFF)")
-            ("crs,j", program_options::value<std::string>(), "Reproject to the coordinate reference system (e.g. EPSG:4326")
-            ("shortname,n", program_options::value<std::string>(), "The collection shortName for granules that do not contain a shortName variable (ATL24)")
-            ("loglevel,l", program_options::value<std::string>(), "The log level can be DEBUG, INFO, WARNING, ERROR, or CRITICAL)")
-            ("logfile,g", program_options::value<std::string>(), "Name of log output file");
-
-    program_options::variables_map variables_map;
-    program_options::store(program_options::command_line_parser(argc, argv).options(description).run(), variables_map);
-    program_options::notify(variables_map);
-
-    // Access loglevel from the input command, otherwise assign these log level to "INFO"
-    logLevel = (variables_map.count("loglevel"))? variables_map["loglevel"].as<std::string>() : "INFO";
-    SET_LOG_LEVEL(logLevel);
-
-    // Access log file, if specified.
-    if (variables_map.count("logfile"))
-    {
-        logFile = variables_map["logfile"].as<std::string>();
-        OPEN_LOG_FILE(logFile);
-    }
-
-    // Print out the defined command options when the user either types
-    // "help" or does not include a filename.
-    if (variables_map.count("help") || !variables_map.count("filename"))
-    {
-        LOG_ERROR(description);
-        return 2;
-    }
-
-    // Access filename from the input command, if specified.
-    infilename = variables_map["filename"].as<std::string>();
-    LOG_INFO("Subset::process_args(): filename: " << infilename);
-    if (!std::ifstream(infilename.c_str()))
-    {
-        LOG_ERROR("Subset::process_args(): ERROR: Could not open input file " << infilename);
-        return 1;
-    }
-
-    // Access output file from the input command, if specfied.
-    if (variables_map.count("outfile")) outfilename = variables_map["outfile"].as<std::string>();
-    if (outfilename.find("--") == 0 || !std::ofstream(outfilename.c_str()))
-    {
-        LOG_ERROR("Subset::process_args(): ERROR: Could not open output file " << outfilename);
-        return 1;
-    }
-
-    // If either the subset type and/or config file are specified, pull them from the
-    // variable map, otherwise assign these variables to an empty string.
-    subsettype = (variables_map.count("subsettype"))? variables_map["subsettype"].as<std::string>() : "";
-    configFile = (variables_map.count("configfile"))? variables_map["configfile"].as<std::string>() : "";
-
-    // Access bounding box from the input command, if specified.
-    boost::match_results<std::string::const_iterator> regex_results;
-    if (variables_map.count("bbox"))
-    {
-        std::vector<std::string> boxes = variables_map["bbox"].as<std::vector<std::string> >();
-        boost::regex bbox_format("[']?[-]?[.\\d]+,[-]?[.\\d]+,[-]?[.\\d]+,[-]?[.\\d]+[']?");
-
-        for (std::vector<std::string>::iterator it = boxes.begin(); it != boxes.end(); it++)
-        {
-            if (!regex_match((*it), regex_results, bbox_format))
-            {
-                LOG_ERROR("Subset::process_args(): ERROR: Invalid bounding box: " << *it);
-                return 1;
-            }
-
-            LOG_INFO("Subset::process_args(): Adding bounding box " << *it);
-            bounding_box += *it;
-            boost::char_separator<char> sep(",");
-            boost::tokenizer<boost::char_separator<char> > tokens(*it, sep);
-            boost::tokenizer<boost::char_separator<char> >::iterator iter = tokens.begin();
-            double w = atof(iter->c_str());
-            double s = atof((++iter)->c_str());
-            double e = atof((++iter)->c_str());
-            double n = atof((++iter)->c_str());
-            if (geoboxes == NULL)
-            {
-                geoboxes = new std::vector<geobox>();
-            }
-            geoboxes->push_back(geobox(w, s, e, n));
-        }
-    }
-
-    // Access start and end temporal parameters, if specified.
-    // Either both or none of the parameteres are expected when included.
-    if (variables_map.count("start") && variables_map.count("end"))
-    {
-        startString = variables_map["start"].as<std::string>();
-        endString = variables_map["end"].as<std::string>();
-        boost::erase_all(startString, "'");
-        boost::erase_all(endString, "'");
-        boost::regex date_format("[']?[\\d]{4}-[\\d]{2}-[\\d]{2}(T[\\d]{2}:[\\d]{2}:[\\d]{2}[\\.[\\d]*]?)?[']?");
-        if (!regex_match(startString, regex_results, date_format) || !regex_match(endString, regex_results, date_format))
-        {
-            LOG_ERROR("Subset::process_args(): ERROR: Invalid start or end parameter ");
-            return 1;
-        }
-    }
-    else if (variables_map.count("start") || variables_map.count("end"))
-    {
-        LOG_ERROR("Subset::process_args(): ERROR: Invalid temporal parameters, must pass in "
-                  << "both --start and --end parameters");
-        return 1;
-    }
-
-    // Access included dataset(s), if specified.
-    if (variables_map.count("includedataset"))
-    {
-        datasetList = variables_map["includedataset"].as<std::string>();
-        LOG_INFO("Subset::process_args(): includedataset");
-    }
-
-    // Access bounding shape, if specfied.
-    if (variables_map.count("boundingshape"))
-    {
-        boundingShape = variables_map["boundingshape"].as<std::string>();
-        if (boundingShape.find("geojson") != std::string::npos)
-        {
-            property_tree::read_json(boundingShape, boundingShapePt);
-        }
-        else
-        {
-            std::stringstream ss;
-            ss << boundingShape;
-            property_tree::read_json(ss, boundingShapePt);
-        }
-    }
-
-    // Access reformatting, if specified.
-    if (variables_map.count("reformat"))
-    {
-        LOG_INFO("Subset::process_args(): reformat");
-        originalOutputFormat = outputFormat = variables_map["reformat"].as<std::string>();
-        if (outputFormat == "GeoTIFF" || outputFormat == "GTiff" || outputFormat == "GEO" || outputFormat=="KML")
-        {
-            outputFormat = "GeoTIFF";
-        }
-        else if (outputFormat == "netCDF3" || outputFormat == "NetCDF3" || outputFormat == "NetCDF-3")
-        {
-            outputFormat = "NetCDF-3";
-        }
-        LOG_INFO("Subset::process_args(): Reformatting to " << originalOutputFormat);
-    }
-
-    // Access coordinate reference system / reprojection, if specified.
-    if (variables_map.count("crs"))
-    {
-        reproject=true;
-    }
-    else
-    {
-        reproject=false;
-    }
-
-    // Access shortname from the input command, otherwise assign these variables to an empty string
-    collShortName = (variables_map.count("shortname"))? variables_map["shortname"].as<std::string>() : "";
-    boost::trim_right(collShortName);
-
-    return 0;
-}
 
 /**
  * Trajectory Subsetter main function.
@@ -238,7 +27,9 @@ int main(int argc, char* argv[])
 {
     // If process_args() returns a non-zero value,
     // then the arguments were unable to be processed.
-    if (int processArgsErrorCode = process_args(argc, argv))
+    std::shared_ptr<ProcessArguments> processArgs = std::make_shared<ProcessArguments>();
+    int processArgsErrorCode = processArgs->process_args(argc, argv);
+    if (processArgsErrorCode != ProcessArguments::PASS)
     {
         return processArgsErrorCode;
     }
@@ -251,16 +42,16 @@ int main(int argc, char* argv[])
 
     try
     {
-        Configuration* config = new Configuration(configFile);
+        Configuration* config = new Configuration(processArgs->getConfigFile());
 
         // Data structure for requested datasets.
         SubsetDataLayers* subsetDataLayers;
 
         // Read in a json file if one is provided for the
         // requested datasets.
-        if (datasetList.find("json") != std::string::npos)
+        if (processArgs->getDatasetList().find("json") != std::string::npos)
         {
-            subsetDataLayers = new SubsetDataLayers(datasetList);
+            subsetDataLayers = new SubsetDataLayers(processArgs->getDatasetList());
         }
         // Otherwise, read in the datasets specified in the command
         // line request via --includedatasets.
@@ -268,20 +59,22 @@ int main(int argc, char* argv[])
         {
             std::string dataset;
             boost::char_separator<char> delim(" ,");
-            boost::tokenizer<boost::char_separator<char> > datasets(datasetList, delim);
+            boost::tokenizer<boost::char_separator<char> > datasets(processArgs->getDatasetList(), delim);
             BOOST_FOREACH(dataset, datasets)
             {
-                datasetsToInclude.push_back(dataset);
+                processArgs->getDatasetsToInclude().push_back(dataset);
             }
-            subsetDataLayers = new SubsetDataLayers(datasetsToInclude);
+            subsetDataLayers = new SubsetDataLayers(processArgs->getDatasetsToInclude());
         }
 
         // Construct test to check if the input start and end parameters
         // are valid, if they are specified.
-        Temporal* temporal = (!startString.empty() && !endString.empty())? new Temporal(startString, endString) : NULL;
+        Temporal* temporal = (!processArgs->getStartString().empty() && !processArgs->getEndString().empty())? 
+                             new Temporal(processArgs->getStartString(), processArgs->getEndString()) : NULL;
 
         // Construct data structure to hold bounding shape info, if specified.
-        GeoPolygon* geoPolygon = (!boundingShapePt.empty())? new GeoPolygon(boundingShapePt) : NULL;
+        GeoPolygon* geoPolygon = (!processArgs->getBoundingShapePt().empty())? 
+                                 new GeoPolygon(processArgs->getBoundingShapePt()) : NULL;
 
         // If a bounding shape is provided but the constructed GeoPolygon
         // polygon contains no data, return an error.
@@ -293,16 +86,17 @@ int main(int argc, char* argv[])
 
         // Extract the granule mission by passing the short name returned by
         // a Subsetter class function into a Configuration instance function.
-        Subsetter* getMission = new Subsetter(subsetDataLayers, geoboxes, temporal, geoPolygon, config, outputFormat);
-        H5::H5File infile = H5::H5File(infilename,H5F_ACC_RDONLY);
+        Subsetter* getMission = new Subsetter(subsetDataLayers, processArgs->getGeoboxes(),
+                                              temporal, geoPolygon, config, processArgs->getOutputFormat());
+        H5::H5File infile = H5::H5File(processArgs->getInfilename(),H5F_ACC_RDONLY);
 
         std::string shortname = getMission->retrieveShortName(infile);
-        if(shortname.empty() && !collShortName.empty())
+        if(shortname.empty() && !processArgs->getCollShortName().empty())
         {
-            shortname = collShortName;
+            shortname = processArgs->getCollShortName();
             LOG_INFO("Subset::main(): shortname: " << shortname);
         }
-        else if (shortname.empty() && collShortName.empty())
+        else if (shortname.empty() && processArgs->getCollShortName().empty())
         {
             LOG_ERROR("Subset::main(): ERROR: The short name could not be retrieved \
                         from the collection or was not defined in the command line arguments");
@@ -315,17 +109,17 @@ int main(int argc, char* argv[])
         Subsetter* subsetter = nullptr;
         if (mission == "ICESAT")
         {
-            subsetter = new IcesatSubsetter(subsetDataLayers, geoboxes, temporal, geoPolygon, config);
+            subsetter = new IcesatSubsetter(subsetDataLayers, processArgs->getGeoboxes(), temporal, geoPolygon, config);
         }
         else if (mission == "GEDI")
         {
-            subsetter = new SuperGroupSubsetter(subsetDataLayers, geoboxes, temporal, geoPolygon, config);
+            subsetter = new SuperGroupSubsetter(subsetDataLayers, processArgs->getGeoboxes(), temporal, geoPolygon, config);
         }
         else // Use the base Subsetter if the mission isn't GEDI or ICESAT.
         {
-            subsetter = new Subsetter(subsetDataLayers, geoboxes, temporal, geoPolygon, config, outputFormat);
+            subsetter = new Subsetter(subsetDataLayers, processArgs->getGeoboxes(), temporal, geoPolygon, config, processArgs->getOutputFormat());
         }
-        ErrorCode = subsetter->subset(infilename, outfilename, shortname);
+        ErrorCode = subsetter->subset(processArgs->getInfilename(), processArgs->getOutfilename(), shortname);
         if (ErrorCode == 0)
             LOG_INFO("Subset::main(): subset SUCCESS");
         else

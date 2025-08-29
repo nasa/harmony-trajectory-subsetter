@@ -1,8 +1,16 @@
-/tools/common/ref/heglibs-rh8/bin/h5c++ -v -std=c++14 -g Subset.cpp \
+/tools/common/ref/heglibs-rh8/bin/h5c++ -v -std=c++14 -g \
 -DSDPS \
 -Wno-vla-extension \
--lgeotiff -ltiff -lGctp -ljpeg -llzma \
+-lgeotiff \
+-ltiff \
+-lGctp \
+-ljpeg \
+-llzma \
 -lboost_program_options \
--lboost_filesystem -lboost_system \
--lboost_date_time -lboost_regex \
+-lboost_filesystem \
+-lboost_system \
+-lboost_date_time \
+-lboost_regex \
+ProcessArguments.cpp \
+Subset.cpp \
 -o /ecs/formal/DPL/bin/linux/subset

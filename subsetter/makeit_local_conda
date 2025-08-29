@@ -9,13 +9,22 @@ if [ ! -f "${CURDIR}/hdfeos5/include/HE5_GctpFunc.h" ] || [ ! -f "${CURDIR}/hdfe
     cd ../
 fi
 
-${CONDA_PREFIX}/bin/h5c++ -v -std=c++20 -g -Wno-vla-extension ./Subset.cpp \
+${CONDA_PREFIX}/bin/h5c++ -v -std=c++20 -g \
+-Wno-vla-extension \
 -DSDPS \
 -DH5_USE_18_API \
 -Og \
 -I${CURDIR}/hdfeos5/include \
 -L${CURDIR}/hdfeos5/lib \
--lgeotiff -ltiff -ljpeg -lGctp -llzma \
--lboost_program_options -lboost_filesystem \
--lboost_date_time       -lboost_regex \
+-lgeotiff \
+-ltiff \
+-ljpeg \
+-lGctp \
+-llzma \
+-lboost_program_options \
+-lboost_filesystem \
+-lboost_date_time \
+-lboost_regex \
+ProcessArguments.cpp \
+Subset.cpp \
 -o subset

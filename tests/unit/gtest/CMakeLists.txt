@@ -10,8 +10,7 @@
 cmake_minimum_required(VERSION 3.14)
 project(my_project)
 
-# GoogleTest requires at least C++14
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include(FetchContent)
@@ -45,13 +44,14 @@ link_directories(${HDFEOS5_LIB} ${HDF5_LIB})
 
 include(GoogleTest)
 
-add_executable(
-  subsetter_test
-  gtest_utilities.cpp
-  test_ForwardReferenceCoordinates.cpp
-  test_IndexSelection.cpp
-  test_ATL10_v005_Configuration.cpp
-  test_ATL10_v006_Configuration.cpp
+add_executable(subsetter_test
+               gtest_utilities.cpp
+               test_ForwardReferenceCoordinates.cpp
+               test_IndexSelection.cpp
+               test_ATL10_v005_Configuration.cpp
+               test_ATL10_v006_Configuration.cpp
+               ${SUBSETTER_DIR}/ProcessArguments.cpp
+               test_ProcessArguments.cpp
 )
 
 target_link_libraries(subsetter_test
@@ -76,12 +76,11 @@ gtest_discover_tests(subsetter_test)
 # Both the Subsetter and ForwardReferenceCoordinates tests access the global
 # variables Temporal::unixEpochTime and Coordinate::lookUpMap, resulting
 # in duplicate linker symbols.
-add_executable(
-  subsetter_requiring_temporal_subsetting_test
-  gtest_utilities.cpp
-  test_Subsetter.cpp
-  test_Temporal.cpp
-  test_LogLevel.cpp
+add_executable(subsetter_requiring_temporal_subsetting_test
+               gtest_utilities.cpp
+               test_Subsetter.cpp
+               test_Temporal.cpp
+               test_LogLevel.cpp
 )
 
 target_link_libraries(subsetter_requiring_temporal_subsetting_test
@@ -106,7 +105,7 @@ gtest_discover_tests(subsetter_requiring_temporal_subsetting_test)
 #-----------------------------------------------------------------------------
 # Run google test after building
 #-----------------------------------------------------------------------------
-  add_custom_command(TARGET subsetter_test
-                    subsetter_requiring_temporal_subsetting_test
-                    POST_BUILD
-                    COMMAND ctest)
+add_custom_command(TARGET subsetter_test
+                   subsetter_requiring_temporal_subsetting_test
+                   POST_BUILD
+                   COMMAND ctest)

@@ -1,3 +1,9 @@
+[version 0.3.8] 2025-08-21
+
+- **DAS-2405**
+ - Update -boundingshapes parsing to verify .geojson is a valid file before 
+   attempting to open it.
+
 [version 0.3.7] 2025-08-14
 
 - **DAS-2390**
