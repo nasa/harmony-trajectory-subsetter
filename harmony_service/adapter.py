@@ -1,5 +1,5 @@
 """ This module contains the main HarmonyAdapter instance for calling the
-    Data Services Level 2 Segmented Trajectory Subsetter. It will:
+    Data Services Trajectory Subsetter binary. It will:
 
     * Receive an inbound Harmony message.
     * Validate and parse the contents of that Harmony message.
@@ -40,6 +40,7 @@ from harmony_service_lib.util import (
 from pystac import Asset, Item
 
 from harmony_service.exceptions import NoMatchingData
+from harmony_service.history import update_history_metadata
 from harmony_service.utilities import (
     convert_harmony_datetime,
     execute_command,
@@ -58,7 +59,7 @@ SUBSETTER_CONFIG = '/home/harmony_service/subsetter_config.json'
 
 class HarmonyAdapter(BaseHarmonyAdapter):
     """ This class extends the BaseHarmonyAdapter class, to implement the
-        `invoke` method, which performs L2 segmented trajectory subsetting.
+        `invoke` method, which performs trajectory subsetting in Harmony.
 
     """
     def invoke(self):
@@ -94,6 +95,11 @@ class HarmonyAdapter(BaseHarmonyAdapter):
             # Invoke the Trajectory subsetter binary
             self.transform(binary_parameters)
 
+            # Create or update the existing history attribute.
+            update_history_metadata(binary_parameters,
+                                    [variable.name
+                                     for variable in source.variables])
+
             # Stage the output file.
             staged_file_name = basename(binary_parameters['--outfile'])
             mime = get_file_mimetype(binary_parameters['--outfile'])
@@ -109,7 +115,7 @@ class HarmonyAdapter(BaseHarmonyAdapter):
         except NoMatchingData as exception:
             raise NoDataException from exception
         except Exception as exception:
-            raise HarmonyException('L2 Trajectory Subsetter failed with '
+            raise HarmonyException('Trajectory Subsetter failed with '
                                    f'error: {str(exception)}') from exception
         finally:
             # Clean up any intermediate resources:
@@ -117,10 +123,10 @@ class HarmonyAdapter(BaseHarmonyAdapter):
 
     def transform(self, binary_parameters: Dict[str, str]) -> None:
         """ This class method takes the parsed arguments to be sent to the
-            L2 segmented Trajectory Subsetter binary and constructs a command
-            to execute the specified transformation. This command takes the
-            form of a string, which is a space-delimited concatenation of the
-            list of parameters:
+            Trajectory Subsetter binary and constructs a command to execute
+            the specified transformation. This command takes the form of a
+            string, which is a space-delimited concatenation of the list of
+            parameters:
 
             ```Python
             binary_command = ['path/to/binary', '--filename', 'input.h5']
@@ -304,8 +310,8 @@ def main(arguments: List[Any], config: Optional[Config] = None):
 
     """
     parser = ArgumentParser(
-        prog='L2 Segmented Trajectory Subsetter',
-        description='Run the Data Services L2 Segmented Trajectory Subsetter'
+        prog='Harmony Trajectory Subsetter',
+        description='Run the Data Services Harmony Trajectory Subsetter'
     )
     setup_cli(parser)
     args, _ = parser.parse_known_args(arguments)

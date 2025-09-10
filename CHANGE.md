@@ -1,13 +1,20 @@
+[version 0.4.0] 2025-09-08
+
+- **DAS-2325**
+ - Add functionality that writes a history metadata attribute containing
+   request date and time, service name, service version, and subset
+   parameters in each file output to maintain file provenance.
+
 [version 0.3.8] 2025-08-21
 
 - **DAS-2405**
- - Update -boundingshapes parsing to verify .geojson is a valid file before 
+ - Update -boundingshapes parsing to verify .geojson is a valid file before
    attempting to open it.
 
 [version 0.3.7] 2025-08-14
 
 - **DAS-2390**
- - Update subsetter_config.json to support the new lat and lon variables in ATL07 v7 
+ - Update subsetter_config.json to support the new lat and lon variables in ATL07 v7
  - Update the build script to suppress Variable Length Arrays (VLAs) (-Wno-vla-extension)
  - Resolve various warning messages.
 

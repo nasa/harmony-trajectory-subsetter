@@ -1,7 +1,6 @@
-""" This module contains custom exceptions specific to the L2 Segmented
-    Trajectory Subsetter. These exceptions are intended to allow for easier
-    debugging of the expected errors that may occur during an invocation of
-    the service.
+""" This module contains custom exceptions specific to the Harmony Trajectory
+    Subsetter. These exceptions are intended to allow for easier debugging of
+    the expected errors that may occur during an invocation of the service.
 
     The initial list of exceptions was drawn from the `ICESat2ToolAdapter.py`
     module.
@@ -10,7 +9,7 @@
 
 
 class CustomError(Exception):
-    """ Base class for exceptions in the L2 Segmented Trajectory Subsetter. """
+    """ Base class for exceptions in the Harmony Trajectory Subsetter. """
     def __init__(self, exception_type: str, message: str, exit_status: int):
         self.exception_type = exception_type
         self.exit_status = exit_status

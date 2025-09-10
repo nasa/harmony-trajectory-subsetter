@@ -150,14 +150,14 @@ class TestAdapter(TestCase):
                            'stagingLocation': self.staging_location,
                            'user': self.user})
 
-        subsetter = HarmonyAdapter(message, config=self.config, 
+        subsetter = HarmonyAdapter(message, config=self.config,
                                    catalog=self.input_catalog)
 
         with self.assertRaises(HarmonyException) as context_manager:
             subsetter.invoke()
 
         self.assertEqual(context_manager.exception.message,
-                         ('L2 Trajectory Subsetter failed with error: '
+                         ('Trajectory Subsetter failed with error: '
                           'Failed to download'))
 
         mock_mkdtemp.assert_called_once()
@@ -170,7 +170,7 @@ class TestAdapter(TestCase):
                               mock_download, mock_stage,
                               mock_get_mimetype, mock_mkdtemp,
                               mock_support_variables):
-        """ Ensure a request that has no data found matching the subset 
+        """ Ensure a request that has no data found matching the subset
             constraints raises the harmony-defined NoDataException
 
         """
@@ -191,9 +191,9 @@ class TestAdapter(TestCase):
                            'stagingLocation': self.staging_location,
                            'user': self.user})
 
-        subsetter = HarmonyAdapter(message, config=self.config, 
+        subsetter = HarmonyAdapter(message, config=self.config,
                                    catalog=self.input_catalog)
-        
+
         with self.assertRaises(NoDataException) as context_manager:
             subsetter.invoke()
 
@@ -244,7 +244,7 @@ class TestAdapter(TestCase):
                            'stagingLocation': self.staging_location,
                            'user': self.user})
 
-        subsetter = HarmonyAdapter(message, config=self.config, 
+        subsetter = HarmonyAdapter(message, config=self.config,
                                    catalog=self.input_catalog)
 
         with self.assertRaises(Exception) as context_manager:
@@ -291,7 +291,7 @@ class TestAdapter(TestCase):
                                                 'end': temporal_end},
                                    'user': self.user})
 
-                subsetter = HarmonyAdapter(message, config=self.config, 
+                subsetter = HarmonyAdapter(message, config=self.config,
                                            catalog=self.input_catalog)
 
                 with self.assertRaises(Exception) as context_manager:
@@ -318,7 +318,7 @@ class TestAdapter(TestCase):
                                             'end': end_time},
                                'user': self.user})
 
-            subsetter = HarmonyAdapter(message, config=self.config, 
+            subsetter = HarmonyAdapter(message, config=self.config,
                                        catalog=self.input_catalog)
             subsetter.invoke()
 
@@ -369,7 +369,7 @@ class TestAdapter(TestCase):
                 'user': self.user,
             })
 
-            subsetter = HarmonyAdapter(message, config=self.config, 
+            subsetter = HarmonyAdapter(message, config=self.config,
                                        catalog=self.input_catalog)
 
             with self.assertRaises(Exception) as context_manager:
@@ -397,7 +397,7 @@ class TestAdapter(TestCase):
                 'user': self.user,
             })
 
-            subsetter = HarmonyAdapter(message, config=self.config, 
+            subsetter = HarmonyAdapter(message, config=self.config,
                                        catalog=self.input_catalog)
             subsetter.invoke()
 

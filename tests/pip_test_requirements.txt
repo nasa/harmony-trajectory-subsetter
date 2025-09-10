@@ -1,4 +1,7 @@
 coverage~=7.2.2
+freezegun~=1.5.1
 pycodestyle~=2.10.0
 pylint~=2.17.2
+pytest~=8.3.3
+pytest-mock==3.14.0
 unittest-xml-reporting~=3.2.0

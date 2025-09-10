@@ -61,6 +61,8 @@ RUN ./makeit_harmony
 WORKDIR /home
 RUN rm -rf ./subsetter ./hdfeos ./hdfeos5 ./hdf5
 
+COPY docker/service_version.txt docker/service_version.txt
+
 # Create Conda environment
 ENV PATH="/opt/conda/bin:$PATH"
 

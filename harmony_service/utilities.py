@@ -62,7 +62,7 @@ def get_file_mimetype(file_name: str) -> Optional[str]:
 
 
 def get_binary_exception(exit_status: int) -> CustomError:
-    """ Given an exit code from the L2 Segmented Trajectory Subsetter binary,
+    """ Given an exit code from the Trajectory Subsetter binary,
         return a `CustomError` that can be raised. If the exit status does not
         match one of the known types, return an `InternalError` exception.
 
@@ -78,7 +78,7 @@ def get_binary_exception(exit_status: int) -> CustomError:
 
 
 def execute_command(command: str, logger: Logger) -> None:
-    """ This function invokes the L2 Segmented Trajectory Subsetter binary. It
+    """ This function invokes the Trajectory Subsetter binary. It
         will continue to poll the process output until there is an exit status.
         While doing so, it will retrieve any input from STDOUT and STDERR, and
         log those with the supplied `logging.Logger` instance associated with

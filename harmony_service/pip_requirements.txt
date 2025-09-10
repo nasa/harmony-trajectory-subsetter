@@ -1,4 +1,5 @@
 # requirements to be installed via PIP
 earthdata-varinfo ~= 3.0.1
 python-dateutil ~= 2.8.2
-harmony-service-lib ~= 2.6.0
+h5py ~= 3.14.0
+harmony-service-lib ~= 2.7.1
