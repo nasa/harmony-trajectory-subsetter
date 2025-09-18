@@ -25,14 +25,6 @@
  */
 int main(int argc, char* argv[])
 {
-    // If process_args() returns a non-zero value,
-    // then the arguments were unable to be processed.
-    std::shared_ptr<ProcessArguments> processArgs = std::make_shared<ProcessArguments>();
-    int processArgsErrorCode = processArgs->process_args(argc, argv);
-    if (processArgsErrorCode != ProcessArguments::PASS)
-    {
-        return processArgsErrorCode;
-    }
     clock_t startTime, endTime;
     startTime=clock();
 
@@ -42,6 +34,26 @@ int main(int argc, char* argv[])
 
     try
     {
+        // If process_args() returns a non-zero value,
+        // then the arguments were unable to be processed.
+        std::shared_ptr<ProcessArguments> processArgs = std::make_shared<ProcessArguments>();
+        int processArgsErrorCode = processArgs->process_args(argc, argv);
+        if (processArgsErrorCode != ProcessArguments::PASS)
+        {
+            return processArgsErrorCode;
+        }
+
+        std::string startString = processArgs->getStartString();
+        std::string endString = processArgs->getEndString();
+        std::string datasetList = processArgs->getDatasetList();
+        std::vector<std::string> datasetsToInclude = processArgs->getDatasetsToInclude();
+        boost::property_tree::ptree boundingShapePt = processArgs->getBoundingShapePt();
+        std::vector<geobox> *geoboxes = processArgs->getGeoboxes();
+        std::string infilename = processArgs->getInfilename();
+        std::string outfilename = processArgs->getOutfilename();
+        std::string outputFormat = processArgs->getOutputFormat();
+        std::string collShortName = processArgs->getCollShortName();
+
         Configuration* config = new Configuration(processArgs->getConfigFile());
 
         // Data structure for requested datasets.
@@ -49,9 +61,9 @@ int main(int argc, char* argv[])
 
         // Read in a json file if one is provided for the
         // requested datasets.
-        if (processArgs->getDatasetList().find("json") != std::string::npos)
+        if (datasetList.find("json") != std::string::npos)
         {
-            subsetDataLayers = new SubsetDataLayers(processArgs->getDatasetList());
+            subsetDataLayers = new SubsetDataLayers(datasetList);
         }
         // Otherwise, read in the datasets specified in the command
         // line request via --includedatasets.
@@ -59,22 +71,21 @@ int main(int argc, char* argv[])
         {
             std::string dataset;
             boost::char_separator<char> delim(" ,");
-            boost::tokenizer<boost::char_separator<char> > datasets(processArgs->getDatasetList(), delim);
+            boost::tokenizer<boost::char_separator<char> > datasets(datasetList, delim);
             BOOST_FOREACH(dataset, datasets)
             {
-                processArgs->getDatasetsToInclude().push_back(dataset);
+                datasetsToInclude.push_back(dataset);
             }
-            subsetDataLayers = new SubsetDataLayers(processArgs->getDatasetsToInclude());
+            subsetDataLayers = new SubsetDataLayers(datasetsToInclude);
         }
 
         // Construct test to check if the input start and end parameters
         // are valid, if they are specified.
-        Temporal* temporal = (!processArgs->getStartString().empty() && !processArgs->getEndString().empty())? 
-                             new Temporal(processArgs->getStartString(), processArgs->getEndString()) : NULL;
+        Temporal* temporal = (!startString.empty() && !endString.empty())? 
+                             new Temporal(startString, endString) : NULL;
 
         // Construct data structure to hold bounding shape info, if specified.
-        GeoPolygon* geoPolygon = (!processArgs->getBoundingShapePt().empty())? 
-                                 new GeoPolygon(processArgs->getBoundingShapePt()) : NULL;
+        GeoPolygon* geoPolygon = (!boundingShapePt.empty())? new GeoPolygon(boundingShapePt) : NULL;
 
         // If a bounding shape is provided but the constructed GeoPolygon
         // polygon contains no data, return an error.
@@ -86,17 +97,18 @@ int main(int argc, char* argv[])
 
         // Extract the granule mission by passing the short name returned by
         // a Subsetter class function into a Configuration instance function.
-        Subsetter* getMission = new Subsetter(subsetDataLayers, processArgs->getGeoboxes(),
-                                              temporal, geoPolygon, config, processArgs->getOutputFormat());
-        H5::H5File infile = H5::H5File(processArgs->getInfilename(),H5F_ACC_RDONLY);
+        Subsetter* getMission = new Subsetter(subsetDataLayers, geoboxes,
+                                              temporal, geoPolygon, config, outputFormat);
+        H5::H5File infile = H5::H5File(infilename,H5F_ACC_RDONLY);
 
         std::string shortname = getMission->retrieveShortName(infile);
-        if(shortname.empty() && !processArgs->getCollShortName().empty())
+    
+        if(shortname.empty() && !collShortName.empty())
         {
-            shortname = processArgs->getCollShortName();
+            shortname = collShortName;
             LOG_INFO("Subset::main(): shortname: " << shortname);
         }
-        else if (shortname.empty() && processArgs->getCollShortName().empty())
+        else if (shortname.empty() && collShortName.empty())
         {
             LOG_ERROR("Subset::main(): ERROR: The short name could not be retrieved \
                         from the collection or was not defined in the command line arguments");
@@ -109,17 +121,17 @@ int main(int argc, char* argv[])
         Subsetter* subsetter = nullptr;
         if (mission == "ICESAT")
         {
-            subsetter = new IcesatSubsetter(subsetDataLayers, processArgs->getGeoboxes(), temporal, geoPolygon, config);
+            subsetter = new IcesatSubsetter(subsetDataLayers, geoboxes, temporal, geoPolygon, config);
         }
         else if (mission == "GEDI")
         {
-            subsetter = new SuperGroupSubsetter(subsetDataLayers, processArgs->getGeoboxes(), temporal, geoPolygon, config);
+            subsetter = new SuperGroupSubsetter(subsetDataLayers, geoboxes, temporal, geoPolygon, config);
         }
         else // Use the base Subsetter if the mission isn't GEDI or ICESAT.
         {
-            subsetter = new Subsetter(subsetDataLayers, processArgs->getGeoboxes(), temporal, geoPolygon, config, processArgs->getOutputFormat());
+            subsetter = new Subsetter(subsetDataLayers, geoboxes, temporal, geoPolygon, config, outputFormat);
         }
-        ErrorCode = subsetter->subset(processArgs->getInfilename(), processArgs->getOutfilename(), shortname);
+        ErrorCode = subsetter->subset(infilename, outfilename, shortname);
         if (ErrorCode == 0)
             LOG_INFO("Subset::main(): subset SUCCESS");
         else

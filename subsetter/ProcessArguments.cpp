@@ -86,7 +86,7 @@ void ProcessArguments::setDatasetList(program_options::variables_map variables_m
     if (variables_map.count("includedataset"))
     {
         datasetList = variables_map["includedataset"].as<std::string>();
-        LOG_INFO("Subset::process_args(): includedataset");
+        LOG_INFO("Subset::process_args(): includedataset: " << datasetList);
     }
 }
 

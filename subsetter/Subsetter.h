@@ -123,7 +123,7 @@ public:
         dimensionScales->recreateDimensionScales(outfile);
 
         // Check if matching data is found.
-        matchingDataFound = isMatchingDataFound();
+        matchingDataFound = isMatchingDataFound(infile, outfile);
 
         if (!matchingDataFound)
         {
@@ -298,6 +298,79 @@ public:
 
     std::vector<std::string> getGroupsRequiringTemporalSubsetting() { return this->groupsRequiringTemporalSubsetting; }
     std::string getShortName() { return this->shortName;}
+
+    /**
+     * @brief Check if matching data found in the output.
+     *
+     *        Return false if the result has zero or one group and that group is the metadata group.
+     *        Otherwise, the following cases are considered:
+     *          (1) Only parameter subsetting.
+     *          (2) Spatial/temporal subsetting, user request only contains
+     *              unsubsettable datasets.
+     *          (3) Spatial/temporal subsetting, user request contains subsettable
+     *              datasets, and output has subsettable datasets.
+     *
+     * @return true
+     * @return false
+     */
+    bool isMatchingDataFound(H5::H5File infileH5, H5::H5File outfileH5)
+    {
+        LOG_DEBUG("Subsetter::isMatchingDataFound(): ENTER");
+
+        H5::Group ingroup = infileH5.openGroup("/");
+        H5::Group outgroup = outfileH5.openGroup("/");
+        LOG_DEBUG("Subsetter::isMatchingDataFound(): num of groups: " << outgroup.getNumObjs());
+
+        // Check for no objects found within the subset
+        if (outgroup.getNumObjs() <= 0)
+        {
+            return false;
+        }
+
+        // There may be an instance where the first and only group in the
+        // file is the metadata group, which is not subsettable.
+        std::string group_name = boost::to_upper_copy<std::string>(outgroup.getObjnameByIdx(0));
+        if (outgroup.getNumObjs() == 1 && group_name == "METADATA")
+        {
+            return false;
+        }
+
+        // (1) If only variable subsetting, then we know that
+        // data clearly exists and outgroup.getNumObjs() > 1.
+        if (this->temporal == NULL && this->geoboxes == NULL && this->geoPolygon == NULL)
+        {
+            return true;
+        }
+
+        // Check if infileH5::ingroup request contains subsettable datasets.
+        // Expand subsetDataLayers to get all the datasets/groups
+        // requested in the input file.
+        subsetDataLayers->expand_group(ingroup, "");
+        bool inGroupSubsettableDatasetRequested =
+                        containsSubsettableDatasets(subsetDataLayers->getDatasets());
+
+        LOG_DEBUG("Subsetter::isMatchingDataFound(): inGroupSubsettableDatasetRequesteds: " <<
+                  std::boolalpha << inGroupSubsettableDatasetRequested);
+
+        // (2) If the user only requested unsubsettable datasets,
+        // then return matching data.
+        if (inGroupSubsettableDatasetRequested == false)
+        {
+            return true;
+        }
+
+        // (3) If not, check if the output has any subsettable dataset.
+        // Use a new SubsetDataLayer object to get a list of the datasets/group in the output.
+        std::unique_ptr<SubsetDataLayers> outGroupSubsetDataLayers =
+                        std::make_unique<SubsetDataLayers>(std::vector<std::string>());
+        outGroupSubsetDataLayers->expand_group(outgroup, "");
+        bool outGroupSubsettableDatasetRequested =
+                        containsSubsettableDatasets(outGroupSubsetDataLayers->getDatasets());
+
+        LOG_DEBUG("Subsetter::isMatchingDataFound(): outGroupSubsettableDatasetRequested: " <<
+                   std::boolalpha << outGroupSubsettableDatasetRequested);
+        return outGroupSubsettableDatasetRequested;
+    }
 
 protected:
 
@@ -887,73 +960,6 @@ private:
         H5::DataSpace attributeSpace(H5S_SCALAR);
         H5::Attribute warningAttribute = outobj.createAttribute(attributeName, fls_type, attributeSpace);
         warningAttribute.write(fls_type, attributeData.c_str());
-    }
-
-    /**
-     * @brief Check if matching data found in the output.
-     *
-     *        Return false if the result has only one group and that group is the metadata group.
-     *        Otherwise, the following cases are considered:
-     *          (1) Only parameter subsetting.
-     *          (2) Spatial/temporal subsetting, user request only contains
-     *              unsubsettable datasets.
-     *          (3) Spatial/temporal subsetting, user request contains subsettable
-     *              datasets, and output has subsettable datasets.
-     *
-     * @return true
-     * @return false
-     */
-    bool isMatchingDataFound()
-    {
-        LOG_DEBUG("Subsetter::isMatchingDataFound(): ENTER");
-
-        bool matchingDataFound = false;
-        H5::Group ingroup = infile.openGroup("/");
-        H5::Group outgroup = outfile.openGroup("/");
-        LOG_DEBUG("Subsetter::isMatchingDataFound(): num of groups: " << outgroup.getNumObjs());
-
-        // There may be an instance where the first and only group in the
-        // file is the metadata group, which is not subsettable.
-        std::string group_name = boost::to_upper_copy<std::string>(outgroup.getObjnameByIdx(0));
-        if (outgroup.getNumObjs() == 1 && group_name == "METADATA")
-        {
-            return matchingDataFound;
-        }
-        else if (outgroup.getNumObjs() > 0)
-        {
-            // (1) If only variable subsetting, then we know that
-            // data clearly exists.
-            if (this->temporal == NULL && this->geoboxes == NULL && this->geoPolygon == NULL)
-            {
-                matchingDataFound = true;
-            }
-            // (2)(3). For spatial/temporal subsetting...
-            else
-            {
-                // Check if request contains subsettable datasets.
-                // Expand subsetDataLayers to get all the datasets/groups
-                // requested in the input file.
-                subsetDataLayers->expand_group(ingroup, "");
-                bool subsettableDatasetRequested = containsSubsettableDatasets(subsetDataLayers->getDatasets());
-
-                // (2) If the user only requested unsubsettable datasets,
-                // then return matching data.
-                if (!subsettableDatasetRequested)
-                {
-                    matchingDataFound = true;
-                }
-
-                // (3) If not, check if the output has any subsettable dataset.
-                else
-                {
-                    // Use a new SubsetDataLayer object to get a list of the datasets/group in the output.
-                    SubsetDataLayers* osub = new SubsetDataLayers(std::vector<std::string>());
-                    osub->expand_group(outgroup, "");
-                    matchingDataFound = containsSubsettableDatasets(osub->getDatasets());
-                }
-            }
-        }
-        return matchingDataFound;
     }
 
 

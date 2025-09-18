@@ -1,3 +1,11 @@
+[version 0.4.1] 2025-09-04
+
+- **DAS-2414**
+ - Updates to return NoData warning when the requested time range falls 
+   within the dataset bounds but yields no data due to internal gaps or voids.
+ - Refactor code to retrieve ProcessArguments values once into a local
+   variable, replacing repeated calls to its getter methods.
+
 [version 0.4.0] 2025-09-08
 
 - **DAS-2325**
