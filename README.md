@@ -1,16 +1,7 @@
-# Segmented Trajectory Subsetter.
+# Harmony Segmented Trajectory Subsetter.
 
 This repository contains the source code and configuration scripts for the
-Data Services segmented trajectory subsetter.
-
-### Repository branching:
-
-This repository contains two long-lived branches: `master` and `dev`. The
-`master` branch will contain only code identified for an SDPS release. The
-`dev` branch contains the most recent code deployed to Harmony (Sandbox, SIT,
-and likely UAT). It also is equivalent to the SDPS `relb` ClearCase view. All
-feature work should be added via pull request (PR) with a target branch of
-`dev`.
+Harmony Segmented Trajectory Subsetter.
 
 ### Repository contents:
 
@@ -24,11 +15,6 @@ This repository contains a number of subdirectories:
   Trajectory Subsetter within a Harmony service.
 * `tests` - A directory containing unit tests for the Python Harmony service functionality and C++ source code.
 
-Note also: `VERSION` - A file containing the version for the most recent SDPS
-release. This file is only iterated shortly before merging to the `master`
-branch, when a tarball will be placed in Nexus (a.k.a. Maven) ready for that
-release.
-
 ### Harmony service conda environment:
 
 The Harmony service for the trajectory subsetter runs within a conda
@@ -36,7 +22,8 @@ environment, itself within a Docker container. To recreate the same conda
 environment in a local terminal, use the following commands:
 
 ```bash
-conda create --name trajectory python=3.11 --channel conda-forge
+conda create --name trajectory python=3.11 --channel conda-forge \
+    --channel nodefaults --override-channels -y
 conda activate trajectory
 pip install -r ./harmony_service/pip_requirements.txt
 ```
@@ -94,37 +81,11 @@ below:
 
 ### Versioning:
 
-There are two versions associated with the Trajectory Subsetter: the SDPS
-release version and the Harmony service Docker image version.
-
-### SDPS versioning:
-
-The SDPS release version is managed via the `VERSION` file in the root
-directory of this repository. Bamboo reads this file during the build plan,
-and uses the contents in the deployment project when a release is deployed to
-Nexus. This occurs for major SDPS releases and for hotshelves.
-
-The SDPS releases version should only be iterated when a merging from the `dev`
-branch to the `master` branch, at a time when it has been identified that a
-static version of the Trajectory Subsetter is required. The process should be
-as follows:
-
-* Create a release branch from `dev` using `git checkout -b <release_branch_name>`.
-* Update the contents of the `VERSION` file to be the name of the new release,
-  either an SDPS release (e.g., `212_UPDATES`) or a hotshelf (e.g., `HOTSHELF-DAS-XXX`).
-* Commit those changes, and create a pull request against the `master` branch.
-* Once the pull request is merged, ensure an appropriately named artefact has
-  been placed in the [Trajectory Subsetter part of Nexus](https://maven.earthdata.nasa.gov/#browse/browse:trajectorysubsetter).
-* Merge back from `master` into `dev`, to ensure the `dev` branch is up to date.
-
-### Harmony versioning:
-
-Harmony releases occur every time changes are made to the code and merged into
-the `dev` branch. The versions use semantic version numbers
-(`major.minor.patch`). This version is included in the
-`docker/service_version.txt` file. When updating the Trajectory Subsetter, the
-version number contained in that file should be incremented before creating a
-pull request.
+Harmony releases occur every time changes are made to the service version as
+listed in `docker/service_version.txt`, and those changes are merged into the
+`main` branch. The versions use semantic version numbers (`major.minor.patch`).
+When updating the Trajectory Subsetter, the version number contained in that
+file should be incremented before creating a pull request.
 
 The general rules for which version number to increment are:
 

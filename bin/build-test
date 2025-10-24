@@ -1,6 +1,6 @@
 #!/bin/bash
 
-image="sds/trajectory-subsetter-test"
+image="ghcr.io/nasa/harmony-trajectory-subsetter-test"
 tag=${1:-latest}
 
 

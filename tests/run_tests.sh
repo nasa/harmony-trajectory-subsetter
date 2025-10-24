@@ -16,7 +16,7 @@ export HDF5_DISABLE_VERSION_CHECK=1
 
 # Run all tests using pytest, producing JUnit compatible output
 echo "\nRunning tests..."
-coverage run -m pytest tests/ --junitxml=tests/reports/pytest-results.xml -v
+coverage run -m pytest tests/ --junitxml=reports/test-reports/pytest-results.xml -v
 RESULT=$?
 
 if [ "$RESULT" -ne "0" ]; then
@@ -26,8 +26,8 @@ fi
 
 echo "\n"
 echo "Test Coverage Estimates"
-coverage report --omit="*tests/*"
-coverage html --omit="*tests/*" -d /home/tests/coverage
+coverage report --omit="tests/*"
+coverage html --omit="tests/*" -d reports/coverage
 
 # Run pylint
 pylint harmony_service --disable=E0401

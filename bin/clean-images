@@ -5,6 +5,7 @@
 # and remove them. This is primarily for clean-up after development.
 #
 # 2023-01-27: Updated to fix image deletion for both test and service images.
+# 2025-09-17: Updated to use GitHub image name.
 #
 ###############################################################################
 remove_image_by_name() {
@@ -16,7 +17,7 @@ remove_image_by_name() {
     fi
 }
 
-image_base_name="sds/trajectory-subsetter"
+image_base_name="ghcr.io/nasa/harmony-trajectory-subsetter"
 
 # First remove test images:
 remove_image_by_name "${image_base_name}-test"

@@ -1,11 +1,11 @@
 #
-# Test image for the Harmony sds/trajectory-subsetter service. This
-# image uses the main service image, sds/trajectory-subsetter, as a base layer
-# for the tests. This ensures  that the contents of the service image are
-# tested, preventing discrepancies between the service and test environments.
+# Test image for the nasa/harmony-trajectory-subsetter service. This
+# image uses the main service image, as a base layer for the tests. This ensures
+# that the contents of the service image are tested, preventing discrepancies
+# between the service and test environments.
 #
 
-FROM sds/trajectory-subsetter
+FROM ghcr.io/nasa/harmony-trajectory-subsetter
 
 ENV PYTHONDONTWRITEBYTECODE=1
 

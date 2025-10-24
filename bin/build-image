@@ -1,6 +1,6 @@
 #!/bin/bash
 
-image="sds/trajectory-subsetter"
+image="ghcr.io/nasa/harmony-trajectory-subsetter"
 
 # Retrieve the tag from the script argument, or default to "latest". Bamboo
 # will pass the contents of `docker/service_version.txt` as this argument,
@@ -9,7 +9,7 @@ image="sds/trajectory-subsetter"
 tag=${1:-latest}
 
 
-# Remove old versions of sds/trajectory-subsetter and sds/trajectory-subsetter-test
+# Remove old versions of service and test images
 #
 ./bin/clean-images
 
