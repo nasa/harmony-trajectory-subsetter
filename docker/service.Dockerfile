@@ -21,10 +21,8 @@ RUN dnf -y upgrade && \
         netcdf-devel libaec-devel autogen boost-static mc which && \
     dnf clean all
 
-# Build HDF5-1.8.22, HDFEOS and MINICONDA
+# Build HDF5-1.8.22 and MINICONDA
 ENV HDF5_URL="https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8/hdf5-1.8.22/src/hdf5-1.8.22.tar.gz"
-ENV HDFEOS_URL="https://maven.earthdata.nasa.gov/repository/heg-c/HDF-EOS2/hdf-eos2-3.0-src.tar.gz"
-ENV HDFEOS5_URL="https://maven.earthdata.nasa.gov/repository/heg-c/HDF-EOS5/hdf-eos5-2.0-src.tar.gz"
 ENV MINICONDA="https://repo.anaconda.com/miniconda/Miniconda3-py311_24.4.0-0-Linux-x86_64.sh"
 
 
@@ -37,18 +35,6 @@ RUN set -e && \
   rm -f hdf5.tar.gz
 
 RUN set -e && \
-  curl -sfSL ${HDFEOS_URL} > hdfeos.tar.gz && \
-  mkdir hdfeos && tar xzvf hdfeos.tar.gz -C hdfeos --strip-components 1 && \
-  cd hdfeos && ./configure && make && make install && cd .. && \
-  rm -f hdfeos.tar.gz
-
-RUN set -e && \
-  curl -sfSL ${HDFEOS5_URL} > hdfeos5.tar.gz && \
-  mkdir hdfeos5 && tar xzvf hdfeos5.tar.gz -C hdfeos5 --strip-components 1 && \
-  cd hdfeos5 && ./configure && make && make install && cd .. && \
-  rm -f hdfeos5.tar.gz
-
-RUN set -e && \
   curl -sfSL ${MINICONDA} > miniconda.sh && \
   bash miniconda.sh -b -p /opt/conda
 
@@ -59,7 +45,7 @@ WORKDIR /home/subsetter
 RUN ./makeit_harmony
 
 WORKDIR /home
-RUN rm -rf ./subsetter ./hdfeos ./hdfeos5 ./hdf5
+RUN rm -rf ./subsetter ./hdf5
 
 COPY docker/service_version.txt docker/service_version.txt
 

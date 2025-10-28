@@ -3,7 +3,6 @@
 -Wno-vla-extension \
 -lgeotiff \
 -ltiff \
--lGctp \
 -ljpeg \
 -llzma \
 -lboost_program_options \

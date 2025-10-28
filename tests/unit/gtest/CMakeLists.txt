@@ -59,7 +59,6 @@ target_link_libraries(subsetter_test
                       geotiff
                       tiff
                       jpeg
-                      Gctp
                       lzma
                       boost_program_options
                       boost_filesystem
@@ -89,7 +88,6 @@ target_link_libraries(subsetter_requiring_temporal_subsetting_test
                       geotiff
                       tiff
                       jpeg
-                      Gctp
                       lzma
                       boost_program_options
                       boost_filesystem

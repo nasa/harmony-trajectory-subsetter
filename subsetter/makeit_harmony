@@ -1,13 +1,11 @@
 /home/bin/h5c++ -v -std=c++14 -g \
 -DHARMONY \
 -Wno-vla-extension \
--I/home/hdfeos/gctp/include \
 -L/usr/lib64 \
 -I/usr/include \
 -I/usr/include/libgeotiff \
 -lgeotiff \
 -ltiff \
--lGctp \
 /usr/lib64/libboost_program_options.a \
 /usr/lib64/libboost_system.a \
 /usr/lib64/libboost_filesystem.a \
