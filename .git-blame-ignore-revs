@@ -1,0 +1,5 @@
+# For more information, see:
+# https://docs.github.com/en/repositories/working-with-files/using-files/viewing-a-file#ignore-commits-in-the-blame-view
+
+# Applying pre-commit white space clean-up to whole repository.
+0eacb38e8ff01d997fb0c2a50a0cde58e5483ca6

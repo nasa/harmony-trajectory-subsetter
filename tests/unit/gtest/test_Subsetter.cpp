@@ -328,7 +328,7 @@ TEST_F(SubsetterTest, addGroupsRequiringTemporalSubsetting_ATL10_spatial_only_in
 
 TEST_F(SubsetterTest, test_isMatchingDataFound_outfilename_getNumObj_equal_zero)
 {
-    // Test isMatchingDataFound() using an outfilename that contains no data. 
+    // Test isMatchingDataFound() using an outfilename that contains no data.
     // The method checks if outfilename.getNumObjs() == 0 and returns false
     H5::H5File infilename = H5::H5File(gtest_utilities::getFullPath("tests/data/variable_subset_ATL24_data.h5"), H5F_ACC_RDONLY );
     H5::H5File outfilename = H5::H5File(gtest_utilities::getFullPath("tests/data/variable_subset_ATL24_no_data.h5"), H5F_ACC_RDONLY );
@@ -342,8 +342,8 @@ TEST_F(SubsetterTest, test_isMatchingDataFound_outfilename_getNumObj_equal_zero)
 
 TEST_F(SubsetterTest, test_isMatchingDataFound_outfilename_getNumObj_greater_zero)
 {
-    // Test isMatchingDataFound() with an outfilename that contains data, using the same .h5 file as the infilename. 
-    // The method evaluates outfilename.getNumObjs() > 0 and returns true since the 
+    // Test isMatchingDataFound() with an outfilename that contains data, using the same .h5 file as the infilename.
+    // The method evaluates outfilename.getNumObjs() > 0 and returns true since the
     // isMatchingDataFound() method this->temporal == NULL condition is met.
     H5::H5File infilename = H5::H5File(gtest_utilities::getFullPath("tests/data/variable_subset_ATL24_data.h5"), H5F_ACC_RDONLY );
     H5::H5File outfilename = H5::H5File(gtest_utilities::getFullPath("tests/data/variable_subset_ATL24_data.h5"), H5F_ACC_RDONLY );

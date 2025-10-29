@@ -163,7 +163,7 @@ private:
         {
             LOG_INFO("Temporal::convertToDateTimeString: " << ex.what() << ", setting date time to 00:00:00.000000");
             return std::string("00:00:00.000000");
-        }   
+        }
     }
 
     // seconds since reference time

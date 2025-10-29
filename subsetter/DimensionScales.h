@@ -61,7 +61,7 @@ public:
     void trackDimensionScales(const H5::DataSet& dataset)
     {
         LOG_DEBUG("DimensionScales::trackDimensionScales(): ENTER");
-        
+
         hid_t did = dataset.getId();
         std::string datasetName = getObjectName(did);
         // is a dimension scale dataset
@@ -99,8 +99,8 @@ public:
                     delete scale;
                 }
                 if (numscales != numValidScales)
-                    LOG_DEBUG("DimensionScales::trackDimensionScales(): WARNING dataset " << datasetName 
-                              << " has " << numscales-numValidScales << " invalid scale references in the dimension " 
+                    LOG_DEBUG("DimensionScales::trackDimensionScales(): WARNING dataset " << datasetName
+                              << " has " << numscales-numValidScales << " invalid scale references in the dimension "
                               << dimnum);
             }
         }

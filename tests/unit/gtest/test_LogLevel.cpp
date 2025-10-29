@@ -5,7 +5,7 @@
 #include "../../../subsetter/LogLevel.h"
 
 
-namespace 
+namespace
 {
     //
     class test_LogLevel : public testing::Test
@@ -31,7 +31,7 @@ namespace
     // Start LogLevel tests
     //
 
-    // Test Set LogLevel(DEBUG) 
+    // Test Set LogLevel(DEBUG)
     TEST_F(test_LogLevel, set_debug_verify_output)
     {
         SET_LOG_LEVEL("DEBUG");
@@ -41,7 +41,7 @@ namespace
         std::cout.rdbuf(oldCout);
 
         // Assert the content of the captured output
-        EXPECT_EQ(capturedOutput.str(), "[DEBUG] Verifying DEBUG level output\n");    
+        EXPECT_EQ(capturedOutput.str(), "[DEBUG] Verifying DEBUG level output\n");
     }
 
     // Test Set LogLevel(DEBUG): Verify all log levels will prints
@@ -55,7 +55,7 @@ namespace
         LOG_CRITICAL("Verifying CRITICAL level output");
 
         std::stringstream expectedOutput;
-        expectedOutput << 
+        expectedOutput <<
                 "[DEBUG] Verifying DEBUG level output\n" <<
                 "[INFO] Verifying INFO level output\n" <<
                 "[WARNING] Verifying WARNING level output\n" <<
@@ -66,10 +66,10 @@ namespace
         std::cout.rdbuf(oldCout);
 
         // Assert the content of the captured output
-        EXPECT_EQ(capturedOutput.str(), expectedOutput.str());    
+        EXPECT_EQ(capturedOutput.str(), expectedOutput.str());
     }
 
-    // Test Set LogLevel(INFO) 
+    // Test Set LogLevel(INFO)
     TEST_F(test_LogLevel, set_info_verify_output)
     {
         SET_LOG_LEVEL("INFO");
@@ -79,7 +79,7 @@ namespace
         std::cout.rdbuf(oldCout);
 
         // Assert the content of the captured output
-        EXPECT_EQ(capturedOutput.str(), "[INFO] Verifying INFO level output\n");    
+        EXPECT_EQ(capturedOutput.str(), "[INFO] Verifying INFO level output\n");
     }
 
     // Test Set LogLevel(INFO): Verify ONLY INFO, WARNING, ERROR, CRITICAL prints
@@ -93,7 +93,7 @@ namespace
         LOG_CRITICAL("Verifying CRITICAL level output");
 
         std::stringstream expectedOutput;
-        expectedOutput << 
+        expectedOutput <<
                 "[INFO] Verifying INFO level output\n" <<
                 "[WARNING] Verifying WARNING level output\n" <<
                 "[ERROR] Verifying ERROR level output\n" <<
@@ -103,10 +103,10 @@ namespace
         std::cout.rdbuf(oldCout);
 
         // Assert the content of the captured output
-        EXPECT_EQ(capturedOutput.str(), expectedOutput.str());    
+        EXPECT_EQ(capturedOutput.str(), expectedOutput.str());
     }
 
-    // Test Set LogLevel(WARNING) 
+    // Test Set LogLevel(WARNING)
     TEST_F(test_LogLevel, set_warning_verify_output)
     {
         SET_LOG_LEVEL("WARNING");
@@ -116,7 +116,7 @@ namespace
         std::cout.rdbuf(oldCout);
 
         // Assert the content of the captured output
-        EXPECT_EQ(capturedOutput.str(), "[WARNING] Verifying WARNING level output\n");    
+        EXPECT_EQ(capturedOutput.str(), "[WARNING] Verifying WARNING level output\n");
     }
 
     // Test Set LogLevel(WARNING): Verify ONLY WARNING, ERROR, CRITICAL prints
@@ -130,7 +130,7 @@ namespace
         LOG_CRITICAL("Verifying CRITICAL level output");
 
         std::stringstream expectedOutput;
-        expectedOutput << 
+        expectedOutput <<
                 "[WARNING] Verifying WARNING level output\n" <<
                 "[ERROR] Verifying ERROR level output\n" <<
                 "[CRITICAL] Verifying CRITICAL level output\n";
@@ -139,10 +139,10 @@ namespace
         std::cout.rdbuf(oldCout);
 
         // Assert the content of the captured output
-        EXPECT_EQ(capturedOutput.str(), expectedOutput.str());    
+        EXPECT_EQ(capturedOutput.str(), expectedOutput.str());
     }
 
-    // Test Set LogLevel(ERROR) 
+    // Test Set LogLevel(ERROR)
     TEST_F(test_LogLevel, set_error_verify_output)
     {
         SET_LOG_LEVEL("ERROR");
@@ -152,7 +152,7 @@ namespace
         std::cout.rdbuf(oldCout);
 
         // Assert the content of the captured output
-        EXPECT_EQ(capturedOutput.str(), "[ERROR] Verifying ERROR level output\n");    
+        EXPECT_EQ(capturedOutput.str(), "[ERROR] Verifying ERROR level output\n");
     }
 
     // Test Set LogLevel(ERROR): Verify ONLY ERROR and CRITICAL prints
@@ -166,7 +166,7 @@ namespace
         LOG_CRITICAL("Verifying CRITICAL level output");
 
         std::stringstream expectedOutput;
-        expectedOutput << 
+        expectedOutput <<
                 "[ERROR] Verifying ERROR level output\n" <<
                 "[CRITICAL] Verifying CRITICAL level output\n";
 
@@ -174,10 +174,10 @@ namespace
         std::cout.rdbuf(oldCout);
 
         // Assert the content of the captured output
-        EXPECT_EQ(capturedOutput.str(), expectedOutput.str());    
+        EXPECT_EQ(capturedOutput.str(), expectedOutput.str());
     }
 
-    // Test Set LogLevel(CRITICAL) 
+    // Test Set LogLevel(CRITICAL)
     TEST_F(test_LogLevel, set_critical_verify_output)
     {
         SET_LOG_LEVEL("CRITICAL");
@@ -187,7 +187,7 @@ namespace
         std::cout.rdbuf(oldCout);
 
         // Assert the content of the captured output
-        EXPECT_EQ(capturedOutput.str(), "[CRITICAL] Verifying CRITICAL level output\n");    
+        EXPECT_EQ(capturedOutput.str(), "[CRITICAL] Verifying CRITICAL level output\n");
     }
 
     // Test Set LogLevel(CRITICAL): Verify ONLY CRITICAL prints
@@ -201,14 +201,14 @@ namespace
         LOG_CRITICAL("Verifying CRITICAL level output");
 
         std::stringstream expectedOutput;
-        expectedOutput << 
+        expectedOutput <<
                 "[CRITICAL] Verifying CRITICAL level output\n";
 
         // Restore std::cout
         std::cout.rdbuf(oldCout);
 
         // Assert the content of the captured output
-        EXPECT_EQ(capturedOutput.str(), expectedOutput.str());    
+        EXPECT_EQ(capturedOutput.str(), expectedOutput.str());
     }
 
     // Test Set LogLevel(WARNING): Verify ONLY WARNING, ERROR, CRITICAL prints
@@ -223,7 +223,7 @@ namespace
         LOG_CRITICAL("Verifying CRITICAL level output");
 
         std::stringstream expectedOutput;
-        expectedOutput << 
+        expectedOutput <<
                 "[WARNING] Verifying WARNING level output\n" <<
                 "[ERROR] Verifying ERROR level output\n" <<
                 "[CRITICAL] Verifying CRITICAL level output\n";
@@ -248,7 +248,7 @@ namespace
         LOG_CRITICAL("Verifying CRITICAL level output");
 
         std::stringstream expectedOutputDebug;
-        expectedOutputDebug << 
+        expectedOutputDebug <<
                 "[DEBUG] Verifying DEBUG level output\n" <<
                 "[INFO] Verifying INFO level output\n" <<
                 "[WARNING] Verifying WARNING level output\n" <<

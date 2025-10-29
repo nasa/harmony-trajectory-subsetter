@@ -24,7 +24,7 @@
 namespace program_options = boost::program_options;
 namespace property_tree = boost::property_tree;
 
-class ProcessArguments 
+class ProcessArguments
 {
 public:
     static constexpr int PASS = 0;
@@ -61,7 +61,7 @@ private:
     void setCRS(program_options::variables_map variables_map);
     void setCollectionShortname(program_options::variables_map variables_map);
 
-    int showHelpVerifyFilename(program_options::options_description description, 
+    int showHelpVerifyFilename(program_options::options_description description,
                                        program_options::variables_map variables_map);
     int setInFileName(program_options::variables_map variables_map);
     int setOutFileName(program_options::variables_map variables_map);

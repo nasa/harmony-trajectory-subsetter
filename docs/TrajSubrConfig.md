@@ -175,7 +175,7 @@ time that are used in this process.
             "SegmentGroup": "/gt[\w]+/freeboard_beam_segment/",
                 # (FreeboardBeamSegmentGroup)
             "SegmentGroup": "/gt[\w]+/freeboard_segment/",
-                # (FreeboardSegmentGroup)                
+                # (FreeboardSegmentGroup)
             "SparseSegmentGroup": "/gt\w]+/leads/",
                 # (LeadsGroup, Uncertain if sparse-segment-group
                 # is handled any differently from segment-group)

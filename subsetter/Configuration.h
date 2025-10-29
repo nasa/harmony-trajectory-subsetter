@@ -730,7 +730,7 @@ public:
      * @param patternName pattern name
      * @return true or false
      */
-    bool isGroupPatternMatched(const std::string& shortName, const std::string& group, 
+    bool isGroupPatternMatched(const std::string& shortName, const std::string& group,
                              const std::string patternName)
     {
         bool matched = false;
@@ -968,7 +968,7 @@ public:
     {
         bool matched = false;
 
-        if (isSwathFreeboardGroup(shortName, group) || isBeamFreeboardGroup(shortName, group) || 
+        if (isSwathFreeboardGroup(shortName, group) || isBeamFreeboardGroup(shortName, group) ||
             isHeightsGroup(shortName, group) || isGeophysicalGroup(shortName, group))
         {
             matched = true;
@@ -987,8 +987,8 @@ public:
     {
         bool matched = false;
 
-        if (isFreeboardSegmentGroup(shortName, group) || 
-            isFreeboardSegmentHeightsGroup(shortName, group) || 
+        if (isFreeboardSegmentGroup(shortName, group) ||
+            isFreeboardSegmentHeightsGroup(shortName, group) ||
             isFreeboardSegmentGeophysicalGroup(shortName, group))
         {
             matched = true;
@@ -996,7 +996,7 @@ public:
 
         return matched;
     }
-    
+
     /**
      * get corresponding referenced group for a given group
      * @param shortName product shortname
@@ -1054,7 +1054,7 @@ public:
         else if (isFreeboardRateGroup(shortName, group))
         {
             referencedGroupname = getReferenceSurfaceSectionGroup(shortName, group);
-        }        
+        }
         else if (isReferenceSurfaceSectionGroup(shortName, group))
         {
             if (freeboardSwathSegment)
@@ -1067,7 +1067,7 @@ public:
             }
         }
 
-        LOG_DEBUG("Configuration::getReferencedGroupname() group:" << group 
+        LOG_DEBUG("Configuration::getReferencedGroupname() group:" << group
                   << " referencedGroupname: " << referencedGroupname);
 
         return referencedGroupname;
@@ -1128,14 +1128,14 @@ public:
             else if (getVersionNumber(shortName) == ATL10v006)
             {
                 targetGroupname = getFreeboardSegmentHeightsGroup(shortName, group);
-            }   
+            }
         }
         else if (isFreeboardRateGroup(shortName, group))
         {
             targetGroupname = getReferenceSurfaceSectionGroup(shortName, group);
-        }          
+        }
 
-        LOG_DEBUG("Configuration::getTargetGroupname() group:" << group 
+        LOG_DEBUG("Configuration::getTargetGroupname() group:" << group
                   << "targetGroupname: " << targetGroupname);
 
         return targetGroupname;
@@ -1370,7 +1370,7 @@ public:
         std::string groundTrack;
         std::string groundTrackPattern;
 
-        if (isFreeboardSegmentHeightsGroup(shortName, group) || 
+        if (isFreeboardSegmentHeightsGroup(shortName, group) ||
             isFreeboardSegmentGeophysicalGroup(shortName, group) ||
             isSwathHeightIndex(shortName, group))
         {
@@ -1455,9 +1455,9 @@ public:
         std::string groundTrack;
         std::string groundTrackPattern;
 
-        LOG_DEBUG("Configuration::getReferenceSurfaceSectionGroup(): ENTER group:" 
+        LOG_DEBUG("Configuration::getReferenceSurfaceSectionGroup(): ENTER group:"
                   << group);
- 
+
         if (isFreeboardRateGroup(shortName, group) ||
             isLeadsGroup(shortName, group) || isSwathHeightIndex(shortName, group))
         {
@@ -1480,7 +1480,7 @@ public:
             }
         }
 
-        LOG_DEBUG("Configuration::getReferenceSurfaceSectionGroup() group:" 
+        LOG_DEBUG("Configuration::getReferenceSurfaceSectionGroup() group:"
                   << group << " referenceSurfaceSectionGroup: " << referenceSurfaceSectionGroup);
 
         return referenceSurfaceSectionGroup;
@@ -1577,7 +1577,7 @@ public:
             {
                 getMatchedDatasetNames(groupname, indexBegin, count);
             }
-        }      
+        }
         else if (isHeightSegmentRateGroup(shortName, groupname) || isFreeboardRateGroup(shortName, groupname))
         {
             getLeadsDatasetNames(shortName, indexBegin, count);
@@ -1638,7 +1638,7 @@ public:
         {
             getLeadsDatasetNames(shortName, indexBegin, count);
         }
-        else if (isBeamFreeboardGroup(shortName, groupname) || 
+        else if (isBeamFreeboardGroup(shortName, groupname) ||
                 isFreeboardSegmentGroup(shortName, groupname))
         {
             getBeamFreeboardIndexBegin(shortName, indexBegin);
@@ -1661,8 +1661,8 @@ public:
         {
             getSwathSegmentDatasetNames(shortName, groupname, indexBegin, count, datasetName);
         }
-        
-        LOG_DEBUG("Configuration::getIndexBeginDatasetName() groupname:" << groupname 
+
+        LOG_DEBUG("Configuration::getIndexBeginDatasetName() groupname:" << groupname
                   << " datasetName:" << datasetName << " indexBegin:" << indexBegin);
 
         return indexBegin;
@@ -1696,8 +1696,8 @@ public:
             getBeamSegmentDatasetNames(shortName, indexBegin, count);
         }
 
-        LOG_DEBUG("Configuration::getCountDatasetName() groupname:" << groupname << 
-                     " datasetName:" << datasetName << " indexBegin:" << indexBegin << 
+        LOG_DEBUG("Configuration::getCountDatasetName() groupname:" << groupname <<
+                     " datasetName:" << datasetName << " indexBegin:" << indexBegin <<
                      " count:" << count);
 
         return count;
@@ -1974,14 +1974,14 @@ public:
         bool patternMatched = false;
         std::string shortNamePattern("");
 
-        for (const auto& keyinfo : shortNameGroupDatasetFromGranuleFile) 
+        for (const auto& keyinfo : shortNameGroupDatasetFromGranuleFile)
         {
             shortNamePattern = keyinfo.first;
-            for (const auto& valueinfo : keyinfo.second) 
+            for (const auto& valueinfo : keyinfo.second)
             {
                 if(shortNamePattern == shortName && valueinfo == group)
                 {
-                    LOG_DEBUG("Configuration::isShortNameGroupDatasetFromGranuleFile() FOUND  shortName: " 
+                    LOG_DEBUG("Configuration::isShortNameGroupDatasetFromGranuleFile() FOUND  shortName: "
                           << shortNamePattern << " group: " << valueinfo);
                     patternMatched = true;
                     break;
@@ -2004,26 +2004,26 @@ public:
         const std::string atl10v005("/gt[\\w]+/freeboard_beam_segment/");
         const std::string atl10v006("/gt[\\w]+/freeboard_segment/");
 
-        for (const auto& keyinfo : shortNameGroupDatasetFromGranuleFile) 
+        for (const auto& keyinfo : shortNameGroupDatasetFromGranuleFile)
         {
-            for (const auto& valueinfo : keyinfo.second) 
+            for (const auto& valueinfo : keyinfo.second)
             {
                 if(keyinfo.first == shortName && regex_match(valueinfo, boost::regex(atl10v005)))
                 {
-                    LOG_DEBUG("Configuration::getVersionNumber() FOUND version = 005 shortName: " 
+                    LOG_DEBUG("Configuration::getVersionNumber() FOUND version = 005 shortName: "
                               << keyinfo.first << " group: " << valueinfo);
                     return ATL10v005;
                 }
                 else if(keyinfo.first == shortName && regex_match(valueinfo, boost::regex(atl10v006)))
                 {
-                    LOG_DEBUG("Configuration::getVersionNumber() FOUND version = 006 shortName: " 
+                    LOG_DEBUG("Configuration::getVersionNumber() FOUND version = 006 shortName: "
                               << keyinfo.first << " group: " << valueinfo);
                     return ATL10v006;
                 }
             }
         }
 
-        LOG_ERROR("Configuration::getVersionNumber() Failed to retrieve short name: " 
+        LOG_ERROR("Configuration::getVersionNumber() Failed to retrieve short name: "
                               << shortName << " version number");
 
         // Return empty string

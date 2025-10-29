@@ -36,7 +36,7 @@ public:
             const std::string& groupname, std::vector<geobox>* geoboxes, Temporal* temporal, GeoPolygon* geoPolygon, Configuration* config)
     {
         LOG_DEBUG("SuperGroupCoordinate::getCoordinate(): ENTER groupname: " << groupname);
-        
+
         SuperGroupCoordinate* sgCoor = new SuperGroupCoordinate(groupname, geoboxes, temporal, geoPolygon, config);
         sgCoor->coordinateSize = 0;
 
@@ -247,7 +247,7 @@ private:
     void spatialPolygonSubset()
     {
         LOG_DEBUG("SuperGroupCoordinate::spatialPolygonSubset(): ENTER");
-        
+
         IndexSelection* newIndexes = new IndexSelection(coordinateSize);
 
         geobox g = geoPolygon->getBbox();

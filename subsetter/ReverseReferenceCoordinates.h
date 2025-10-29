@@ -59,9 +59,9 @@ public:
 
         // if the index selection object has been created, get it
         // else create it
-        if (referencedCoor->indexesProcessed) 
+        if (referencedCoor->indexesProcessed)
             reverseCoor->referencedIndexes = referencedCoor->indexes;
-        else 
+        else
             reverseCoor->referencedIndexes = referencedCoor->getIndexSelection();
 
         return reverseCoor;

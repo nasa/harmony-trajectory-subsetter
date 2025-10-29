@@ -215,7 +215,7 @@
         "ATL10": {
             "FreeboardSwathSegmentGroup": "/freeboard_swath_segment/",
             "FreeboardBeamSegmentGroup": "/gt[\\w]+/freeboard_beam_segment/",
-            "FreeboardSegmentGroup": "/gt[\\w]+/freeboard_segment/",            
+            "FreeboardSegmentGroup": "/gt[\\w]+/freeboard_segment/",
             "LeadsGroup": "/gt[\\w]+/leads/",
             "ReferenceSurfaceSectionGroup": "/gt[\\w]+/reference_surface_section/",
             "SwathFreeboardGroup": "/freeboard_swath_segment/gt[\\w]+/swath_freeboard/",

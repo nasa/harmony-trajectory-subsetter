@@ -63,10 +63,10 @@ public:
           Configuration*       config )
     {
         LOG_DEBUG("ForwardReferenceCoordinates::getCoordinate(): ENTER groupname: " << groupname);
-        
+
         if (Coordinate::lookUp(groupname))
         {
-            LOG_DEBUG("ForwardReferenceCoordinates::getCoordinate(): groupname: " 
+            LOG_DEBUG("ForwardReferenceCoordinates::getCoordinate(): groupname: "
                       << " already exists in lookUpMap(ForwardReferenceCoordinate)");
             return lookUpMap[groupname];
         }
@@ -276,7 +276,7 @@ public:
                            int64_t indexBegDataset[] )
     {
         LOG_DEBUG(" ForwardReferenceCoordinates::defineOneSegment(): ENTER");
-        
+
         long firstIdxNonFill = 0;  // first non-fill indexBeg value in
                                    // selected segment
 
@@ -444,8 +444,8 @@ private:
             if (indexes->segments.empty())
             {
                 indexes->addRestriction(0, 0);
-                LOG_DEBUG("ForwardReferenceCoordinates::segmentedTrajectorySubset(): " 
-                          << "No data found in trajectory subset that matched the spatial/temporal constraints." 
+                LOG_DEBUG("ForwardReferenceCoordinates::segmentedTrajectorySubset(): "
+                          << "No data found in trajectory subset that matched the spatial/temporal constraints."
                          );
             }
 
@@ -454,4 +454,3 @@ private:
 };
 
  #endif
-

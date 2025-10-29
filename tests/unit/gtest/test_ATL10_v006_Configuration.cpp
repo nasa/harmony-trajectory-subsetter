@@ -16,7 +16,7 @@
 #include <string>
 #include <regex>
 
-namespace 
+namespace
 {
     //
     class test_ATL10_v006_Configuration : public testing::Test
@@ -32,7 +32,7 @@ namespace
 
             configuration_a = std::make_unique<Configuration>(configFile);
 
-            //Setup canned ATL10 v006 groups and dataset parsing H5 file 
+            //Setup canned ATL10 v006 groups and dataset parsing H5 file
             configuration_a->addShortNameGroupDatasetFromGranuleFile(shortName, "/METADATA/Lineage/Control/");
             configuration_a->addShortNameGroupDatasetFromGranuleFile(shortName, "/gt1l/");
             configuration_a->addShortNameGroupDatasetFromGranuleFile(shortName, "/gt1l/freeboard_segment/");
@@ -73,7 +73,7 @@ namespace
         std::unique_ptr<Configuration> configuration_a;
         std::unique_ptr<Configuration> configuration_b;
         std::unique_ptr<Configuration> configuration_c;
-        
+
         std::string shortName = "ATL10";
     };
 
@@ -89,7 +89,7 @@ namespace
         std::string group = "/gt1l/reference_surface_section/";
         std::string groupname = configuration_a->getReferencedGroupname(shortName, group);
         EXPECT_EQ(expectGroupname, groupname);
-        
+
         //Test /reference_surface_section/beam_fb_refsurf
         group = "/gt1l/reference_surface_section/beam_fb_refsurf";
         groupname = configuration_a->getReferencedGroupname(shortName, group);
@@ -121,7 +121,7 @@ namespace
     TEST_F(test_ATL10_v006_Configuration, ATL10_getReferencedGroupname_isFreeboardRateGroup)
     {
         std::string expectGroupname = "/gt1l/reference_surface_section/";
-        
+
         //Test /gt1l/freeboard_segment/heights/
         std::string group = "/gt1l/freeboard_segment/heights/";
         std::string groupname = configuration_a->getReferencedGroupname(shortName, group);
@@ -162,7 +162,7 @@ namespace
         std::string group = "/gt1l/leads/";
         std::string groupname = configuration_a->getReferencedGroupname(shortName, group);
         EXPECT_EQ(expectGroupname, groupname);
-        
+
         //Test /gt1l/leads/ssh_ndx
         group = "/gt1l/leads/ssh_ndx/";
         groupname = configuration_a->getReferencedGroupname(shortName, group);
@@ -188,7 +188,7 @@ namespace
     TEST_F(test_ATL10_v006_Configuration, ATL10_getReferencedGroupname_isFreeboardSegmentGroup)
     {
         std::string expectGroupname = "/gt1l/reference_surface_section/";
-        
+
         //Test /gt1l/freeboard_segment/
         std::string group = "/gt1l/freeboard_segment/";
         std::string groupname = configuration_a->getReferencedGroupname(shortName, group);
@@ -328,7 +328,7 @@ namespace
     {
         std::string expectGroupname = "ssh_ndx";
 
-        //Test /gt1l/leads/ 
+        //Test /gt1l/leads/
         std::string group = "/gt1l/leads/";
         std::string groupname = configuration_a->getIndexBeginDatasetName(shortName, group);
         EXPECT_EQ(expectGroupname, groupname);
@@ -342,7 +342,7 @@ namespace
     {
         std::string expectGroupname = "";
 
-        //Test misspell gt1l/lea/ 
+        //Test misspell gt1l/lea/
         std::string group = "/gt1l/lea/";
         std::string groupname = configuration_a->getIndexBeginDatasetName(shortName, group);
         EXPECT_EQ(expectGroupname, groupname);
@@ -427,7 +427,7 @@ namespace
     {
         std::string expectGroupname = "ssh_n";
 
-        //Test /gt1l/leads/ 
+        //Test /gt1l/leads/
         std::string group = "/gt1l/leads/";
         std::string groupname = configuration_a->getCountDatasetName(shortName, group);
         EXPECT_EQ(expectGroupname, groupname);
@@ -441,7 +441,7 @@ namespace
     {
         std::string expectGroupname = "";
 
-        //Test misspell gt1l/lea/ 
+        //Test misspell gt1l/lea/
         std::string group = "/gt1l/lea/";
         std::string groupname = configuration_a->getCountDatasetName(shortName, group);
         EXPECT_EQ(expectGroupname, groupname);

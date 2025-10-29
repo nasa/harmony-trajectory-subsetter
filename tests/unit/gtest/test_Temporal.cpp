@@ -5,7 +5,7 @@
 #include "../../../subsetter/Temporal.h"
 
 
-namespace 
+namespace
 {
     //
     class test_Temporal : public testing::Test
@@ -24,7 +24,7 @@ namespace
     // Start Temporal tests
     //
 
-    // Test initalizing Temporal(std::string s, std::string e, std::string epochTime="") 
+    // Test initalizing Temporal(std::string s, std::string e, std::string epochTime="")
     // class with valid start_time/end_time string value
     TEST_F(test_Temporal, initalize_temporal_with_valid_string_start_end_time)
     {
@@ -37,14 +37,14 @@ namespace
         std::unique_ptr<Temporal> temporal = std::make_unique<Temporal>(start_time, end_time);
         EXPECT_EQ(temporal->getStartTime(), expected_start_time);
         EXPECT_EQ(temporal->getEndTime(), expected_end_time);
-        
+
     }
 
     //
     // Negative tests
     //
 
-    // Test the exception handling within Temporal::convertToDateTimeString 
+    // Test the exception handling within Temporal::convertToDateTimeString
     // for boost::posix_time when initalizing Temporal(double s, double e).
     // boost::posix_time will throw exception if start_time = 0 or end_time = 0
     TEST_F(test_Temporal, initalize_temporal_with_zero_start_end_time)
@@ -57,10 +57,10 @@ namespace
 
         std::unique_ptr<Temporal> temporal = std::make_unique<Temporal>(start_time, end_time);
         EXPECT_EQ(temporal->getStartTime(), expected_start_time);
-        EXPECT_EQ(temporal->getEndTime(), expected_end_time);        
+        EXPECT_EQ(temporal->getEndTime(), expected_end_time);
     }
 
-    // Test the exception handling within Temporal::convertToDateTimeString 
+    // Test the exception handling within Temporal::convertToDateTimeString
     // for boost::posix_time when initalizing Temporal(double s, double e) class.
     // boost::posix_time will throw exception myReferenceTime = ""
     TEST_F(test_Temporal, initalize_temporal_with_valid_double_start_end_time_empty_myReferenceTime)

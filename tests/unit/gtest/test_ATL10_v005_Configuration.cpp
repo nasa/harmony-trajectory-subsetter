@@ -16,7 +16,7 @@
 #include <string>
 #include <regex>
 
-namespace 
+namespace
 {
     //
     class test_ATL10_v005_Configuration : public testing::Test
@@ -52,7 +52,7 @@ namespace
         std::string group = "/gt1l/freeboard_beam_segment/";
         std::string groupname = configuration->getReferencedGroupname(shortName, group);
         EXPECT_EQ(expectGroupname, groupname);
-        
+
         //Test /freeboard_swath_segment/
         group = "/freeboard_swath_segment/";
         groupname = configuration->getReferencedGroupname(shortName, group);
@@ -89,7 +89,7 @@ namespace
         std::string group = "/gt1l/freeboard_beam_segment/beam_freeboard/beam_fb_height/";
         std::string groupname = configuration->getReferencedGroupname(shortName, group);
         EXPECT_EQ(expectGroupname, groupname);
-        
+
         //Test/gt1l/freeboard_beam_segment/height_segments/
         group = "/gt1l/freeboard_beam_segment/height_segments/";
         groupname = configuration->getReferencedGroupname(shortName, group);
@@ -151,7 +151,7 @@ namespace
         std::string group = "/gt1l/leads/";
         std::string groupname = configuration->getReferencedGroupname(shortName, group);
         EXPECT_EQ(expectGroupname, groupname);
-        
+
         //Test /gt1l/leads/ssh_ndx
         group = "/gt1l/leads/ssh_ndx/";
         groupname = configuration->getReferencedGroupname(shortName, group);
@@ -185,7 +185,7 @@ namespace
     {
         std::string expectGroupname = "";
 
-        //Test /gt1l/freeboard_beam_segment/ 
+        //Test /gt1l/freeboard_beam_segment/
         //No TargetGroupName without /gt1l/freeboard_beam_segment/beam_lead_ndx
         std::string group = "/gt1l/freeboard_beam_segment/";
         std::string groupname = configuration->getTargetGroupname(shortName, group);
@@ -278,7 +278,7 @@ namespace
         std::string group = "/gt1l/freeboard_beam_segment/beam_freeboard/beam_fb_height/";
         std::string groupname = configuration->getTargetGroupname(shortName, group);
         EXPECT_EQ(expectGroupname, groupname);
-        
+
         //Test/gt1l/freeboard_beam_segment/height_segments/
         group = "/gt1l/freeboard_beam_segment/height_segments/";
         groupname = configuration->getTargetGroupname(shortName, group);
@@ -332,14 +332,14 @@ namespace
     TEST_F(test_ATL10_v005_Configuration, ATL10_getIndexBeginDatasetName_isLeadsGroup)
     {
         std::string expectGroupname = "ssh_ndx";
-        
+
         //Add Mock data from H5 file to test leads
         configuration->addShortNameGroupDatasetFromGranuleFile(shortName, "/gt1l/freeboard_beam_segment/");
         configuration->addShortNameGroupDatasetFromGranuleFile(shortName, "/gt1l/freeboard_beam_segment/height_segments");
         configuration->addShortNameGroupDatasetFromGranuleFile(shortName, "/gt1l/leads/ssh_n");
         configuration->addShortNameGroupDatasetFromGranuleFile(shortName, "/gt1l/leads/ssh_ndx");
 
-        //Test /gt1l/leads/ 
+        //Test /gt1l/leads/
         std::string group = "/gt1l/leads/";
         std::string groupname = configuration->getIndexBeginDatasetName(shortName, group);
         EXPECT_EQ(expectGroupname, groupname);
@@ -353,7 +353,7 @@ namespace
     {
         std::string expectGroupname = "";
 
-        //Test misspell gt1l/lea/ 
+        //Test misspell gt1l/lea/
         std::string group = "/gt1l/lea/";
         std::string groupname = configuration->getIndexBeginDatasetName(shortName, group);
         EXPECT_EQ(expectGroupname, groupname);
@@ -468,7 +468,7 @@ namespace
     {
         std::string expectGroupname = "ssh_n";
 
-        //Test /gt1l/leads/ 
+        //Test /gt1l/leads/
         std::string group = "/gt1l/leads/";
         std::string groupname = configuration->getCountDatasetName(shortName, group);
         EXPECT_EQ(expectGroupname, groupname);
@@ -482,7 +482,7 @@ namespace
     {
         std::string expectGroupname = "";
 
-        //Test misspell gt1l/lea/ 
+        //Test misspell gt1l/lea/
         std::string group = "/gt1l/lea/";
         std::string groupname = configuration->getCountDatasetName(shortName, group);
         EXPECT_EQ(expectGroupname, groupname);
@@ -515,5 +515,5 @@ namespace
         groupname = configuration->getCountDatasetName(shortName, group, datasetName);
         EXPECT_EQ(expectGroupname, groupname);
     }
-    
+
 }  // namespace
