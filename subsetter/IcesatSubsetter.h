@@ -93,7 +93,7 @@ protected:
 
             // get target group index selection
             std::string targetGroupname = config->getTargetGroupname(this->getShortName(), groupname, objname);
-            LOG_DEBUG("IcesatSubsetter::writeDataset() groupname: " << groupname 
+            LOG_DEBUG("IcesatSubsetter::writeDataset() groupname: " << groupname
                       << " objname: " << objname << " targetGroupname: " << targetGroupname);
 
             // if target group does not exist in input, write index begin as normal dataset
@@ -133,7 +133,7 @@ private:
         SubsetDataLayers* subsetDataLayers, std::vector<geobox>* geoboxes, Temporal* temporal, GeoPolygon* geoPolygon, Configuration* config, bool repair = false)
     {
         LOG_DEBUG("IcesatSubsetter::getCoordinate(): ENTER groupname: " << groupname);
-        
+
         bool hasPhotonSegmentGroup = config->hasPhotonSegmentGroups(this->getShortName());
         bool isPhotonGroup = config->isPhotonGroup(this->getShortName(), groupname);
         bool isLeadsGroup = config->isLeadsGroup(this->getShortName(), groupname);
@@ -157,9 +157,9 @@ private:
             return ForwardReferenceCoordinates::getCoordinate(root, ingroup, this->getShortName(), subsetDataLayers, groupname,
                     geoboxes, temporal, geoPolygon, config);
         }
-        else if (hasPhotonSegmentGroup && 
+        else if (hasPhotonSegmentGroup &&
                 (isHeightSegmentRateGroup || isFreeboardBeamSegmentGroup && freeboardSwathSegment) ||
-                isFreeboardRateGroup && 
+                isFreeboardRateGroup &&
                 (isSubsetDataLayers || repair))
         {
             std::string coorGroupname = groupname;
@@ -173,7 +173,7 @@ private:
             else if (isFreeboardSegmentHeightsGroup || isFreeboardSegmentGeophysicalGroup)
             {
                 coorGroupname = config->getFreeboardSegmentGroup(this->getShortName(), groupname);
-                coorGroup = root.openGroup(coorGroupname);                
+                coorGroup = root.openGroup(coorGroupname);
             }
 
             LOG_DEBUG("IcesatSubsetter::getCoordinate(): Call ReverseReferenceCoordinates::getCoordinate(): groupname: " << groupname);

@@ -34,7 +34,7 @@ int ProcessArguments::process_args(int argc, char* argv[])
 
     setLogLevel(variables_map);
 
-    if (showHelpVerifyFilename(description, variables_map) == SHOW_HELP_OR_NO_FILENAME) 
+    if (showHelpVerifyFilename(description, variables_map) == SHOW_HELP_OR_NO_FILENAME)
         return SHOW_HELP_OR_NO_FILENAME;
     if (setInFileName(variables_map) == ERROR) return ERROR;
     if (setOutFileName(variables_map) == ERROR) return ERROR;
@@ -125,7 +125,7 @@ void ProcessArguments::setCollectionShortname(program_options::variables_map var
     boost::trim_right(collShortName);
 }
 
-int ProcessArguments::showHelpVerifyFilename(program_options::options_description description, 
+int ProcessArguments::showHelpVerifyFilename(program_options::options_description description,
                                              program_options::variables_map variables_map)
 {
     // Print out the defined command options when the user either types

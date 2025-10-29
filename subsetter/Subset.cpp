@@ -81,7 +81,7 @@ int main(int argc, char* argv[])
 
         // Construct test to check if the input start and end parameters
         // are valid, if they are specified.
-        Temporal* temporal = (!startString.empty() && !endString.empty())? 
+        Temporal* temporal = (!startString.empty() && !endString.empty())?
                              new Temporal(startString, endString) : NULL;
 
         // Construct data structure to hold bounding shape info, if specified.
@@ -102,7 +102,7 @@ int main(int argc, char* argv[])
         H5::H5File infile = H5::H5File(infilename,H5F_ACC_RDONLY);
 
         std::string shortname = getMission->retrieveShortName(infile);
-    
+
         if(shortname.empty() && !collShortName.empty())
         {
             shortname = collShortName;
@@ -189,4 +189,3 @@ int main(int argc, char* argv[])
     }
     return ErrorCode;
  }
-

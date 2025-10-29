@@ -43,7 +43,7 @@ private:
     std::vector<geobox>* geoboxes = nullptr;
     Temporal* temporal = nullptr;
     GeoPolygon* geopolygon = nullptr;
-    
+
     std::unique_ptr<Configuration> config;
 
 };

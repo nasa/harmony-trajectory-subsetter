@@ -107,7 +107,7 @@ public:
                             length = it->second;
                             end = start + length;
 
-                            //Ensure that we do not decrement the iterator 
+                            //Ensure that we do not decrement the iterator
                             //if it is at the beginning of targetIndexes->segments.begin()
                             if(it == targetIndexes->segments.begin())
                                 continue;

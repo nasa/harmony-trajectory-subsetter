@@ -182,3 +182,44 @@ cmake --build build
 On-going development incorporates updates to new and existing code that will better adhere the Trajectory Subsetter source code to modern C++ best practices. The core guidelines are extracted from the [C++ Core Guidelines](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#c-core-guidelines), written in part by Bjarne Stroustrup, the creator of the C++ programming language.
 
 The code is not expected to completely and entirely adhere to these guidelines, as implementing every guideline is not time efficient. There is a general rule for maintaining consistency within the existing code as long as it is safe, efficient, not error prone, or particularly convoluted.
+
+### pre-commit hooks:
+
+This repository uses [pre-commit](https://pre-commit.com/) to enable pre-commit
+checking the repository for some coding standard best practices. These include:
+
+* Removing trailing whitespaces.
+* Removing blank lines at the end of a file.
+* JSON files have valid formats.
+  formatting checks.
+
+To enable these checks:
+
+```bash
+# Install pre-commit Python package as part of test requirements:
+pip install -r tests/pip_test_requirements.txt
+
+# Install the git hook scripts:
+pre-commit install
+
+# (Optional) Run against all files:
+pre-commit run --all-files
+```
+
+When you try to make a new commit locally, `pre-commit` will automatically run.
+If any of the hooks detect non-compliance (e.g., trailing whitespace), that
+hook will state it failed, and also try to fix the issue. You will need to
+review and `git add` the changes before you can make a commit.
+
+It is planned to implement additional hooks, possibly including tools such as
+`mypy`.
+
+[pre-commit.ci](pre-commit.ci) is configured such that these same hooks will be
+automatically run for every pull request.
+
+## Get in touch:
+
+You can reach out to the maintainers of this repository via email:
+
+* david.p.auty@nasa.gov
+* josie.lyon@nasa.gov
