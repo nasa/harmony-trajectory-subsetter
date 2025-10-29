@@ -196,8 +196,8 @@ checking the repository for some coding standard best practices. These include:
 To enable these checks:
 
 ```bash
-# Install pre-commit Python package as part of test requirements:
-pip install -r tests/pip_test_requirements.txt
+# Install pre-commit Python package:
+pip install -r pre-commit
 
 # Install the git hook scripts:
 pre-commit install
