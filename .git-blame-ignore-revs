@@ -3,3 +3,9 @@
 
 # Applying pre-commit white space clean-up to whole repository.
 0eacb38e8ff01d997fb0c2a50a0cde58e5483ca6
+
+# Applying ruff-format and clang-format to the pre-commit configuration
+# to whole repository.
+8c3bf9c20578c29c2477e6eb2743e98f86b3dfb0
+8c18eca9000ce89049aa2ce5646d033f0f2f4015
+780fb0bcb0d360b88cae9d809354833ab7af7ee5
