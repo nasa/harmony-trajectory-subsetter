@@ -17,11 +17,11 @@
  * @return The full file path.
  */
 std::string gtest_utilities::getFullPath(std::string relative_path) {
-  std::string current_directory =
-      testing::internal::FilePath::GetCurrentDir().c_str();
-  std::string full_path = std::regex_replace(
-      current_directory, std::regex("tests/unit/gtest/build"), relative_path);
-  return full_path;
+    std::string current_directory =
+        testing::internal::FilePath::GetCurrentDir().c_str();
+    std::string full_path = std::regex_replace(
+        current_directory, std::regex("tests/unit/gtest/build"), relative_path);
+    return full_path;
 }
 
 /**
@@ -34,14 +34,15 @@ std::string gtest_utilities::getFullPath(std::string relative_path) {
  */
 int64_t *gtest_utilities::readDataset(std::string input_file,
                                       std::string dataset_name) {
-  std::cout << "Reading in test data for " << input_file << ".\n";
-  H5::H5File file(input_file, H5F_ACC_RDONLY);
-  H5::DataSet *input_dataset = new H5::DataSet(file.openDataSet(dataset_name));
-  size_t dataset_size = input_dataset->getSpace().getSimpleExtentNpoints();
-  int64_t *dataset_array = new int64_t[dataset_size];
-  input_dataset->read(dataset_array, input_dataset->getDataType());
+    std::cout << "Reading in test data for " << input_file << ".\n";
+    H5::H5File file(input_file, H5F_ACC_RDONLY);
+    H5::DataSet *input_dataset =
+        new H5::DataSet(file.openDataSet(dataset_name));
+    size_t dataset_size = input_dataset->getSpace().getSimpleExtentNpoints();
+    int64_t *dataset_array = new int64_t[dataset_size];
+    input_dataset->read(dataset_array, input_dataset->getDataType());
 
-  delete input_dataset;
+    delete input_dataset;
 
-  return dataset_array;
+    return dataset_array;
 }

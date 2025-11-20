@@ -22,3 +22,4 @@ repos:
     hooks:
       - id: clang-format
         types_or: [c++, c, cuda]
+        args: ['--style={IndentWidth: 4, BinPackParameters: false, BinPackArguments: false, AlwaysBreakAfterReturnType: None, AlwaysBreakAfterDefinitionReturnType: None, PenaltyReturnTypeOnItsOwnLine: 1000}', -i]
