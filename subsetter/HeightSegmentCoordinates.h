@@ -8,16 +8,20 @@
 #include "H5Cpp.h"
 #include <boost/algorithm/string/find.hpp>
 
-class HeightSegmentCoordinates : public Coordinate {
+class HeightSegmentCoordinates : public Coordinate
+{
   public:
     HeightSegmentCoordinates(std::string groupname,
                              std::vector<geobox> *geoboxes,
                              Temporal *temporal,
                              GeoPolygon *geoPolygon,
                              Configuration *config)
-        : Coordinate(groupname, geoboxes, temporal, geoPolygon, config) {}
+        : Coordinate(groupname, geoboxes, temporal, geoPolygon, config)
+    {
+    }
 
-    ~HeightSegmentCoordinates() {
+    ~HeightSegmentCoordinates()
+    {
         delete localIndexes;
         delete leadsIndexes;
     }
@@ -39,11 +43,13 @@ class HeightSegmentCoordinates : public Coordinate {
                                      std::vector<geobox> *geoboxes,
                                      Temporal *temporal,
                                      GeoPolygon *geoPolygon,
-                                     Configuration *config) {
+                                     Configuration *config)
+    {
         LOG_DEBUG("HeightSegmentCoordinates::getCoordinate(): ENTER groupname: "
                   << groupname);
 
-        if (Coordinate::lookUp(groupname)) {
+        if (Coordinate::lookUp(groupname))
+        {
             LOG_DEBUG(
                 "HeightSegmentCoordinates::getCoordinate(): groupname: "
                 << groupname
@@ -109,7 +115,8 @@ class HeightSegmentCoordinates : public Coordinate {
      *      - merge IndexSelection objects: local latitude/longitude/delta_time
      * and leads group
      */
-    virtual IndexSelection *getIndexSelection() {
+    virtual IndexSelection *getIndexSelection()
+    {
         LOG_DEBUG("HeightSegmentCoordinates::getIndexSelection(): ENTER");
 
         indexes = new IndexSelection(coordinateSize);
@@ -144,7 +151,8 @@ class HeightSegmentCoordinates : public Coordinate {
         if (H5Tequal(native_type, H5T_NATIVE_LLONG)) // 64-bit int
         {
             indexBegSet->read(indexBeg, indexBegSet->getDataType());
-        } else if (H5Tequal(native_type, H5T_NATIVE_INT)) // 32-bit int
+        }
+        else if (H5Tequal(native_type, H5T_NATIVE_INT)) // 32-bit int
         {
             int32_t *data = new int32_t[coordinateSize];
             indexBegSet->read(data, indexBegSet->getDataType());
@@ -158,7 +166,8 @@ class HeightSegmentCoordinates : public Coordinate {
         // add (start, length) pairs in the local coordinate reference
         for (std::map<long, long>::iterator it = localIndexes->segments.begin();
              it != localIndexes->segments.end();
-             it++) {
+             it++)
+        {
             indexes->addSegment(it->first, it->second);
         }
 
@@ -166,10 +175,12 @@ class HeightSegmentCoordinates : public Coordinate {
         long start, length;
         for (std::map<long, long>::iterator it = leadsIndexes->segments.begin();
              it != leadsIndexes->segments.end();
-             it++) {
+             it++)
+        {
             start = it->first;
             length = it->second;
-            for (int i = start; i < length + start; i++) {
+            for (int i = start; i < length + start; i++)
+            {
                 indexes->addSegment(indexBeg[i] - 1, count[i]);
             }
         }

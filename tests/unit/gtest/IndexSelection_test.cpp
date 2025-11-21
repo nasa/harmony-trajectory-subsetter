@@ -11,7 +11,8 @@ long maxLength = 50;
 //   +  - joined
 // testSegments: (start_index, length)
 
-TEST(TestIndexSelection, AddSegment_CaseA1_PASS) {
+TEST(TestIndexSelection, AddSegment_CaseA1_PASS)
+{
     /* Simple Cases (overlap exists between new and existing segments, move
      * right to left) */
     std::cout
@@ -30,7 +31,8 @@ TEST(TestIndexSelection, AddSegment_CaseA1_PASS) {
     EXPECT_EQ(testCaseA1.segments, expectedResultA1);
 }
 
-TEST(TestIndexSelection, AddSegment_CaseA1_FAIL) {
+TEST(TestIndexSelection, AddSegment_CaseA1_FAIL)
+{
     // FAIL- Case A1 : [ _ ] _ { _ } : This test is a simple case for Case A1.
     // Change expectedResultA1[10] = 4 for segment not equal
     std::cout << "\tCase A1 : [ _ ] _ { _ }.\n";
@@ -43,7 +45,8 @@ TEST(TestIndexSelection, AddSegment_CaseA1_FAIL) {
     EXPECT_NE(testCaseA1.segments, expectedResultA1);
 }
 
-TEST(TestIndexSelection, AddSegment_CaseA2_PASS) {
+TEST(TestIndexSelection, AddSegment_CaseA2_PASS)
+{
     // PASS - Case A2 : [ _ { _ ] _ } : This test is a simple case for Case A2.
     std::cout << "\tCase A2 : [ _ { _ ] _ }.\n";
     IndexSelection testCaseA2(maxLength);
@@ -54,7 +57,8 @@ TEST(TestIndexSelection, AddSegment_CaseA2_PASS) {
     EXPECT_EQ(testCaseA2.segments, expectedResultA2);
 }
 
-TEST(TestIndexSelection, AddSegment_CaseA2_FAIL) {
+TEST(TestIndexSelection, AddSegment_CaseA2_FAIL)
+{
     // FAIL - Case A2 : [ _ { _ ] _ } : This test is a simple case for Case A2.
     // Change expectedResultA2[3] = 8 for segment not equal
     std::cout << "\tCase A2 : [ _ { _ ] _ }.\n";
@@ -66,7 +70,8 @@ TEST(TestIndexSelection, AddSegment_CaseA2_FAIL) {
     EXPECT_NE(testCaseA2.segments, expectedResultA2);
 }
 
-TEST(TestIndexSelection, AddSegment_CaseA3_PASS) {
+TEST(TestIndexSelection, AddSegment_CaseA3_PASS)
+{
     // PASS - Case A3 : { _ [ _ ] _ } : This test is a simple case for Case A3.
     std::cout << "\tCase A3 : { _ [ _ ] _ }.\n";
     IndexSelection testCaseA3(maxLength);
@@ -77,7 +82,8 @@ TEST(TestIndexSelection, AddSegment_CaseA3_PASS) {
     EXPECT_EQ(testCaseA3.segments, expectedResultA3);
 }
 
-TEST(TestIndexSelection, AddSegment_CaseA3_FAIL) {
+TEST(TestIndexSelection, AddSegment_CaseA3_FAIL)
+{
     // FAIL - Case A3 : { _ [ _ ] _ } : This test is a simple case for Case A3.
     // Change expectedResultA3[2] = 11 for segment not equal
     std::cout << "\tCase A3 : { _ [ _ ] _ }.\n";
@@ -89,7 +95,8 @@ TEST(TestIndexSelection, AddSegment_CaseA3_FAIL) {
     EXPECT_NE(testCaseA3.segments, expectedResultA3);
 }
 
-TEST(TestIndexSelection, AddSegment_CaseB1_PASS) {
+TEST(TestIndexSelection, AddSegment_CaseB1_PASS)
+{
     // PASS - Case B1 : [ _ { _ } _ ] : This test is a simple case for Case B1.
     std::cout << "\tCase B1 : [ _ { _ } _ ].\n";
     IndexSelection testCaseB1(maxLength);
@@ -100,7 +107,8 @@ TEST(TestIndexSelection, AddSegment_CaseB1_PASS) {
     EXPECT_EQ(testCaseB1.segments, expectedResultB1);
 }
 
-TEST(TestIndexSelection, AddSegment_CaseB1_FAIL) {
+TEST(TestIndexSelection, AddSegment_CaseB1_FAIL)
+{
     // FAIL - Case B1 : [ _ { _ } _ ] : This test is a simple case for Case B1.
     // Change expectedResultB1[3] = 15 for segment not equal
     std::cout << "\tCase B1 : [ _ { _ } _ ].\n";
@@ -112,7 +120,8 @@ TEST(TestIndexSelection, AddSegment_CaseB1_FAIL) {
     EXPECT_NE(testCaseB1.segments, expectedResultB1);
 }
 
-TEST(TestIndexSelection, AddSegment_CaseB2_PASS) {
+TEST(TestIndexSelection, AddSegment_CaseB2_PASS)
+{
     // PASS - Case B2 : { _ [ _ } _ ] : This test is a simple case for Case B2.
     std::cout << "\tCase B2 : { _ [ _ } _ ].\n";
     IndexSelection testCaseB2(maxLength);
@@ -123,7 +132,8 @@ TEST(TestIndexSelection, AddSegment_CaseB2_PASS) {
     EXPECT_EQ(testCaseB2.segments, expectedResultB2);
 }
 
-TEST(TestIndexSelection, AddSegment_CaseB2_FAIL) {
+TEST(TestIndexSelection, AddSegment_CaseB2_FAIL)
+{
     // FAIL - Case B2 : { _ [ _ } _ ] : This test is a simple case for Case B2.
     // Change expectedResultB2[2] = 16 for segment not equal
     std::cout << "\tCase B2 : { _ [ _ } _ ].\n";
@@ -135,7 +145,8 @@ TEST(TestIndexSelection, AddSegment_CaseB2_FAIL) {
     EXPECT_NE(testCaseB2.segments, expectedResultB2);
 }
 
-TEST(TestIndexSelection, AddSegment_CaseB3_PASS) {
+TEST(TestIndexSelection, AddSegment_CaseB3_PASS)
+{
     // PASS - Case B3 : { _ } _ [ _ ] : This is a simple case for Case B3 (fall
     // through case).
     std::cout << "\tCase B3 : { _ } _ [ _ ].\n";
@@ -148,7 +159,8 @@ TEST(TestIndexSelection, AddSegment_CaseB3_PASS) {
     EXPECT_EQ(testCaseB3.segments, expectedResultB3);
 }
 
-TEST(TestIndexSelection, AddSegment_CaseB3_FAIL) {
+TEST(TestIndexSelection, AddSegment_CaseB3_FAIL)
+{
     // FAIL - Case B3 : { _ } _ [ _ ] : This is a simple case for Case B3 (fall
     // through case). Change expectedResultB3[1] = 11; and expectedResultB3[3] =
     // 15; for segment not equal
@@ -162,7 +174,8 @@ TEST(TestIndexSelection, AddSegment_CaseB3_FAIL) {
     EXPECT_NE(testCaseB3.segments, expectedResultB3);
 }
 
-TEST(TestIndexSelection, AddSegment_EdgeCase1_PASS) {
+TEST(TestIndexSelection, AddSegment_EdgeCase1_PASS)
+{
     /* Edge Cases */
     std::cout
         << "*** IndexSelection::addSegment Unit Tests: Edge Cases ***\n\n";
@@ -178,7 +191,8 @@ TEST(TestIndexSelection, AddSegment_EdgeCase1_PASS) {
     EXPECT_EQ(testEdgeCase1.segments, expectedResultEdgeCase1);
 }
 
-TEST(TestIndexSelection, AddSegment_EdgeCase1_FAIL) {
+TEST(TestIndexSelection, AddSegment_EdgeCase1_FAIL)
+{
     // FAIL - Edge Case 1 : [ _ ] + { _ } : This test is an edge case that
     // should be handled as a A2 Case. Change expectedResultEdgeCase1[3] = 17;
     // for segment not equal
@@ -191,7 +205,8 @@ TEST(TestIndexSelection, AddSegment_EdgeCase1_FAIL) {
     EXPECT_NE(testEdgeCase1.segments, expectedResultEdgeCase1);
 }
 
-TEST(TestIndexSelection, AddSegment_EdgeCase1b_PASS) {
+TEST(TestIndexSelection, AddSegment_EdgeCase1b_PASS)
+{
     // PASS - Edge Case 1b : [ _ { _ ] + } : This test is an edge case that
     // should be handled as a A2 case.
     std::cout << "\tEdge Case 1b : [ _ { _ ] + }.\n";
@@ -203,7 +218,8 @@ TEST(TestIndexSelection, AddSegment_EdgeCase1b_PASS) {
     EXPECT_EQ(testEdgeCase1b.segments, expectedResultEdgeCase1b);
 }
 
-TEST(TestIndexSelection, AddSegment_EdgeCase1b_FAIL) {
+TEST(TestIndexSelection, AddSegment_EdgeCase1b_FAIL)
+{
     // FAIL - Edge Case 1b : [ _ { _ ] + } : This test is an edge case that
     // should be handled as a A2 case. Change expectedResultEdgeCase1b[3] = 25;
     // for segment not equal
@@ -216,7 +232,8 @@ TEST(TestIndexSelection, AddSegment_EdgeCase1b_FAIL) {
     EXPECT_NE(testEdgeCase1b.segments, expectedResultEdgeCase1b);
 }
 
-TEST(TestIndexSelection, AddSegment_EdgeCase2_PASS) {
+TEST(TestIndexSelection, AddSegment_EdgeCase2_PASS)
+{
     // PASS - Edge Case 2 : { + [ _ ] _ } : This test is an edge case that
     // should be handled as a A2 Case.
     std::cout << "\tEdge Case 2 : { + [ _ ] _ }.\n";
@@ -228,7 +245,8 @@ TEST(TestIndexSelection, AddSegment_EdgeCase2_PASS) {
     EXPECT_EQ(testEdgeCase2.segments, expectedResultEdgeCase2);
 }
 
-TEST(TestIndexSelection, AddSegment_EdgeCase2_FAIL) {
+TEST(TestIndexSelection, AddSegment_EdgeCase2_FAIL)
+{
     // FAIL - Edge Case 1b : [ _ { _ ] + } : This test is an edge case that
     // should be handled as a A2 case. Change expectedResultEdgeCase2[3] = 26;
     // for segment not equal
@@ -241,7 +259,8 @@ TEST(TestIndexSelection, AddSegment_EdgeCase2_FAIL) {
     EXPECT_NE(testEdgeCase2.segments, expectedResultEdgeCase2);
 }
 
-TEST(TestIndexSelection, AddSegment_EdgeCase3_PASS) {
+TEST(TestIndexSelection, AddSegment_EdgeCase3_PASS)
+{
     // PASS - Edge Case 3 : { _ [ _ ] + } : This test is an edge case that
     // should be handled as a A3 Case.
     std::cout << "\tEdge Case 3 : { _ [ _ ] + }.\n";
@@ -253,7 +272,8 @@ TEST(TestIndexSelection, AddSegment_EdgeCase3_PASS) {
     EXPECT_EQ(testEdgeCase3.segments, expectedResultEdgeCase3);
 }
 
-TEST(TestIndexSelection, AddSegment_EdgeCase3_FAIL) {
+TEST(TestIndexSelection, AddSegment_EdgeCase3_FAIL)
+{
     // FAIL - Edge Case 3 : { _ [ _ ] + } : This test is an edge case that
     // should be handled as a A3 Case. Change expectedResultEdgeCase2[3] = 26;
     // for segment not equal
@@ -266,7 +286,8 @@ TEST(TestIndexSelection, AddSegment_EdgeCase3_FAIL) {
     EXPECT_NE(testEdgeCase2.segments, expectedResultEdgeCase2);
 }
 
-TEST(TestIndexSelection, AddSegment_EdgeCase4_PASS) {
+TEST(TestIndexSelection, AddSegment_EdgeCase4_PASS)
+{
     std::cout << "\tEdge Case 4 : { + [ _ ] + }.\n";
     IndexSelection testEdgeCase4(maxLength);
     testEdgeCase4.addSegment(3, 5);               // [3,5] - existing segment
@@ -276,7 +297,8 @@ TEST(TestIndexSelection, AddSegment_EdgeCase4_PASS) {
     EXPECT_EQ(testEdgeCase4.segments, expectedResultEdgeCase4);
 }
 
-TEST(TestIndexSelection, AddSegment_EdgeCase4_FAIL) {
+TEST(TestIndexSelection, AddSegment_EdgeCase4_FAIL)
+{
     // FAIL - Edge Case 3 : { _ [ _ ] + } : This test is an edge case that
     // should be handled as a A3 Case. Change expectedResultEdgeCase4[3] = 35;
     // for segment not equal
@@ -289,7 +311,8 @@ TEST(TestIndexSelection, AddSegment_EdgeCase4_FAIL) {
     EXPECT_NE(testEdgeCase4.segments, expectedResultEdgeCase4);
 }
 
-TEST(TestIndexSelection, AddSegment_EdgeCase4b_PASS) {
+TEST(TestIndexSelection, AddSegment_EdgeCase4b_PASS)
+{
     // PASS - Edge Case 4b : [ + { _ } _ ] : This test is an edge case that
     // should be handled as a B1 case.
     std::cout << "\tEdge Case 4b : [ + { _ } _ ].\n";
@@ -301,7 +324,8 @@ TEST(TestIndexSelection, AddSegment_EdgeCase4b_PASS) {
     EXPECT_EQ(testEdgeCase4b.segments, expectedResultEdgeCase4b);
 }
 
-TEST(TestIndexSelection, AddSegment_EdgeCase4b_FAIL) {
+TEST(TestIndexSelection, AddSegment_EdgeCase4b_FAIL)
+{
     // FAIL - Edge Case 3 : { _ [ _ ] + } : This test is an edge case that
     // should be handled as a A3 Case. Change expectedResultEdgeCase4b[3] = 45;
     // for segment not equal
@@ -314,7 +338,8 @@ TEST(TestIndexSelection, AddSegment_EdgeCase4b_FAIL) {
     EXPECT_NE(testEdgeCase4b.segments, expectedResultEdgeCase4b);
 }
 
-TEST(TestIndexSelection, AddSegment_EdgeCase5_PASS) {
+TEST(TestIndexSelection, AddSegment_EdgeCase5_PASS)
+{
     // PASS - Edge Case 5 : { _ } + [ _ ] : This test is an edge case that
     // should be handled as a B2 Case.
     std::cout << "\tEdge Case 5 : { _ } + [ _ ].\n";
@@ -326,7 +351,8 @@ TEST(TestIndexSelection, AddSegment_EdgeCase5_PASS) {
     EXPECT_EQ(testEdgeCase5.segments, expectedResultEdgeCase5);
 }
 
-TEST(TestIndexSelection, AddSegment_EdgeCase5_FAIL) {
+TEST(TestIndexSelection, AddSegment_EdgeCase5_FAIL)
+{
     // FAIL - Edge Case 3 : { _ [ _ ] + } : This test is an edge case that
     // should be handled as a A3 Case. Change expectedResultEdgeCase5[1] = 77;
     // for segment not equal

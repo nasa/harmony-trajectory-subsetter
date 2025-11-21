@@ -21,7 +21,8 @@
  * representative of the non-fill value size of an index begin segment (e.g.,
  * GEDI). So, a more generalized index scanning approach is used here.
  */
-class ForwardReferenceCoordinates : public Coordinate {
+class ForwardReferenceCoordinates : public Coordinate
+{
   public:
     IndexSelection *segIndexes = nullptr;
     // Selected Segments - computed in SegmentedTrajectorySubset method
@@ -32,7 +33,9 @@ class ForwardReferenceCoordinates : public Coordinate {
          Temporal *temporal,
          GeoPolygon *geoPolygon,
          Configuration *config)
-        : Coordinate(groupname, geoboxes, temporal, geoPolygon, config) {}
+        : Coordinate(groupname, geoboxes, temporal, geoPolygon, config)
+    {
+    }
 
     ~ForwardReferenceCoordinates() // destructor
     {
@@ -59,12 +62,14 @@ class ForwardReferenceCoordinates : public Coordinate {
                                      std::vector<geobox> *geoboxes,
                                      Temporal *temporal,
                                      GeoPolygon *geoPolygon,
-                                     Configuration *config) {
+                                     Configuration *config)
+    {
         LOG_DEBUG(
             "ForwardReferenceCoordinates::getCoordinate(): ENTER groupname: "
             << groupname);
 
-        if (Coordinate::lookUp(groupname)) {
+        if (Coordinate::lookUp(groupname))
+        {
             LOG_DEBUG(
                 "ForwardReferenceCoordinates::getCoordinate(): groupname: "
                 << " already exists in lookUpMap(ForwardReferenceCoordinate)");
@@ -79,14 +84,17 @@ class ForwardReferenceCoordinates : public Coordinate {
 
         // get the size of the target (segmented trajectory) dataset for this
         // group
-        if (config->isPhotonDataset(shortName, groupname)) {
+        if (config->isPhotonDataset(shortName, groupname))
+        {
             H5::DataSet data = root.openDataSet(groupname);
             H5::DataSpace inspace = data.getSpace();
             int dim = inspace.getSimpleExtentNdims();
             hsize_t olddims[dim];
             inspace.getSimpleExtentDims(olddims);
             forCoor->coordinateSize = olddims[0];
-        } else {
+        }
+        else
+        {
             forCoor->setCoordinateSize(ingroup);
         }
 
@@ -95,8 +103,8 @@ class ForwardReferenceCoordinates : public Coordinate {
             config->getReferencedGroupname(shortName, groupname);
 
         // if segment control group does not exist, return everything
-        if (H5Lexists(root.getLocId(), segGroupname.c_str(), H5P_DEFAULT) ==
-            0) {
+        if (H5Lexists(root.getLocId(), segGroupname.c_str(), H5P_DEFAULT) == 0)
+        {
             forCoor->indexesProcessed = true;
             return forCoor;
         }
@@ -105,7 +113,8 @@ class ForwardReferenceCoordinates : public Coordinate {
         // coordinate object
         forCoor->segGroup = root.openGroup(segGroupname);
         Coordinate *coor;
-        if (config->subsetBySuperGroup(shortName, segGroupname)) {
+        if (config->subsetBySuperGroup(shortName, segGroupname))
+        {
             coor = SuperGroupCoordinate::getCoordinate(root,
                                                        forCoor->segGroup,
                                                        shortName,
@@ -115,7 +124,9 @@ class ForwardReferenceCoordinates : public Coordinate {
                                                        temporal,
                                                        geoPolygon,
                                                        config);
-        } else {
+        }
+        else
+        {
             coor = Coordinate::getCoordinate(root,
                                              forCoor->segGroup,
                                              segGroupname,
@@ -129,9 +140,12 @@ class ForwardReferenceCoordinates : public Coordinate {
 
         // if the IndexSelection object for the segment group has
         // already been processed, use it. Otherwise, process it
-        if (coor->indexesProcessed) {
+        if (coor->indexesProcessed)
+        {
             forCoor->segIndexes = coor->indexes;
-        } else {
+        }
+        else
+        {
             forCoor->segIndexes = coor->getIndexSelection();
         }
 
@@ -146,12 +160,14 @@ class ForwardReferenceCoordinates : public Coordinate {
      * get/create IndexSelection object for forward reference target
      * (photon/leads) level subsetting (i.e. /gt1l/heights group, /gt1l/leads)
      */
-    virtual IndexSelection *getIndexSelection() {
+    virtual IndexSelection *getIndexSelection()
+    {
         LOG_DEBUG(" ForwardReferenceCoordinates::getIndexSelection(): ENTER");
 
         // if both temporal and spatial constraints don't exist,
         // return null to include all in the output
-        if (geoboxes == NULL && temporal == NULL && geoPolygon == NULL) {
+        if (geoboxes == NULL && temporal == NULL && geoPolygon == NULL)
+        {
             return NULL;
         }
 
@@ -172,9 +188,12 @@ class ForwardReferenceCoordinates : public Coordinate {
 
         if (!indexBegName.empty() &&
             H5Lexists(segGroup.getLocId(), indexBegName.c_str(), H5P_DEFAULT) >
-                0) {
+                0)
+        {
             indexBegSet = new H5::DataSet(segGroup.openDataSet(indexBegName));
-        } else {
+        }
+        else
+        {
             // if fbswath_lead_ndx_gt<1l,1r....> doesn't exist,
             // try fbswath_lead_ndx_gt<1...6> for ATL10
             config->groundTrackRename(groupname, indexBegName, countName);
@@ -205,10 +224,13 @@ class ForwardReferenceCoordinates : public Coordinate {
                         long segEndIdx,
                         long &firstTrajIndex,
                         long &firstNonFillIdx,
-                        int64_t indexBegDataset[]) {
+                        int64_t indexBegDataset[])
+    {
         // skip over segment-begin (start) fill values
-        for (long i = segStartIdx; i <= segEndIdx; i++) {
-            if (indexBegDataset[i] > 0) {
+        for (long i = segStartIdx; i <= segEndIdx; i++)
+        {
+            if (indexBegDataset[i] > 0)
+            {
                 firstNonFillIdx = i;
                 firstTrajIndex = indexBegDataset[firstNonFillIdx];
                 break;
@@ -230,10 +252,13 @@ class ForwardReferenceCoordinates : public Coordinate {
                          long segStartIdx,
                          long &lastTrajIndex,
                          long &lastNonFillIdx,
-                         int64_t indexBegDataset[]) {
+                         int64_t indexBegDataset[])
+    {
         // skip over segment-begin (start) fill values
-        for (long i = segEndIdx; i >= segStartIdx; i--) {
-            if (indexBegDataset[i] > 0) {
+        for (long i = segEndIdx; i >= segStartIdx; i--)
+        {
+            if (indexBegDataset[i] > 0)
+            {
                 lastNonFillIdx = i;
                 lastTrajIndex = indexBegDataset[lastNonFillIdx];
                 break;
@@ -274,7 +299,8 @@ class ForwardReferenceCoordinates : public Coordinate {
                           long &trajSegLength,
                           long maxIndexBegIdx,
                           long maxTrajIndex,
-                          int64_t indexBegDataset[]) {
+                          int64_t indexBegDataset[])
+    {
         LOG_DEBUG(" ForwardReferenceCoordinates::defineOneSegment(): ENTER");
 
         long firstIdxNonFill = 0; // first non-fill indexBeg value in
@@ -301,7 +327,8 @@ class ForwardReferenceCoordinates : public Coordinate {
                         indexBegDataset);
 
         // if not found - skip this selected segment group
-        if (lastTrajIndex <= 0) {
+        if (lastTrajIndex <= 0)
+        {
             firstTrajIndex = 0;
             trajSegLength = 0;
             return;
@@ -311,7 +338,8 @@ class ForwardReferenceCoordinates : public Coordinate {
         // length of this trajectory segment is just the number of trajectory
         // values between the first value of this segment and the last
         // trajectory value.
-        if (lastSelectedIdx + 1 == maxIndexBegIdx) {
+        if (lastSelectedIdx + 1 == maxIndexBegIdx)
+        {
             trajSegLength = maxTrajIndex - indexBegDataset[firstIdxNonFill] + 1;
             return;
         }
@@ -359,7 +387,8 @@ class ForwardReferenceCoordinates : public Coordinate {
      *
      * @param indexBegSet: index begin dataset
      */
-    void segmentedTrajectorySubset(H5::DataSet *indexBegSet) {
+    void segmentedTrajectorySubset(H5::DataSet *indexBegSet)
+    {
         LOG_DEBUG(
             "ForwardReferenceCoordinates::segmentedTrajectorySubset(): ENTER");
 
@@ -377,20 +406,24 @@ class ForwardReferenceCoordinates : public Coordinate {
         if (H5Tequal(indexBeg_native_type, H5T_NATIVE_LLONG)) // 64-bit int
         {
             indexBegSet->read(indexBeg, indexBegSet->getDataType());
-        } else if (H5Tequal(indexBeg_native_type, H5T_NATIVE_INT)) // 32-bit int
+        }
+        else if (H5Tequal(indexBeg_native_type, H5T_NATIVE_INT)) // 32-bit int
         {
             int32_t *data = new int32_t[idxBegSize];
             indexBegSet->read(data, indexBegSet->getDataType());
-            for (int i = 0; i < idxBegSize; i++) {
+            for (int i = 0; i < idxBegSize; i++)
+            {
                 indexBeg[i] = data[i];
             }
             delete[] data;
-        } else if (H5Tequal(indexBeg_native_type,
-                            H5T_NATIVE_ULLONG)) // unsigned 64-bit int
+        }
+        else if (H5Tequal(indexBeg_native_type,
+                          H5T_NATIVE_ULLONG)) // unsigned 64-bit int
         {
             uint64_t *data = new uint64_t[idxBegSize];
             indexBegSet->read(data, indexBegSet->getDataType());
-            for (int i = 0; i < idxBegSize; i++) {
+            for (int i = 0; i < idxBegSize; i++)
+            {
                 indexBeg[i] = data[i];
             }
             delete[] data;
@@ -406,7 +439,8 @@ class ForwardReferenceCoordinates : public Coordinate {
         //             - 1 + size-last-selected-segment;
         for (std::map<long, long>::iterator it = segIndexes->segments.begin();
              it != segIndexes->segments.end();
-             it++) {
+             it++)
+        {
             long selectedStart = it->first;
             long selectedCount = it->second;
             long start = 0, length = 0;
@@ -423,13 +457,15 @@ class ForwardReferenceCoordinates : public Coordinate {
             // zero based indexing, whereas start index pulled from
             // indexBegin datasets is one based indexing one based
             // indexing.
-            if (start > 0) {
+            if (start > 0)
+            {
                 indexes->addSegment(start - 1, length);
             }
         }
 
         // If no spatial subsetting, include all segments.
-        if (segIndexes->segments.empty()) {
+        if (segIndexes->segments.empty())
+        {
             long start = 0, length = 0;
 
             long selectedStart = segIndexes->minIndexStart;
@@ -446,14 +482,16 @@ class ForwardReferenceCoordinates : public Coordinate {
             // Note: index-selection start is true to datasets, zero based
             // indexing, whereas start index pulled from indexBegin datasets is
             // one based indexing
-            if (start > 0) {
+            if (start > 0)
+            {
                 indexes->addSegment(start - 1, length);
             }
         }
 
         // No data found matched the spatial/temporal constraints, return no
         // data.
-        if (indexes->segments.empty()) {
+        if (indexes->segments.empty())
+        {
             indexes->addRestriction(0, 0);
             LOG_DEBUG(
                 "ForwardReferenceCoordinates::segmentedTrajectorySubset(): "

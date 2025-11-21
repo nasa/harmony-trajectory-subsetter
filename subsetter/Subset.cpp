@@ -24,7 +24,8 @@
 /**
  * Trajectory Subsetter main function.
  */
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
     clock_t startTime, endTime;
     startTime = clock();
 
@@ -32,13 +33,15 @@ int main(int argc, char *argv[]) {
     // if an exception is not thrown.
     int ErrorCode = 0;
 
-    try {
+    try
+    {
         // If process_args() returns a non-zero value,
         // then the arguments were unable to be processed.
         std::shared_ptr<ProcessArguments> processArgs =
             std::make_shared<ProcessArguments>();
         int processArgsErrorCode = processArgs->process_args(argc, argv);
-        if (processArgsErrorCode != ProcessArguments::PASS) {
+        if (processArgsErrorCode != ProcessArguments::PASS)
+        {
             return processArgsErrorCode;
         }
 
@@ -62,17 +65,20 @@ int main(int argc, char *argv[]) {
 
         // Read in a json file if one is provided for the
         // requested datasets.
-        if (datasetList.find("json") != std::string::npos) {
+        if (datasetList.find("json") != std::string::npos)
+        {
             subsetDataLayers = new SubsetDataLayers(datasetList);
         }
         // Otherwise, read in the datasets specified in the command
         // line request via --includedatasets.
-        else {
+        else
+        {
             std::string dataset;
             boost::char_separator<char> delim(" ,");
             boost::tokenizer<boost::char_separator<char>> datasets(datasetList,
                                                                    delim);
-            BOOST_FOREACH (dataset, datasets) {
+            BOOST_FOREACH (dataset, datasets)
+            {
                 datasetsToInclude.push_back(dataset);
             }
             subsetDataLayers = new SubsetDataLayers(datasetsToInclude);
@@ -90,7 +96,8 @@ int main(int argc, char *argv[]) {
 
         // If a bounding shape is provided but the constructed GeoPolygon
         // polygon contains no data, return an error.
-        if (geoPolygon != NULL and geoPolygon->isEmpty()) {
+        if (geoPolygon != NULL and geoPolygon->isEmpty())
+        {
             LOG_ERROR("Subset::main(): ERROR: no polygon found for the given "
                       "GeoJSON/KML/Shapefile");
             return 6;
@@ -108,10 +115,13 @@ int main(int argc, char *argv[]) {
 
         std::string shortname = getMission->retrieveShortName(infile);
 
-        if (shortname.empty() && !collShortName.empty()) {
+        if (shortname.empty() && !collShortName.empty())
+        {
             shortname = collShortName;
             LOG_INFO("Subset::main(): shortname: " << shortname);
-        } else if (shortname.empty() && collShortName.empty()) {
+        }
+        else if (shortname.empty() && collShortName.empty())
+        {
             LOG_ERROR(
                 "Subset::main(): ERROR: The short name could not be retrieved \
                         from the collection or was not defined in the command line arguments");
@@ -122,13 +132,17 @@ int main(int argc, char *argv[]) {
 
         // Select which subsetter is needed for the mission.
         Subsetter *subsetter = nullptr;
-        if (mission == "ICESAT") {
+        if (mission == "ICESAT")
+        {
             subsetter = new IcesatSubsetter(
                 subsetDataLayers, geoboxes, temporal, geoPolygon, config);
-        } else if (mission == "GEDI") {
+        }
+        else if (mission == "GEDI")
+        {
             subsetter = new SuperGroupSubsetter(
                 subsetDataLayers, geoboxes, temporal, geoPolygon, config);
-        } else // Use the base Subsetter if the mission isn't GEDI or ICESAT.
+        }
+        else // Use the base Subsetter if the mission isn't GEDI or ICESAT.
         {
             subsetter = new Subsetter(subsetDataLayers,
                                       geoboxes,
@@ -147,16 +161,19 @@ int main(int argc, char *argv[]) {
         // Release dynamic memory.
         delete config;
         delete subsetDataLayers;
-        if (temporal != NULL) {
+        if (temporal != NULL)
+        {
             delete temporal;
         }
-        if (geoPolygon != NULL) {
+        if (geoPolygon != NULL)
+        {
             delete geoPolygon;
         }
         delete subsetter;
 
         std::stringstream argvStream;
-        for (int i = 0; i < argc; i++) {
+        for (int i = 0; i < argc; i++)
+        {
             argvStream << argv[i] << " ";
         }
         LOG_INFO(argvStream.str());
@@ -164,22 +181,31 @@ int main(int argc, char *argv[]) {
         endTime = clock();
         double runTime = (double)(endTime - startTime) / CLOCKS_PER_SEC;
         LOG_INFO(" execution time: " << runTime << " seconds");
-    } catch (H5::Exception e) {
+    }
+    catch (H5::Exception e)
+    {
         std::string msg = e.getDetailMsg();
         LOG_ERROR("\nSubset::main(): ERROR: caught H5 Exception: " << msg);
 
-        if (msg.find("H5Fcreate") != std::string::npos) {
+        if (msg.find("H5Fcreate") != std::string::npos)
+        {
             LOG_ERROR("Output file could not be created, check if it's "
                       << "currently open in another application.\n");
-        } else if (msg.find("H5Gopen") != std::string::npos) {
+        }
+        else if (msg.find("H5Gopen") != std::string::npos)
+        {
             LOG_ERROR("HDF5 Group could not be opened.\n");
         }
         return -1;
-    } catch (std::exception &e) {
+    }
+    catch (std::exception &e)
+    {
         LOG_ERROR("\nSubset::main(): ERROR: caught std::exception "
                   << e.what());
         return -1;
-    } catch (...) {
+    }
+    catch (...)
+    {
         LOG_ERROR("\nSubset::main(): ERROR: unknown exception occurred");
         return -1;
     }

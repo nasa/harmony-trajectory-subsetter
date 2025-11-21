@@ -13,9 +13,11 @@
 #include <regex>
 #include <string>
 
-class ForwardReferenceCoordinatesTest : public ::testing::Test {
+class ForwardReferenceCoordinatesTest : public ::testing::Test
+{
   protected:
-    ForwardReferenceCoordinatesTest() {
+    ForwardReferenceCoordinatesTest()
+    {
         std::string config_file_path = gtest_utilities::getFullPath(
             "harmony_service/subsetter_config.json");
         config = std::make_unique<Configuration>(config_file_path);
@@ -44,8 +46,8 @@ class ForwardReferenceCoordinatesTest : public ::testing::Test {
     std::unique_ptr<Configuration> config;
 };
 
-TEST_F(ForwardReferenceCoordinatesTest,
-       DefineOneSegment_start_nonFV_end_nonFV) {
+TEST_F(ForwardReferenceCoordinatesTest, DefineOneSegment_start_nonFV_end_nonFV)
+{
     // Segment data generated from bounding box {-60,24,-55,26}.
     long selectedStartIdx = 5538;
     long selectedCount = 1;
@@ -69,7 +71,8 @@ TEST_F(ForwardReferenceCoordinatesTest,
     EXPECT_EQ(trajSegLength_expected, trajSegLength_result);
 }
 
-TEST_F(ForwardReferenceCoordinatesTest, DefineOneSegment_start_FV_end_FV) {
+TEST_F(ForwardReferenceCoordinatesTest, DefineOneSegment_start_FV_end_FV)
+{
     // Segment data generated from bounding box {60,23.3435,-59,23.55}.
     long selectedStartIdx = 19147;
     long selectedCount = 1130;
@@ -93,8 +96,8 @@ TEST_F(ForwardReferenceCoordinatesTest, DefineOneSegment_start_FV_end_FV) {
     EXPECT_EQ(trajSegLength_expected, trajSegLength_result);
 }
 
-TEST_F(ForwardReferenceCoordinatesTest,
-       DefineOneSegment_start_nonFV_end_FVall) {
+TEST_F(ForwardReferenceCoordinatesTest, DefineOneSegment_start_nonFV_end_FVall)
+{
     // Segment data generated from bounding box {-62,-2,60,25}.
     long selectedStartIdx = 11092;
     long selectedCount = 1;
@@ -118,8 +121,8 @@ TEST_F(ForwardReferenceCoordinatesTest,
     EXPECT_EQ(trajSegLength_expected, trajSegLength_result);
 }
 
-TEST_F(ForwardReferenceCoordinatesTest,
-       DefineOneSegment_start_FVall_end_nonFV) {
+TEST_F(ForwardReferenceCoordinatesTest, DefineOneSegment_start_FVall_end_nonFV)
+{
     // Segment data generated from bounding box {-62,24.3022,60,27}.
     long selectedStartIdx = 0;
     long selectedCount = 14958;

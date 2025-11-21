@@ -36,7 +36,8 @@ static const TIFFFieldInfo xtiffFieldInfo[] = {{TIFFTAG_UNITS,
 
 static TIFFExtendProc parent_extender = NULL;
 
-static void registerCustomTIFFTags(TIFF *tif) {
+static void registerCustomTIFFTags(TIFF *tif)
+{
     /* Install the extended Tag field info */
     TIFFMergeFieldInfo(tif, xtiffFieldInfo, N(xtiffFieldInfo));
 
@@ -44,7 +45,8 @@ static void registerCustomTIFFTags(TIFF *tif) {
         (*parent_extender)(tif);
 }
 
-static void augment_libtiff_with_custom_tags() {
+static void augment_libtiff_with_custom_tags()
+{
     static bool first_time = true;
     if (!first_time)
         return;
@@ -52,12 +54,14 @@ static void augment_libtiff_with_custom_tags() {
     parent_extender = TIFFSetTagExtender(registerCustomTIFFTags);
 }
 
-class geotiff_converter {
+class geotiff_converter
+{
   public:
     void convert(short *row_data,
                  short *col_data,
                  float *lat_dat,
-                 float *lon_data) {
+                 float *lon_data)
+    {
         get_min_max(row_data, row_min, row_max);
         get_min_max(col_data, col_min, col_max);
         num_rows = row_max - row_min + 1;
@@ -68,7 +72,8 @@ class geotiff_converter {
                       std::string shortName,
                       H5::Group &outgroup,
                       SubsetDataLayers *subsetDataLayers,
-                      Configuration *config) {
+                      Configuration *config)
+    {
         LOG_DEBUG("geotiff_converter::geotiff_converter(): ENTER");
 
         SubsetDataLayers *osub =
@@ -85,15 +90,18 @@ class geotiff_converter {
         for (std::vector<std::set<std::string>>::iterator set_it =
                  datasets.begin();
              set_it != datasets.end();
-             set_it++) {
+             set_it++)
+        {
             for (std::set<std::string>::iterator it = set_it->begin();
                  it != set_it->end();
-                 it++) {
+                 it++)
+            {
                 datasetName = *it;
                 LOG_DEBUG("geotiff_converter::geotiff_converter(): converting "
                           << datasetName << " to GeoTIFF");
 
-                if (subsetDataLayers->is_dataset_included(datasetName)) {
+                if (subsetDataLayers->is_dataset_included(datasetName))
+                {
                     // generating tif file name
                     // replace '/' in the dataset name with '.'
                     groupname = datasetName.substr(0, datasetName.size() - 1);
@@ -124,7 +132,8 @@ class geotiff_converter {
                                                              latName,
                                                              lonName,
                                                              resolution);
-                    if (rowName.find("/") == std::string::npos) {
+                    if (rowName.find("/") == std::string::npos)
+                    {
                         rowName = groupname + rowName;
                         colName = groupname + colName;
                         latName = groupname + latName;
@@ -162,13 +171,15 @@ class geotiff_converter {
                             short resolution = 36,
                             bool crop = false,
                             H5::DataSet *lat = 0,
-                            H5::DataSet *lon = 0) {
+                            H5::DataSet *lon = 0)
+    {
         LOG_DEBUG("geotiff_converter::convert_to_geotiff(): ENTER");
 
         std::vector<TIFF *> tifs;
         std::vector<GTIF *> gtifs;
 
-        if (get_data_type(ds) == 0 || get_size(row) == 0) {
+        if (get_data_type(ds) == 0 || get_size(row) == 0)
+        {
             LOG_DEBUG(
                 "geotiff_converter::convert_to_geotiff(): Skipping "
                 << outfilename
@@ -180,7 +191,8 @@ class geotiff_converter {
         // get the number of output geotiff files
         int numfiles = get_numfiles(ds);
 
-        for (int i = 0; i < numfiles; i++) {
+        for (int i = 0; i < numfiles; i++)
+        {
             std::string filename = outfilename;
             // multiple bands
             if (numfiles > 1)
@@ -215,7 +227,8 @@ class geotiff_converter {
         short num_col_pixels = 964 * 36 / resolution;
 
         // recalculate row/col for polar bands
-        if (std::string(outfilename).find("Polar") != std::string::npos) {
+        if (std::string(outfilename).find("Polar") != std::string::npos)
+        {
             num_row_pixels = 500 * 36 / resolution;
             num_col_pixels = 500 * 36 / resolution;
         }
@@ -241,7 +254,8 @@ class geotiff_converter {
         double pixelscale[3] = {lon_pixel_size, lat_pixel_size, 0.0};
 
         laea = false;
-        if (strcmp(projection, "GEO") == 0) {
+        if (strcmp(projection, "GEO") == 0)
+        {
             // geographic projection is required for KML conversion
 
             assert(crop == false);
@@ -261,7 +275,9 @@ class geotiff_converter {
             geotiepoints[4] = 85.0445664;
             pixelscale[0] = 360.0 / num_cols;
             pixelscale[1] = 85.0445664 * 2.0 / num_rows;
-        } else if (strcmp(projection, "CEA")) {
+        }
+        else if (strcmp(projection, "CEA"))
+        {
             // not GEO, not CEA => LAEA projection
 
             // Corner points of laea projection, full polar grid are
@@ -279,12 +295,14 @@ class geotiff_converter {
                               500; // 9'000'000 for full gridpy
             pixelscale[0] = pixelscale[1] =
                 grid_size / (500 * 36.0 / resolution);
-            if (!crop) {
+            if (!crop)
+            {
                 num_rows = num_cols = 500 * 36 / resolution;
             }
         }
 
-        for (int i = 0; i < tifs.size(); i++) {
+        for (int i = 0; i < tifs.size(); i++)
+        {
             set_tiff_keys(tifs[i],
                           data_type_size,
                           get_data_type(ds),
@@ -307,23 +325,29 @@ class geotiff_converter {
         ds.read(dataset_data, ds.getDataType()); //), outspace, space);
 
         void *output_line = (void *)malloc(data_type_size * (num_cols));
-        for (int i = 0; i < num_rows; i++) {
-            for (int l = 0; l < numfiles; l++) {
-                for (int j = 0; j < num_cols; j++) {
+        for (int i = 0; i < num_rows; i++)
+        {
+            for (int l = 0; l < numfiles; l++)
+            {
+                for (int j = 0; j < num_cols; j++)
+                {
                     if (laea &&
                         // normalize to 500 row/column grid size, row/column
                         // starts from 0-499
                         sqrt(pow((float)i / 36.0 * resolution - 249.5, 2) +
                              pow((float)j / 36.0 * resolution - 249.5, 2)) >
-                            250) {
+                            250)
+                    {
                         memcpy((char *)output_line + j * data_type_size,
                                off_earth_fill_value,
                                data_type_size);
-                    } else if (array_index_map[i][j] == coordinate_size)
+                    }
+                    else if (array_index_map[i][j] == coordinate_size)
                         memcpy((char *)output_line + j * data_type_size,
                                fill_value,
                                data_type_size);
-                    else {
+                    else
+                    {
                         void *val = ((char *)dataset_data +
                                      array_index_map[i][j] * data_type_size *
                                          tifs.size() +
@@ -339,13 +363,15 @@ class geotiff_converter {
         free(output_line);
         free(dataset_data);
         free_array_index_map(array_index_map);
-        for (int i = 0; i < numfiles; i++) {
+        for (int i = 0; i < numfiles; i++)
+        {
             GTIFFree(gtifs[i]);
             XTIFFClose(tifs[i]);
         }
     }
 
-    hsize_t get_size(H5::DataSet &ds) {
+    hsize_t get_size(H5::DataSet &ds)
+    {
         coordinate_size = 1;
         int ndims = ds.getSpace().getSimpleExtentNdims();
         hsize_t dims[ndims];
@@ -357,15 +383,19 @@ class geotiff_converter {
 
     // fill values are dependent on the size of the datatype
     //   This fill value is used for off-earth points outside the swath
-    void *get_off_earth_fill_value(H5::DataSet &ds, const char *outputformat) {
+    void *get_off_earth_fill_value(H5::DataSet &ds, const char *outputformat)
+    {
         LOG_DEBUG("geotiff_converter::get_off_earth_fill_value(): ENTER");
 
         size_t size = ds.getDataType().getSize();
         void *buf = malloc(size);
-        if (ds.attrExists("_FillValue")) {
+        if (ds.attrExists("_FillValue"))
+        {
             H5::Attribute attr = ds.openAttribute("_FillValue");
             attr.read(attr.getDataType(), buf);
-        } else {
+        }
+        else
+        {
             LOG_DEBUG(
                 "geotiff_converter::get_off_earth_fill_value(): Fill Value not "
                 "found in dataset setting to 0");
@@ -378,27 +408,38 @@ class geotiff_converter {
 
         // For GeoTIFF files we put fillvalue - 2 for
         //  the grid cells that are not defined in cell_row/cell_column
-        if (size == 8) {
+        if (size == 8)
+        {
             double fill = -9997;
             memcpy(buf, &fill, size);
-        } else if (size == 4) {
+        }
+        else if (size == 4)
+        {
             float val = *(float *)buf;
             if (val == -9999.0 ||
                 val == 0.0) // is a float (val=0 means no fill (assume lat/lon))
             {
                 float fill = -9997;
                 memcpy(buf, &fill, size);
-            } else if (*(uint32_t *)buf == 4294967294) {
+            }
+            else if (*(uint32_t *)buf == 4294967294)
+            {
                 unsigned long fill = 4294967294 - 2;
                 memcpy(buf, &fill, size);
             }
-        } else if (size == 2) {
+        }
+        else if (size == 2)
+        {
             unsigned short fill = 65532;
             memcpy(buf, &fill, size);
-        } else if (size == 1) {
+        }
+        else if (size == 1)
+        {
             unsigned char fill = 252;
             memcpy(buf, &fill, size);
-        } else {
+        }
+        else
+        {
             LOG_DEBUG(
                 "geotiff_converter::get_off_earth_fill_value(): "
                 << "Unknown data type size when calculating off earth fill "
@@ -411,18 +452,21 @@ class geotiff_converter {
 
     // fill values are dependent on the size of the datatype
     //   This fill value is used for on-earth points outside the swath
-    void *get_fill_value(H5::DataSet &ds, const char *outputformat) {
+    void *get_fill_value(H5::DataSet &ds, const char *outputformat)
+    {
         LOG_DEBUG("geotiff_converter::get_fill_value(): ENTER");
 
         size_t size = ds.getDataType().getSize();
         void *buf = malloc(size);
 
         // Get Default Fill Value
-        if (ds.attrExists("_FillValue")) {
+        if (ds.attrExists("_FillValue"))
+        {
             H5::Attribute attr = ds.openAttribute("_FillValue");
             attr.read(attr.getDataType(), buf);
-        } else if (size == 4) // cell_lat and cell_lon don't have _FillValue
-                              // defined, so default to -9999
+        }
+        else if (size == 4) // cell_lat and cell_lon don't have _FillValue
+                            // defined, so default to -9999
         {
             float fill = -9999;
             memcpy(buf, &fill, size);
@@ -435,25 +479,36 @@ class geotiff_converter {
         // For GeoTIFF files we put fillvalue - 1 for
         //  the grid cells that are not defined in cell_row/cell_column
 
-        if (size == 8) {
+        if (size == 8)
+        {
             double fill = -9998;
             memcpy(buf, &fill, size);
-        } else if (size == 4) {
+        }
+        else if (size == 4)
+        {
             if (*(float *)buf == -9999.0) // is a float
             {
                 float fill = -9998.0;
                 memcpy(buf, &fill, size);
-            } else if (*(uint32_t *)buf == 4294967294) {
+            }
+            else if (*(uint32_t *)buf == 4294967294)
+            {
                 unsigned long fill = 4294967294 - 1;
                 memcpy(buf, &fill, size);
             }
-        } else if (size == 2) {
+        }
+        else if (size == 2)
+        {
             unsigned short fill = 65533;
             memcpy(buf, &fill, size);
-        } else if (size == 1) {
+        }
+        else if (size == 1)
+        {
             unsigned char fill = 253;
             memcpy(buf, &fill, size);
-        } else {
+        }
+        else
+        {
             LOG_DEBUG("geotiff_converter::get_fill_value(): "
                       << "Unknown data type size when calculating fill value "
                          "defaulting to flaot");
@@ -463,9 +518,11 @@ class geotiff_converter {
         return buf;
     }
 
-    void get_min_max(short *data, int &min, int &max) {
+    void get_min_max(short *data, int &min, int &max)
+    {
         min = max = data[0];
-        for (int i = 1; i < coordinate_size; i++) {
+        for (int i = 1; i < coordinate_size; i++)
+        {
             if (data[i] > max)
                 max = data[i];
             if (data[i] < min)
@@ -474,7 +531,8 @@ class geotiff_converter {
         return;
     }
 
-    float get_float(H5::DataSet &ds, hsize_t index) {
+    float get_float(H5::DataSet &ds, hsize_t index)
+    {
         hsize_t count[1];
         count[0] = 1;
         hsize_t offset[1];
@@ -491,7 +549,8 @@ class geotiff_converter {
         ds.read(data_out, H5::PredType::IEEE_F32LE, memspace, dataspace);
         return data_out[offset[0]];
     }
-    int get_numfiles(H5::DataSet &ds) {
+    int get_numfiles(H5::DataSet &ds)
+    {
         int numfiles = 1;
         int dimnum = ds.getSpace().getSimpleExtentNdims();
         hsize_t dims[dimnum];
@@ -502,12 +561,14 @@ class geotiff_converter {
             numfiles *= dims[k];
         return numfiles;
     }
-    hsize_t get_data_type_size(H5::DataSet &ds) {
+    hsize_t get_data_type_size(H5::DataSet &ds)
+    {
         hid_t mem_type_id = H5Dget_type(ds.getId());
         hid_t native_type = H5Tget_native_type(mem_type_id, H5T_DIR_DEFAULT);
         return H5Tget_size(native_type);
     }
-    size_t get_dataset_size(H5::DataSet &ds) {
+    size_t get_dataset_size(H5::DataSet &ds)
+    {
         int dataset_size = 1;
         int dimnum = ds.getSpace().getSimpleExtentNdims();
         hsize_t dims[dimnum];
@@ -517,38 +578,49 @@ class geotiff_converter {
             dataset_size *= dims[i];
         return dataset_size;
     }
-    int get_data_type(H5::DataSet &ds) {
+    int get_data_type(H5::DataSet &ds)
+    {
         hid_t mem_type_id = H5Dget_type(ds.getId());
         hid_t native_type = H5Tget_native_type(mem_type_id, H5T_DIR_DEFAULT);
 
         if (H5Tequal(native_type, H5T_NATIVE_UCHAR) ||
             H5Tequal(native_type, H5T_NATIVE_USHORT) ||
             H5Tequal(native_type, H5T_NATIVE_UINT) ||
-            H5Tequal(native_type, H5T_NATIVE_ULONG)) {
+            H5Tequal(native_type, H5T_NATIVE_ULONG))
+        {
             return 1;
-        } else if (H5Tequal(native_type, H5T_NATIVE_CHAR) ||
-                   H5Tequal(native_type, H5T_NATIVE_SHORT) ||
-                   H5Tequal(native_type, H5T_NATIVE_INT) ||
-                   H5Tequal(native_type, H5T_NATIVE_LONG)) {
+        }
+        else if (H5Tequal(native_type, H5T_NATIVE_CHAR) ||
+                 H5Tequal(native_type, H5T_NATIVE_SHORT) ||
+                 H5Tequal(native_type, H5T_NATIVE_INT) ||
+                 H5Tequal(native_type, H5T_NATIVE_LONG))
+        {
             return 2;
-        } else if (H5Tequal(native_type, H5T_NATIVE_FLOAT) ||
-                   H5Tequal(native_type, H5T_NATIVE_DOUBLE)) {
+        }
+        else if (H5Tequal(native_type, H5T_NATIVE_FLOAT) ||
+                 H5Tequal(native_type, H5T_NATIVE_DOUBLE))
+        {
             return 3;
-        } else {
+        }
+        else
+        {
             assert("invalid type for dataset to convert");
             return 0;
         }
     }
 
-    std::string get_units(H5::DataSet &ds) {
+    std::string get_units(H5::DataSet &ds)
+    {
         std::string buf;
-        if (ds.attrExists("units")) {
+        if (ds.attrExists("units"))
+        {
             H5::Attribute attr = ds.openAttribute("units");
             attr.read(attr.getDataType(), buf);
             LOG_DEBUG("geotiff_converter::get_units(): Attribute units exists:"
                       << buf);
             return buf;
-        } else
+        }
+        else
             return std::string();
     }
 
@@ -559,7 +631,8 @@ class geotiff_converter {
                        int num_cols,
                        double *geotiepoints,
                        double *pixelscale,
-                       std::string units) {
+                       std::string units)
+    {
         TIFFSetField(tif,
                      TIFFTAG_SOFTWARE,
                      "EED custom geotiff conversion for SMAP version 1.0");
@@ -581,10 +654,12 @@ class geotiff_converter {
         ;
         TIFFSetField(tif, TIFFTAG_UNITS, (const char *)units.c_str());
     }
-    void set_geotiff_keys(GTIF *gtif, const char *projection) {
+    void set_geotiff_keys(GTIF *gtif, const char *projection)
+    {
         LOG_DEBUG("geotiff_converter::set_geotiff_keys()");
 
-        if (strcmp(projection, "GEO") == 0) {
+        if (strcmp(projection, "GEO") == 0)
+        {
             GTIFKeySet(
                 gtif, GTModelTypeGeoKey, TYPE_SHORT, 1, ModelTypeGeographic);
             GTIFKeySet(
@@ -620,7 +695,8 @@ class geotiff_converter {
         GTIFKeySet(gtif, ProjLinearUnitsGeoKey, TYPE_SHORT, 1, Linear_Meter);
         GTIFKeySet(gtif, ProjLinearUnitSizeGeoKey, TYPE_DOUBLE, 1, 1.0);
 
-        if (!strcmp(projection, "CEA")) {
+        if (!strcmp(projection, "CEA"))
+        {
             GTIFKeySet(
                 gtif, GTRasterTypeGeoKey, TYPE_SHORT, 1, RasterPixelIsArea);
             GTIFKeySet(gtif,
@@ -634,7 +710,9 @@ class geotiff_converter {
                        0,
                        "Cylindrical Equal Area (WGS84)");
             GTIFKeySet(gtif, ProjStdParallelGeoKey, TYPE_DOUBLE, 1, 30.0);
-        } else {
+        }
+        else
+        {
             GTIFKeySet(
                 gtif, GTRasterTypeGeoKey, TYPE_SHORT, 1, RasterPixelIsArea);
             GTIFKeySet(gtif,
@@ -643,7 +721,8 @@ class geotiff_converter {
                        1,
                        CT_LambertAzimEqualArea);
             GTIFKeySet(gtif, ProjCenterLongGeoKey, TYPE_DOUBLE, 1, 0.0);
-            if (!strcmp(projection, "NLAEA")) {
+            if (!strcmp(projection, "NLAEA"))
+            {
                 GTIFKeySet(gtif,
                            GTCitationGeoKey,
                            TYPE_ASCII,
@@ -654,7 +733,9 @@ class geotiff_converter {
                 GTIFKeySet(gtif, ProjNatOriginLongGeoKey, TYPE_DOUBLE, 1, 0.0);
                 GTIFKeySet(
                     gtif, ProjFalseOriginLongGeoKey, TYPE_DOUBLE, 1, 0.0);
-            } else {
+            }
+            else
+            {
                 GTIFKeySet(gtif,
                            GTCitationGeoKey,
                            TYPE_ASCII,
@@ -670,24 +751,29 @@ class geotiff_converter {
         GTIFWriteKeys(gtif);
     }
 
-    int **get_array_index_map(short *row_data, short *col_data) {
+    int **get_array_index_map(short *row_data, short *col_data)
+    {
         int **array_index_map = new int *[num_rows];
-        for (int i = 0; i < num_rows; i++) {
+        for (int i = 0; i < num_rows; i++)
+        {
             array_index_map[i] = new int[num_cols];
             for (int j = 0; j < num_cols; j++)
                 array_index_map[i][j] = coordinate_size;
         }
-        for (int i = 0; i < coordinate_size; i++) {
+        for (int i = 0; i < coordinate_size; i++)
+        {
             if ((row_data[i] >= row_min && col_data[i] >= col_min) &&
                 (row_data[i] - row_min <= row_max &&
-                 col_data[i] - col_min <= col_max)) {
+                 col_data[i] - col_min <= col_max))
+            {
                 array_index_map[row_data[i] - row_min][col_data[i] - col_min] =
                     i;
             }
         }
         return array_index_map;
     }
-    void free_array_index_map(int **array_index_map) {
+    void free_array_index_map(int **array_index_map)
+    {
         for (int i = 0; i < num_rows; i++)
             delete[] array_index_map[i];
         delete[] array_index_map;

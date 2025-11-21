@@ -11,14 +11,17 @@
 
 #include "H5Cpp.h"
 
-class ReverseReferenceCoordinates : public Coordinate {
+class ReverseReferenceCoordinates : public Coordinate
+{
   public:
     ReverseReferenceCoordinates(std::string groupname,
                                 std::vector<geobox> *geoboxes,
                                 Temporal *temporal,
                                 GeoPolygon *geoPolygon,
                                 Configuration *config)
-        : Coordinate(groupname, geoboxes, temporal, geoPolygon, config) {}
+        : Coordinate(groupname, geoboxes, temporal, geoPolygon, config)
+    {
+    }
 
     ~ReverseReferenceCoordinates() { delete referencedIndexes; }
 
@@ -41,7 +44,8 @@ class ReverseReferenceCoordinates : public Coordinate {
                                      std::vector<geobox> *geoboxes,
                                      Temporal *temporal,
                                      GeoPolygon *geoPolygon,
-                                     Configuration *config) {
+                                     Configuration *config)
+    {
         LOG_DEBUG(
             "ReverseReferenceCoordinates::getCoordinate(): ENTER groupname:"
             << groupname);
@@ -114,7 +118,8 @@ class ReverseReferenceCoordinates : public Coordinate {
      * get/create IndexSelection object for reversed referenced groups(i.e.,
      * /freeboard_swath_group/gt1l/swath_freeboard)
      */
-    virtual IndexSelection *getIndexSelection() {
+    virtual IndexSelection *getIndexSelection()
+    {
         LOG_DEBUG("ReverseReferenceCoordinates::getIndexSelection(): ENTER");
 
         // if both temporal and spatial constraints don't exist,
@@ -131,7 +136,8 @@ class ReverseReferenceCoordinates : public Coordinate {
 
         if (!indexBegName.empty() and
             (H5Lexists(ingroup.getLocId(), indexBegName.c_str(), H5P_DEFAULT) >
-             0)) {
+             0))
+        {
             indexBegSet = std::make_shared<H5::DataSet>(
                 ingroup.openDataSet(indexBegName));
         }
@@ -152,7 +158,8 @@ class ReverseReferenceCoordinates : public Coordinate {
      * limit the index range by referenced group indexSelection
      * @param DataSet indexBegSet: index begin dataset
      */
-    void reverseSubset(H5::DataSet *indexBegSet) {
+    void reverseSubset(H5::DataSet *indexBegSet)
+    {
         LOG_DEBUG("ReverseReferenceCoordinates::reverseSubset(): ENTER");
 
         int32_t *indexBegin = new int32_t[coordinateSize];
@@ -170,32 +177,39 @@ class ReverseReferenceCoordinates : public Coordinate {
         for (std::map<long, long>::iterator it =
                  referencedIndexes->segments.begin();
              it != referencedIndexes->segments.end();
-             it++) {
+             it++)
+        {
             start = it->first + 1;
             length = it->second;
             end = start + length;
 
             // if start is greater than the last value in the index begin
             // dataset skip this referenced index selection pair
-            if (start > indexBegin[coordinateSize - 1]) {
+            if (start > indexBegin[coordinateSize - 1])
+            {
                 continue;
             }
 
             // if end is less than the first value in the index begin dataset
             // skip this referenced index selection pair
-            if (end < indexBegin[0]) {
+            if (end < indexBegin[0])
+            {
                 continue;
             }
 
-            for (int i = 0; i < coordinateSize; i++) {
-                if (indexBegin[i] >= start) {
+            for (int i = 0; i < coordinateSize; i++)
+            {
+                if (indexBegin[i] >= start)
+                {
                     newStart = i;
                     break;
                 }
             }
 
-            for (int i = coordinateSize - 1; i >= 0; i--) {
-                if (indexBegin[i] < end) {
+            for (int i = coordinateSize - 1; i >= 0; i--)
+            {
+                if (indexBegin[i] < end)
+                {
                     newLength = i + 1 - newStart;
                     indexes->addSegment(newStart, newLength);
                     break;
@@ -204,19 +218,24 @@ class ReverseReferenceCoordinates : public Coordinate {
         }
 
         // if no spatial subsetting
-        if (referencedIndexes->segments.empty()) {
+        if (referencedIndexes->segments.empty())
+        {
             // index selection end is excluded
             start = referencedIndexes->minIndexStart;
             end = referencedIndexes->maxIndexEnd;
 
-            for (int i = 0; i < coordinateSize; i++) {
-                if (indexBegin[i] > start) {
+            for (int i = 0; i < coordinateSize; i++)
+            {
+                if (indexBegin[i] > start)
+                {
                     newStart = i;
                     break;
                 }
             }
-            for (int i = coordinateSize - 1; i >= 0; i--) {
-                if (indexBegin[i] <= end) {
+            for (int i = coordinateSize - 1; i >= 0; i--)
+            {
+                if (indexBegin[i] <= end)
+                {
                     newLength = i + 1 - newStart;
                     indexes->addSegment(newStart, newLength);
                     break;

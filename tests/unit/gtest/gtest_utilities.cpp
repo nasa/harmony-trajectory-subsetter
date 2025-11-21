@@ -16,7 +16,8 @@
  * @param relative_path The input relative file path.
  * @return The full file path.
  */
-std::string gtest_utilities::getFullPath(std::string relative_path) {
+std::string gtest_utilities::getFullPath(std::string relative_path)
+{
     std::string current_directory =
         testing::internal::FilePath::GetCurrentDir().c_str();
     std::string full_path = std::regex_replace(
@@ -33,7 +34,8 @@ std::string gtest_utilities::getFullPath(std::string relative_path) {
  * @return A pointer to the dataset data array.
  */
 int64_t *gtest_utilities::readDataset(std::string input_file,
-                                      std::string dataset_name) {
+                                      std::string dataset_name)
+{
     std::cout << "Reading in test data for " << input_file << ".\n";
     H5::H5File file(input_file, H5F_ACC_RDONLY);
     H5::DataSet *input_dataset =

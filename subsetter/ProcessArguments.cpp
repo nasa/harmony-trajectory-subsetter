@@ -7,7 +7,8 @@
  * @param argv The vector of input arguments.
  * @return Error code (0 - success, 1 - error, 2 - show help or no filename)
  */
-int ProcessArguments::process_args(int argc, char *argv[]) {
+int ProcessArguments::process_args(int argc, char *argv[])
+{
     program_options::options_description description("Available Options");
     description.add_options()("help,h", "Display this help message")(
         "filename,f",
@@ -83,8 +84,8 @@ int ProcessArguments::process_args(int argc, char *argv[]) {
     return PASS;
 }
 
-void ProcessArguments::setLogLevel(
-    program_options::variables_map variables_map) {
+void ProcessArguments::setLogLevel(program_options::variables_map variables_map)
+{
     // Access loglevel from the input command, otherwise assign these log level
     // to "INFO"
     logLevel = (variables_map.count("loglevel"))
@@ -93,14 +94,16 @@ void ProcessArguments::setLogLevel(
     SET_LOG_LEVEL(logLevel);
 
     // Access log file, if specified.
-    if (variables_map.count("logfile")) {
+    if (variables_map.count("logfile"))
+    {
         logFile = variables_map["logfile"].as<std::string>();
         OPEN_LOG_FILE(logFile);
     }
 }
 
 void ProcessArguments::setSubsettype(
-    program_options::variables_map variables_map) {
+    program_options::variables_map variables_map)
+{
     // If either the subset type are specified, pull them from the
     // variable map, otherwise assign these variables to an empty string.
     subsettype = (variables_map.count("subsettype"))
@@ -109,7 +112,8 @@ void ProcessArguments::setSubsettype(
 }
 
 void ProcessArguments::setConfigFile(
-    program_options::variables_map variables_map) {
+    program_options::variables_map variables_map)
+{
     // If either the  config file are specified, pull them from the
     // variable map, otherwise assign these variables to an empty string.
     configFile = (variables_map.count("configfile"))
@@ -118,26 +122,32 @@ void ProcessArguments::setConfigFile(
 }
 
 void ProcessArguments::setDatasetList(
-    program_options::variables_map variables_map) {
+    program_options::variables_map variables_map)
+{
     // Access included dataset(s), if specified.
-    if (variables_map.count("includedataset")) {
+    if (variables_map.count("includedataset"))
+    {
         datasetList = variables_map["includedataset"].as<std::string>();
         LOG_INFO("Subset::process_args(): includedataset: " << datasetList);
     }
 }
 
-void ProcessArguments::setReformat(
-    program_options::variables_map variables_map) {
+void ProcessArguments::setReformat(program_options::variables_map variables_map)
+{
     // Access reformatting, if specified.
-    if (variables_map.count("reformat")) {
+    if (variables_map.count("reformat"))
+    {
         LOG_INFO("Subset::process_args(): reformat");
         originalOutputFormat = outputFormat =
             variables_map["reformat"].as<std::string>();
         if (outputFormat == "GeoTIFF" || outputFormat == "GTiff" ||
-            outputFormat == "GEO" || outputFormat == "KML") {
+            outputFormat == "GEO" || outputFormat == "KML")
+        {
             outputFormat = "GeoTIFF";
-        } else if (outputFormat == "netCDF3" || outputFormat == "NetCDF3" ||
-                   outputFormat == "NetCDF-3") {
+        }
+        else if (outputFormat == "netCDF3" || outputFormat == "NetCDF3" ||
+                 outputFormat == "NetCDF-3")
+        {
             outputFormat = "NetCDF-3";
         }
         LOG_INFO("Subset::process_args(): Reformatting to "
@@ -145,7 +155,8 @@ void ProcessArguments::setReformat(
     }
 }
 
-void ProcessArguments::setCRS(program_options::variables_map variables_map) {
+void ProcessArguments::setCRS(program_options::variables_map variables_map)
+{
     // Access coordinate reference system / reprojection, if specified.
     if (variables_map.count("crs"))
         reproject = true;
@@ -154,7 +165,8 @@ void ProcessArguments::setCRS(program_options::variables_map variables_map) {
 }
 
 void ProcessArguments::setCollectionShortname(
-    program_options::variables_map variables_map) {
+    program_options::variables_map variables_map)
+{
     // Access shortname from the input command, otherwise assign these variables
     // to an empty string
     collShortName = (variables_map.count("shortname"))
@@ -165,10 +177,12 @@ void ProcessArguments::setCollectionShortname(
 
 int ProcessArguments::showHelpVerifyFilename(
     program_options::options_description description,
-    program_options::variables_map variables_map) {
+    program_options::variables_map variables_map)
+{
     // Print out the defined command options when the user either types
     // "help" or does not include a filename.
-    if (variables_map.count("help") || !variables_map.count("filename")) {
+    if (variables_map.count("help") || !variables_map.count("filename"))
+    {
         LOG_ERROR(description);
         return SHOW_HELP_OR_NO_FILENAME;
     }
@@ -177,11 +191,13 @@ int ProcessArguments::showHelpVerifyFilename(
 }
 
 int ProcessArguments::setInFileName(
-    program_options::variables_map variables_map) {
+    program_options::variables_map variables_map)
+{
     // Access filename from the input command, if specified.
     infilename = variables_map["filename"].as<std::string>();
     LOG_INFO("Subset::process_args(): filename: " << infilename);
-    if (!std::ifstream(infilename.c_str())) {
+    if (!std::ifstream(infilename.c_str()))
+    {
         LOG_ERROR("Subset::setInFileName(): ERROR: Could not open input file "
                   << infilename);
         return ERROR;
@@ -191,11 +207,13 @@ int ProcessArguments::setInFileName(
 }
 
 int ProcessArguments::setOutFileName(
-    program_options::variables_map variables_map) {
+    program_options::variables_map variables_map)
+{
     // Access output file from the input command, if specfied.
     if (variables_map.count("outfile"))
         outfilename = variables_map["outfile"].as<std::string>();
-    if (outfilename.find("--") == 0 || !std::ofstream(outfilename.c_str())) {
+    if (outfilename.find("--") == 0 || !std::ofstream(outfilename.c_str()))
+    {
         LOG_ERROR("Subset::setOutFileName(): ERROR: Could not open output file "
                   << outfilename);
         return ERROR;
@@ -205,10 +223,12 @@ int ProcessArguments::setOutFileName(
 }
 
 int ProcessArguments::setBoundingBox(
-    program_options::variables_map variables_map) {
+    program_options::variables_map variables_map)
+{
     // Access bounding box from the input command, if specified.
     boost::match_results<std::string::const_iterator> regex_results;
-    if (variables_map.count("bbox")) {
+    if (variables_map.count("bbox"))
+    {
         std::vector<std::string> boxes =
             variables_map["bbox"].as<std::vector<std::string>>();
         boost::regex bbox_format(
@@ -216,8 +236,10 @@ int ProcessArguments::setBoundingBox(
 
         for (std::vector<std::string>::iterator it = boxes.begin();
              it != boxes.end();
-             it++) {
-            if (!regex_match((*it), regex_results, bbox_format)) {
+             it++)
+        {
+            if (!regex_match((*it), regex_results, bbox_format))
+            {
                 LOG_ERROR(
                     "Subset::process_args(): ERROR: Invalid bounding box: "
                     << *it);
@@ -234,7 +256,8 @@ int ProcessArguments::setBoundingBox(
             double s = atof((++iter)->c_str());
             double e = atof((++iter)->c_str());
             double n = atof((++iter)->c_str());
-            if (geoboxes == nullptr) {
+            if (geoboxes == nullptr)
+            {
                 geoboxes = new std::vector<geobox>();
             }
             geoboxes->push_back(geobox(w, s, e, n));
@@ -245,12 +268,14 @@ int ProcessArguments::setBoundingBox(
 }
 
 int ProcessArguments::setStartEndTemporalParameters(
-    program_options::variables_map variables_map) {
+    program_options::variables_map variables_map)
+{
     boost::match_results<std::string::const_iterator> regex_results;
 
     // Access start and end temporal parameters, if specified.
     // Either both or none of the parameteres are expected when included.
-    if (variables_map.count("start") && variables_map.count("end")) {
+    if (variables_map.count("start") && variables_map.count("end"))
+    {
         startString = variables_map["start"].as<std::string>();
         endString = variables_map["end"].as<std::string>();
         boost::erase_all(startString, "'");
@@ -259,12 +284,15 @@ int ProcessArguments::setStartEndTemporalParameters(
             "[']?[\\d]{4}-[\\d]{2}-[\\d]{2}(T[\\d]{2}:[\\d]{2}"
             ":[\\d]{2}[\\.[\\d]*]?)?[']?");
         if (!regex_match(startString, regex_results, date_format) ||
-            !regex_match(endString, regex_results, date_format)) {
+            !regex_match(endString, regex_results, date_format))
+        {
             LOG_ERROR("Subset::process_args(): ERROR: Invalid start or end "
                       "parameter ");
             return ERROR;
         }
-    } else if (variables_map.count("start") || variables_map.count("end")) {
+    }
+    else if (variables_map.count("start") || variables_map.count("end"))
+    {
         LOG_ERROR("Subset::process_args(): ERROR: Invalid temporal parameters, "
                   "must pass in "
                   << "both --start and --end parameters");
@@ -275,29 +303,40 @@ int ProcessArguments::setStartEndTemporalParameters(
 }
 
 int ProcessArguments::setBoundingShape(
-    program_options::variables_map variables_map) {
+    program_options::variables_map variables_map)
+{
     // Access bounding shape, if specfied.
-    if (variables_map.count("boundingshape")) {
+    if (variables_map.count("boundingshape"))
+    {
         std::string boundingShape =
             variables_map["boundingshape"].as<std::string>();
         bool isGeoJson = boundingShape.find("geojson") != std::string::npos;
 
-        try {
-            if (isGeoJson && std::ifstream(boundingShape).good()) {
+        try
+        {
+            if (isGeoJson && std::ifstream(boundingShape).good())
+            {
                 property_tree::read_json(boundingShape, boundingShapePt);
-            } else {
+            }
+            else
+            {
                 std::stringstream ss(boundingShape);
                 property_tree::read_json(ss, boundingShapePt);
             }
-        } catch (
-            const boost::property_tree::json_parser::json_parser_error &e) {
+        }
+        catch (const boost::property_tree::json_parser::json_parser_error &e)
+        {
             LOG_ERROR(
                 "Subset::process_args(): JSON parsing error: " << e.what());
             return ERROR;
-        } catch (const std::ios_base::failure &e) {
+        }
+        catch (const std::ios_base::failure &e)
+        {
             LOG_ERROR("Subset::process_args(): File I/O error: " << e.what());
             return ERROR;
-        } catch (const std::exception &e) {
+        }
+        catch (const std::exception &e)
+        {
             LOG_ERROR("Subset::process_args(): An unexpected error occurred: "
                       << e.what());
             return ERROR;

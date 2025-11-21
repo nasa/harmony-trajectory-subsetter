@@ -10,7 +10,8 @@
 
 // class to test whether dataset temporal value is within the range provided by
 // user
-class Temporal {
+class Temporal
+{
   public:
     /**
      * @brief Construct a new Temporal object using datetime string:
@@ -20,7 +21,8 @@ class Temporal {
      * @param epochTime Reference time of start and end time values.
      */
     Temporal(std::string s, std::string e, std::string epochTime = "")
-        : epochUpdateRequired(true) {
+        : epochUpdateRequired(true)
+    {
         LOG_DEBUG("Temporal::Temporal(): ENTER");
 
         if (s.find(":") == std::string::npos)
@@ -32,7 +34,8 @@ class Temporal {
         replace(e.begin(), e.end(), 'T', ' ');
         replace(e.begin(), e.end(), 'Z', ' ');
         myReferenceTime = (epochTime.empty()) ? unixEpochTime : epochTime;
-        try {
+        try
+        {
             boost::posix_time::ptime referTime(
                 boost::posix_time::time_from_string(myReferenceTime));
             boost::posix_time::ptime startTime(
@@ -46,7 +49,9 @@ class Temporal {
             start =
                 (double)startSinceReference.total_microseconds() / 1000000.0;
             end = (double)endSinceReference.total_microseconds() / 1000000.0;
-        } catch (std::exception &ex) {
+        }
+        catch (std::exception &ex)
+        {
             LOG_ERROR(
                 "Temporal::Temporal(): ERROR: Temporal.ctor failed to parse "
                 "the time strings "
@@ -70,7 +75,8 @@ class Temporal {
      * @param s Start time in seconds since epoch.
      * @param e End time in seconds since epoch.
      */
-    Temporal(double s, double e) : epochUpdateRequired(false) {
+    Temporal(double s, double e) : epochUpdateRequired(false)
+    {
         myReferenceTime = "";
         start = s;
         end = e;
@@ -88,10 +94,14 @@ class Temporal {
 
     // update reference time if it differs from the dataset's epoch.
     // if the epochUpdateRequired is set to false, we don't update.
-    bool needToUpdateEpoch(std::string epoch) {
-        if (myReferenceTime != epoch && epochUpdateRequired) {
+    bool needToUpdateEpoch(std::string epoch)
+    {
+        if (myReferenceTime != epoch && epochUpdateRequired)
+        {
             return true;
-        } else if (!epochUpdateRequired) {
+        }
+        else if (!epochUpdateRequired)
+        {
             replace(epoch.begin(), epoch.end(), 'T', ' ');
             replace(epoch.begin(), epoch.end(), 'Z', ' ');
             myReferenceTime = epoch;
@@ -101,14 +111,16 @@ class Temporal {
     }
 
     // update the reference time, start and end
-    void updateReferenceTime(std::string referenceTime) {
+    void updateReferenceTime(std::string referenceTime)
+    {
         LOG_DEBUG("Temporal::updateReferenceTime(): ENTER");
 
         // get the difference between old and new reference time
         replace(referenceTime.begin(), referenceTime.end(), 'T', ' ');
         replace(referenceTime.begin(), referenceTime.end(), 'Z', ' ');
 
-        try {
+        try
+        {
             boost::posix_time::time_duration diffTime =
                 boost::posix_time::ptime(
                     boost::posix_time::time_from_string(referenceTime)) -
@@ -119,7 +131,9 @@ class Temporal {
             start -= diffSeconds;
             end -= diffSeconds;
             myReferenceTime = referenceTime;
-        } catch (std::exception &ex) {
+        }
+        catch (std::exception &ex)
+        {
             LOG_ERROR(
                 "ERROR: Temporal.updateReferenceTime failed to parse the time "
                 "strings "
@@ -137,8 +151,10 @@ class Temporal {
 
   private:
     // convert to the date time std::string in format YYYY-MM-DDTHH:MM:SS.ffffff
-    std::string convertToDateTimeString(double timeInSeconds) {
-        try {
+    std::string convertToDateTimeString(double timeInSeconds)
+    {
+        try
+        {
             // parse the integer and fractional part
             double intpart;
             double fractpart = modf(timeInSeconds, &intpart);
@@ -147,7 +163,9 @@ class Temporal {
                 boost::posix_time::seconds((long)intpart) +
                 boost::posix_time::microseconds((long)(fractpart * 1000000.0));
             return to_iso_extended_string(t);
-        } catch (const std::exception &ex) {
+        }
+        catch (const std::exception &ex)
+        {
             LOG_INFO("Temporal::convertToDateTimeString: "
                      << ex.what() << ", setting date time to 00:00:00.000000");
             return std::string("00:00:00.000000");

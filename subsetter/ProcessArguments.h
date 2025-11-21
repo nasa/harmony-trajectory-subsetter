@@ -24,7 +24,8 @@
 namespace program_options = boost::program_options;
 namespace property_tree = boost::property_tree;
 
-class ProcessArguments {
+class ProcessArguments
+{
   public:
     static constexpr int PASS = 0;
     static constexpr int ERROR = 1;
@@ -48,7 +49,8 @@ class ProcessArguments {
     bool isReproject() { return reproject; }
 
     std::vector<geobox> *getGeoboxes() { return geoboxes; }
-    std::vector<std::string> getDatasetsToInclude() {
+    std::vector<std::string> getDatasetsToInclude()
+    {
         return datasetsToInclude;
     }
     boost::property_tree::ptree getBoundingShapePt() { return boundingShapePt; }

@@ -5,10 +5,13 @@
 #include <iostream>
 #include <string>
 
-namespace {
-class test_ProcessArguments : public testing::Test, public ProcessArguments {
+namespace
+{
+class test_ProcessArguments : public testing::Test, public ProcessArguments
+{
   protected:
-    void SetUp() {
+    void SetUp()
+    {
         // Create Added shared pointer for test modules to invoke
         // ProcessArguments::process_args() method
         processArgs = std::make_shared<ProcessArguments>();
@@ -20,7 +23,8 @@ class test_ProcessArguments : public testing::Test, public ProcessArguments {
 
         // Create a temp file
         std::ofstream temp_file(temp_file_path);
-        if (temp_file.is_open()) {
+        if (temp_file.is_open())
+        {
             temp_file << "This is a temporary file." << std::endl;
             temp_file.close();
         }
@@ -31,7 +35,8 @@ class test_ProcessArguments : public testing::Test, public ProcessArguments {
 
         // Create and write geojson data for tests modules to invoke
         std::ofstream geojson_temp_file(geojson_temp_file_path);
-        if (geojson_temp_file.is_open()) {
+        if (geojson_temp_file.is_open())
+        {
             geojson_temp_file
                 << "{\"type\": \"FeatureCollection\",\"features\": [{\"type\": "
                    "\"Feature\",\"properties\": {},\"geometry\": "
@@ -65,7 +70,8 @@ class test_ProcessArguments : public testing::Test, public ProcessArguments {
 // /home/vtran11/workspace/DAS-2247-trajsub-ATL10v06/subsetter/processed_ATL10-02_20181014123806_02430101_005_01.h5
 //
 
-TEST_F(test_ProcessArguments, test_process_args_simple) {
+TEST_F(test_ProcessArguments, test_process_args_simple)
+{
     std::vector<std::string> arguments = {
         "--configfile",
         "../../../harmony_service/subsetter_config.json",
@@ -85,7 +91,8 @@ TEST_F(test_ProcessArguments, test_process_args_simple) {
 
 // Test bounding box with inline .geojson name attribute
 TEST_F(test_ProcessArguments,
-       test_process_args_bounding_box_inline_geojson_name) {
+       test_process_args_bounding_box_inline_geojson_name)
+{
     std::stringstream boundingshape(
         "{\"name\": \"AOI_icesat2.geojson\", \"type\": \"FeatureCollection\", "
         "\"features\": [{\"type\": \"Feature\", \"geometry\": {\"type\": "
@@ -120,7 +127,8 @@ TEST_F(test_ProcessArguments,
 
 // Test bounding box without inline .geojson name attribute
 TEST_F(test_ProcessArguments,
-       test_process_args_bounding_box_without_inline_geojson_name) {
+       test_process_args_bounding_box_without_inline_geojson_name)
+{
     std::stringstream boundingshape(
         "{\"type\": \"FeatureCollection\", \"features\": [{\"type\": "
         "\"Feature\", \"geometry\": {\"type\": \"Polygon\", \"coordinates\": "
@@ -154,8 +162,8 @@ TEST_F(test_ProcessArguments,
 }
 
 // Test bounding box with valid .geojson file
-TEST_F(test_ProcessArguments,
-       test_process_args_bounding_box_valid_geojson_file) {
+TEST_F(test_ProcessArguments, test_process_args_bounding_box_valid_geojson_file)
+{
     std::vector<std::string> arguments = {
         "--configfile",
         "../../../harmony_service/subsetter_config.json",
@@ -184,7 +192,8 @@ TEST_F(test_ProcessArguments,
 
 // Test bounding box without .geojson file created
 TEST_F(test_ProcessArguments,
-       test_process_args_bounding_box_no_geojson_file_created) {
+       test_process_args_bounding_box_no_geojson_file_created)
+{
     std::vector<std::string> arguments = {
         "--configfile",
         "../../../harmony_service/subsetter_config.json",
@@ -205,7 +214,8 @@ TEST_F(test_ProcessArguments,
 }
 
 // Test bounding box witout data
-TEST_F(test_ProcessArguments, test_process_args_bounding_box_no_data) {
+TEST_F(test_ProcessArguments, test_process_args_bounding_box_no_data)
+{
     std::vector<std::string> arguments = {
         "--configfile",
         "../../../harmony_service/subsetter_config.json",

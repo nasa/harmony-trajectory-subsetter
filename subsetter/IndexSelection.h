@@ -10,7 +10,8 @@
 #include <iostream>
 #include <map>
 
-class IndexSelection {
+class IndexSelection
+{
   public:
     // Ordered list of non-overlapping start/length pairs
     std::map<long, long> segments;
@@ -31,7 +32,8 @@ class IndexSelection {
 
     long getMaxSize() { return maxsize; };
 
-    long size() {
+    long size()
+    {
         long size = 0;
         std::map<long, long>::iterator it;
         for (it = segments.begin(); it != segments.end(); it++)
@@ -43,7 +45,8 @@ class IndexSelection {
 
     // Begin and end are used to limit the addition of segments to a specified
     // constraint. They are typically determined by the temporal constraints.
-    void addRestriction(long newStart, long newLength) {
+    void addRestriction(long newStart, long newLength)
+    {
         LOG_DEBUG("IndexSelection::addRestriction(): ENTER");
 
         LOG_DEBUG("IndexSelection::addRestriction changing from ("
@@ -73,9 +76,11 @@ class IndexSelection {
      *
      * @return The subset index segments.
      */
-    std::map<long, long> getSegments() {
+    std::map<long, long> getSegments()
+    {
         if (segments.empty() and this->size() != 0 and
-            this->size() != this->getMaxSize()) {
+            this->size() != this->getMaxSize())
+        {
             segments[this->minIndexStart] =
                 this->maxIndexEnd - this->minIndexStart;
         }
@@ -86,7 +91,8 @@ class IndexSelection {
     // Add segment:
     //   union new segment with existing segments,
     //   and limit to within restrictions
-    void addSegment(long newStart, long newLength) {
+    void addSegment(long newStart, long newLength)
+    {
         LOG_DEBUG("IndexSelection::addSegment(): ENTER");
 
         std::map<long, long>::reverse_iterator it;
@@ -94,16 +100,19 @@ class IndexSelection {
         // Check if segment start and length are within the bounds
         // of the photon dataset.
         // If they aren't, adjust start and/length so they are within bounds.
-        if (newStart < minIndexStart) {
+        if (newStart < minIndexStart)
+        {
             newLength = newLength - (minIndexStart - newStart);
             newStart = minIndexStart;
         }
-        if (newStart + newLength > maxIndexEnd) {
+        if (newStart + newLength > maxIndexEnd)
+        {
             newLength = maxIndexEnd - newStart;
         }
 
         // If bounding segment does not exist in subset selection do nothing.
-        if (newLength <= 0) {
+        if (newLength <= 0)
+        {
             return;
         }
 
@@ -122,7 +131,8 @@ class IndexSelection {
         // Scan in reverse, optimized for adding to the end (the most typical
         // use-case) Note early loop/function exits, once an insertion point for
         // new segment is found.
-        for (it = segments.rbegin(); it != segments.rend(); it++) {
+        for (it = segments.rbegin(); it != segments.rend(); it++)
+        {
             // With reverse_iterator
             // ---------------------------------------------------
             long existingStart = it->first;
@@ -130,11 +140,13 @@ class IndexSelection {
             long existingEnd = existingStart + existingLength - 1;
 
             // Case A: New segment ends at or after existing segment
-            if (newStart + newLength - 1 >= existingEnd) {
+            if (newStart + newLength - 1 >= existingEnd)
+            {
                 // Case A1: [ _ ] _ { _ } - if new segment starts after existing
                 // segment; (following, no overlap) a common use-case - add
                 // segment to end of list
-                if (newStart > (existingEnd + 1)) {
+                if (newStart > (existingEnd + 1))
+                {
                     // Add segment as a new segment at end.
                     segments[newStart] = newLength;
                     // Note any intervening following segments have already been
@@ -142,7 +154,8 @@ class IndexSelection {
                     return;
                 }
                 // Case A2: [ _ { _ ] _ } - new segment extends existing segment
-                else if (newStart >= existingStart) {
+                else if (newStart >= existingStart)
+                {
                     // Reset length of this segment, no need to add segments
                     it->second = newStart + newLength - existingStart;
                     // Note any overlapping following segments have already been
@@ -151,7 +164,8 @@ class IndexSelection {
                 }
                 // Case A3: { _ [ _ ] _ } - new segment starts before existing
                 // segment starts (enclosing)
-                else {
+                else
+                {
                     segments.erase(--(it.base()));   // erase existing segment
                     addSegment(newStart, newLength); // add this one,
                     // using recursion to catch any earlier potentially
@@ -166,14 +180,16 @@ class IndexSelection {
                 // Case B1: [ _ { _ } _ ] - new segment fully enclosed in
                 // existing segment - new segment starts before start of
                 // existing segment
-                if (newStart >= existingStart) {
+                if (newStart >= existingStart)
+                {
                     return; // do nothing; existing segment in list already
                             // covers this case.
                 }
 
                 // Case B2: { _ [ _ } _ ] - new segment starts before existing
                 // segment ends
-                else if ((newEnd + 1) >= existingStart) {
+                else if ((newEnd + 1) >= existingStart)
+                {
                     newLength =
                         existingEnd - newStart + 1;  // revised length value
                     segments.erase(--(it.base()));   // erase existing segment
@@ -191,7 +207,8 @@ class IndexSelection {
     }
 
     friend std::ostream &operator<<(std::ostream &out,
-                                    IndexSelection &selection) {
+                                    IndexSelection &selection)
+    {
         std::map<long, long>::iterator it;
         out << "[" << " ";
         for (it = selection.segments.begin(); it != selection.segments.end();

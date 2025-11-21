@@ -8,18 +8,28 @@
 #include <string>
 
 // Define Log Levels
-enum class LogLevel { DEBUG, INFO, WARNING, ERROR, CRITICAL };
+enum class LogLevel
+{
+    DEBUG,
+    INFO,
+    WARNING,
+    ERROR,
+    CRITICAL
+};
 
-class Logger {
+class Logger
+{
   public:
     // Get the single instance of the Logger
-    static Logger &getInstance() {
+    static Logger &getInstance()
+    {
         static Logger instance;
         return instance;
     }
 
     // Set the log level to display
-    void setLogLevel(std::string level) {
+    void setLogLevel(std::string level)
+    {
         std::lock_guard<std::mutex> lock(mtx);
         std::map<std::string, LogLevel> logLevelMap = {
             {"DEBUG", LogLevel::DEBUG},
@@ -32,23 +42,28 @@ class Logger {
     }
 
     // Set the output stream (e.g., &std::cout, &fileStream)
-    void setOutputStream(std::ostream &fileStream) {
+    void setOutputStream(std::ostream &fileStream)
+    {
         std::lock_guard<std::mutex> lock(mtx);
         outputStream = &fileStream;
     }
 
     // Set the output stream (e.g., &std::cout, &fileStream)
-    void openLogFile(const std::string logFile) {
+    void openLogFile(const std::string logFile)
+    {
         std::stringstream stream;
         logOutFile.open(logFile.c_str(),
                         std::ios_base::out | std::ios_base::trunc);
-        if (logOutFile.is_open()) {
+        if (logOutFile.is_open())
+        {
             // Set logging to file
             outputStream = &logOutFile;
 
             stream << "Logger::openLogFile(): Log File: " << logFile;
             debug(stream.str());
-        } else {
+        }
+        else
+        {
             stream << "Subset::process_args(): ERROR: Could not open log file:"
                    << logFile << ", logging to console";
             error(stream.str());
@@ -56,50 +71,62 @@ class Logger {
     }
 
     // Set the output stream (e.g., &std::cout, &fileStream)
-    void closeLogFile() {
-        if (logOutFile.is_open()) {
+    void closeLogFile()
+    {
+        if (logOutFile.is_open())
+        {
             logOutFile.close();
         }
     }
 
     // Log a debug message
-    void debug(const std::string &message) {
+    void debug(const std::string &message)
+    {
         std::lock_guard<std::mutex> lock(mtx);
         // Checks currentLogLevel is less than or equal to DEBUG
-        if (currentLogLevel <= LogLevel::DEBUG) {
+        if (currentLogLevel <= LogLevel::DEBUG)
+        {
             *outputStream << "[DEBUG] " << message << std::endl;
         }
     }
 
     // Log a debug message
-    void info(const std::string &message) {
+    void info(const std::string &message)
+    {
         std::lock_guard<std::mutex> lock(mtx);
         // Checks currentLogLevel is less than or equal to INFO
-        if (currentLogLevel <= LogLevel::INFO) {
+        if (currentLogLevel <= LogLevel::INFO)
+        {
             *outputStream << "[INFO] " << message << std::endl;
         }
     }
 
-    void warning(const std::string &message) {
+    void warning(const std::string &message)
+    {
         std::lock_guard<std::mutex> lock(mtx);
         // Checks currentLogLevel is less than or equal to WARNING
-        if (currentLogLevel <= LogLevel::WARNING) {
+        if (currentLogLevel <= LogLevel::WARNING)
+        {
             *outputStream << "[WARNING] " << message << std::endl;
         }
     }
 
-    void error(const std::string &message) {
+    void error(const std::string &message)
+    {
         std::lock_guard<std::mutex> lock(mtx);
         // Checks currentLogLevel is less than or equal to ERROR
-        if (currentLogLevel <= LogLevel::ERROR) {
+        if (currentLogLevel <= LogLevel::ERROR)
+        {
             *outputStream << "[ERROR] " << message << std::endl;
         }
     }
 
-    void critical(const std::string &message) {
+    void critical(const std::string &message)
+    {
         std::lock_guard<std::mutex> lock(mtx);
         // Checks currentLogLevel is less than or equal to CRITICAL
-        if (currentLogLevel <= LogLevel::CRITICAL) {
+        if (currentLogLevel <= LogLevel::CRITICAL)
+        {
             *outputStream << "[CRITICAL] " << message << std::endl;
         }
     }
@@ -122,35 +149,40 @@ class Logger {
 
 // Macro to simplify logging with stream-like syntax
 #define LOG_DEBUG(message)                                                     \
-    do {                                                                       \
+    do                                                                         \
+    {                                                                          \
         std::stringstream stream;                                              \
         stream << message;                                                     \
         Logger::getInstance().debug(stream.str());                             \
     } while (0)
 
 #define LOG_INFO(message)                                                      \
-    do {                                                                       \
+    do                                                                         \
+    {                                                                          \
         std::stringstream stream;                                              \
         stream << message;                                                     \
         Logger::getInstance().info(stream.str());                              \
     } while (0)
 
 #define LOG_WARNING(message)                                                   \
-    do {                                                                       \
+    do                                                                         \
+    {                                                                          \
         std::stringstream stream;                                              \
         stream << message;                                                     \
         Logger::getInstance().warning(stream.str());                           \
     } while (0)
 
 #define LOG_ERROR(message)                                                     \
-    do {                                                                       \
+    do                                                                         \
+    {                                                                          \
         std::stringstream stream;                                              \
         stream << message;                                                     \
         Logger::getInstance().error(stream.str());                             \
     } while (0)
 
 #define LOG_CRITICAL(message)                                                  \
-    do {                                                                       \
+    do                                                                         \
+    {                                                                          \
         std::stringstream stream;                                              \
         stream << message;                                                     \
         Logger::getInstance().critical(stream.str());                          \

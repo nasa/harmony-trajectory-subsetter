@@ -2,7 +2,8 @@
 #define Geobox_H
 
 // class to test whether dataset lat/lon values match those provided by user
-class geobox {
+class geobox
+{
     // bounding box coordinates specified on the command line
     double west;
     double south;
@@ -12,11 +13,13 @@ class geobox {
   public:
     geobox(double w, double s, double e, double n)
         : west(w), south(s), east(e), north(n) {};
-    bool contains_lat(double lat) {
+    bool contains_lat(double lat)
+    {
         return (south < north ? lat <= north && lat >= south
                               : lat >= south || lat <= north);
     }
-    bool contains_lon(double lon) {
+    bool contains_lon(double lon)
+    {
         // if the bbox crosses the Anti-Meridian at the East bound,
         // add 360 to negative longitude values
         if (west < -180 && lon > 0)
@@ -29,7 +32,8 @@ class geobox {
         return (west < east ? lon >= west && lon <= east
                             : lon >= west || lon <= east);
     }
-    bool contains(double lat, double lon) {
+    bool contains(double lat, double lon)
+    {
         return (contains_lat(lat) && contains_lon(lon));
     }
     double getWest() { return west; }

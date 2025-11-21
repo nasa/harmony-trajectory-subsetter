@@ -25,7 +25,8 @@ typedef boost::geometry::model::polygon<point_type> polygon_type;
 typedef boost::geometry::model::multi_polygon<polygon_type> multi_polygon_type;
 typedef boost::geometry::model::box<point_type> box_type;
 
-class GeoPolygon {
+class GeoPolygon
+{
   public:
     multi_polygon_type polygons;
     box_type box;
@@ -33,7 +34,8 @@ class GeoPolygon {
     bool crossedWest;
 
     GeoPolygon(property_tree::ptree root)
-        : crossedEast(false), crossedWest(false) {
+        : crossedEast(false), crossedWest(false)
+    {
         readPolygon(root);
     };
 
@@ -41,7 +43,8 @@ class GeoPolygon {
      * get a minimal bounding box surrounding the polygon
      * @return geobox object
      */
-    geobox getBbox() {
+    geobox getBbox()
+    {
         double w, s, e, n;
 
         boost::geometry::envelope(polygons, box);
@@ -68,23 +71,29 @@ class GeoPolygon {
      * @param lon longitude
      * @return true if the point is within the polygon, false otherwise
      */
-    bool contains(double lat, double lon) {
+    bool contains(double lat, double lon)
+    {
         // if the bbox crosses the Anti-Meridian at the East bound,
         // add 360 to negative longitude values
-        if (crossedEast == true && lon < 0) {
+        if (crossedEast == true && lon < 0)
+        {
             lon = lon + 360;
         }
         // if the bbox crosses the Anti-Meridian at the West bound,
         // add -360 to positive longitude values
-        else if (crossedWest == true && lon > 0) {
+        else if (crossedWest == true && lon > 0)
+        {
             lon = lon + -360;
         }
 
         point_type property_tree(lon, lat);
 
-        if (boost::geometry::within(property_tree, polygons)) {
+        if (boost::geometry::within(property_tree, polygons))
+        {
             return true;
-        } else {
+        }
+        else
+        {
             return false;
         }
     }
@@ -92,7 +101,8 @@ class GeoPolygon {
     /**
      * return true if "polygons" is empty
      */
-    bool isEmpty() {
+    bool isEmpty()
+    {
 #ifdef SDPS
         return (boost::geometry::is_empty(polygons)) ? true : false;
 #elif defined HARMONY
@@ -128,7 +138,8 @@ class GeoPolygon {
      * +-------+----+- Polygon      # 3D Array (of linear rings of points of
      * [x,y])
      */
-    void readPolygon(property_tree::ptree tree) {
+    void readPolygon(property_tree::ptree tree)
+    {
         LOG_DEBUG("GeoPolygon::readPolygon(): ENTER");
 
         std::vector<std::string> objTypes = {"Polygon", "MultiPolygon"};
@@ -137,21 +148,29 @@ class GeoPolygon {
 
         // found Polygon or MultiPolygon
         if (std::find(objTypes.begin(), objTypes.end(), objType) !=
-            objTypes.end()) {
+            objTypes.end())
+        {
             getCoordinatesFromGeoJSON(tree);
-        } else if (objType == "FeatureCollection" &&
-                   tree.get_child_optional("features")) {
+        }
+        else if (objType == "FeatureCollection" &&
+                 tree.get_child_optional("features"))
+        {
             BOOST_FOREACH (property_tree::ptree::value_type &nodei,
-                           tree.get_child("features")) {
+                           tree.get_child("features"))
+            {
                 readPolygon(nodei.second);
             }
-        } else if (objType == "Feature" &&
-                   tree.get_child_optional("geometry")) {
+        }
+        else if (objType == "Feature" && tree.get_child_optional("geometry"))
+        {
             readPolygon(tree.get_child("geometry"));
-        } else if (objType == "GeometryCollection" &&
-                   tree.get_child_optional("geometries")) {
+        }
+        else if (objType == "GeometryCollection" &&
+                 tree.get_child_optional("geometries"))
+        {
             BOOST_FOREACH (property_tree::ptree::value_type &nodei,
-                           tree.get_child("geometries")) {
+                           tree.get_child("geometries"))
+            {
                 readPolygon(nodei.second);
             }
         }
@@ -161,7 +180,8 @@ class GeoPolygon {
      * extract polygon vertices from the tree
      * @param tree GeoJSON content
      */
-    void getCoordinatesFromGeoJSON(property_tree::ptree tree) {
+    void getCoordinatesFromGeoJSON(property_tree::ptree tree)
+    {
         LOG_DEBUG("GeoPolygon::getCoordinatesFromGeoJSON(): ENTER");
 
         bool isPolygon = (getType(tree) == "Polygon") ? true : false;
@@ -176,15 +196,19 @@ class GeoPolygon {
         polygon_type poly;
 
         BOOST_FOREACH (property_tree::ptree::value_type nodei,
-                       tree.get_child("coordinates")) {
-            if (isPolygon) {
-                if (!outer) {
+                       tree.get_child("coordinates"))
+        {
+            if (isPolygon)
+            {
+                if (!outer)
+                {
                     inner++;
                     poly.inners().resize(inner);
                 }
                 getPolygon(poly, nodei.second, outer, inner);
                 outer = false;
-            } else if (isMultiPolygon)
+            }
+            else if (isMultiPolygon)
                 getMultiPolygon(nodei.second, poly);
         }
         polygons.push_back(poly);
@@ -197,23 +221,29 @@ class GeoPolygon {
     void getPolygon(polygon_type &poly,
                     property_tree::ptree tree,
                     bool outer,
-                    int inner) {
+                    int inner)
+    {
         LOG_DEBUG("GeoPolygon::getPolygon(): ENTER");
 
         std::vector<double> point;
 
-        BOOST_FOREACH (property_tree::ptree::value_type &nodei, tree) {
+        BOOST_FOREACH (property_tree::ptree::value_type &nodei, tree)
+        {
             BOOST_FOREACH (property_tree::ptree::value_type &nodej,
-                           nodei.second) {
+                           nodei.second)
+            {
                 point.push_back(nodej.second.get_value<double>());
                 if (point.size() == 2)
                     break;
             }
             point_type property_tree(point[0], point[1]);
             point.clear();
-            if (outer) {
+            if (outer)
+            {
                 poly.outer().push_back(property_tree);
-            } else {
+            }
+            else
+            {
                 poly.inners()[inner - 1].push_back(property_tree);
             }
         }
@@ -223,14 +253,17 @@ class GeoPolygon {
      * extract multi-polygon from the tree
      * @param tree GeoJSON content
      */
-    void getMultiPolygon(property_tree::ptree tree, polygon_type &poly) {
+    void getMultiPolygon(property_tree::ptree tree, polygon_type &poly)
+    {
         LOG_DEBUG("GeoPolygon::getMultiPolygon(): ENTER");
 
         bool outer = true;
         int inner = 0;
         int counter = 1;
-        BOOST_FOREACH (property_tree::ptree::value_type &nodei, tree) {
-            if (!outer) {
+        BOOST_FOREACH (property_tree::ptree::value_type &nodei, tree)
+        {
+            if (!outer)
+            {
                 inner++;
                 poly.inners().resize(inner);
             }
@@ -246,9 +279,11 @@ class GeoPolygon {
      * @param tree GeoJSON content
      * @return objType type of the object
      */
-    std::string getType(property_tree::ptree tree) {
+    std::string getType(property_tree::ptree tree)
+    {
         std::string objType = "";
-        if (tree.get_child_optional("type")) {
+        if (tree.get_child_optional("type"))
+        {
             objType = tree.get<std::string>("type");
         }
 

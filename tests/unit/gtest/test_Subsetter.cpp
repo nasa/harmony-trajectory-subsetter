@@ -20,7 +20,8 @@
 #include "../../../subsetter/geobox.h"
 #include "H5Cpp.h"
 
-class StubSubsetter : public Subsetter {
+class StubSubsetter : public Subsetter
+{
   public:
     StubSubsetter(SubsetDataLayers *subsetDataLayers,
                   std::vector<geobox> *geoboxes,
@@ -31,7 +32,8 @@ class StubSubsetter : public Subsetter {
                   H5::H5File &inputFile,
                   std::vector<std::string> groupsWithOnlyTemporalCoordinates,
                   std::vector<std::string> requestedVariables)
-        : Subsetter(subsetDataLayers, geoboxes, temporal, geoPolygon, config) {
+        : Subsetter(subsetDataLayers, geoboxes, temporal, geoPolygon, config)
+    {
 
         this->shortName = shortName;
         this->infile = inputFile;
@@ -48,14 +50,15 @@ class StubSubsetter : public Subsetter {
                               Temporal *temporal,
                               GeoPolygon *geoPolygon,
                               Configuration *config,
-                              bool repair = false) override {
+                              bool repair = false) override
+    {
         coor = std::make_unique<Coordinate>(
             groupName, geoboxes, temporal, geoPolygon, config);
 
         std::vector<std::string> groups =
             this->groupsWithOnlyTemporalCoordinates;
-        if (std::find(groups.begin(), groups.end(), groupName) !=
-            groups.end()) {
+        if (std::find(groups.begin(), groups.end(), groupName) != groups.end())
+        {
             coor->setTemporalOnlyCoordinates(true);
         }
 
@@ -68,9 +71,11 @@ class StubSubsetter : public Subsetter {
     std::unique_ptr<Coordinate> coor = nullptr;
 };
 
-class SubsetterTest : public ::testing::Test {
+class SubsetterTest : public ::testing::Test
+{
   protected:
-    SubsetterTest() {
+    SubsetterTest()
+    {
         std::string config_file_path = gtest_utilities::getFullPath(
             "harmony_service/subsetter_config.json");
         config = std::make_unique<Configuration>(config_file_path);
@@ -99,7 +104,8 @@ class SubsetterTest : public ::testing::Test {
     void createCollectionSubsetter(
         std::string &shortName,
         H5::H5File &inputFileName,
-        const std::vector<std::string> &groupsWithOnlyTemporalCoordinates) {
+        const std::vector<std::string> &groupsWithOnlyTemporalCoordinates)
+    {
         subsetDataLayers = std::make_unique<SubsetDataLayers>(variables);
 
         subsetter =
@@ -138,7 +144,8 @@ class SubsetterTest : public ::testing::Test {
 };
 
 TEST_F(SubsetterTest,
-       addGroupsRequiringTemporalSubsetting_ATL03_bbox_only_include_group) {
+       addGroupsRequiringTemporalSubsetting_ATL03_bbox_only_include_group)
+{
     // Checks that `Subsetter::groupsRequiringTemporalSubsetting` is non-empty
     // for spatial-only (bounding box) requests of datasets within groups
     // with only temporal coordinates, namely `/gt1l/bckgrd_atlas` and
@@ -169,7 +176,8 @@ TEST_F(SubsetterTest,
 }
 
 TEST_F(SubsetterTest,
-       addGroupsRequiringTemporalSubsetting_ATL03_polygon_only_include_group) {
+       addGroupsRequiringTemporalSubsetting_ATL03_polygon_only_include_group)
+{
     // Checks that `Subsetter::groupsRequiringTemporalSubsetting` is non-empty
     // for spatial-only (bounding polygon) requests of datasets within groups
     // with only temporal coordinates, namely `/gt1l/bckgrd_atlas` and
@@ -203,7 +211,8 @@ TEST_F(SubsetterTest,
 }
 
 TEST_F(SubsetterTest,
-       addGroupsRequiringTemporalSubsetting_ATL03_spatial_only_without_group) {
+       addGroupsRequiringTemporalSubsetting_ATL03_spatial_only_without_group)
+{
     // Checks that `Subsetter::groupsRequiringTemporalSubsetting` is empty when
     // we don't request a dataset within a group that only has temporal
     // coordinates, even for subsets with only spatial constraints.
@@ -232,7 +241,8 @@ TEST_F(SubsetterTest,
 }
 
 TEST_F(SubsetterTest,
-       addGroupsRequiringTemporalSubsetting_ATL03_temporal_only_include_group) {
+       addGroupsRequiringTemporalSubsetting_ATL03_temporal_only_include_group)
+{
     // Checks that `Subsetter::groupsRequiringTemporalSubsetting` is empty for
     // subsets with only temporal constraints.
     std::string shortName = "ATL03";
@@ -262,7 +272,8 @@ TEST_F(SubsetterTest,
 
 TEST_F(
     SubsetterTest,
-    addGroupsRequiringTemporalSubsetting_ATL03_spatial_and_temporal_include_group) {
+    addGroupsRequiringTemporalSubsetting_ATL03_spatial_and_temporal_include_group)
+{
     // Checks that `Subsetter::groupsRequiringTemporalSubsetting` is empty for
     // subsets with spatial and temporal constraints.
     std::string shortName = "ATL03";
@@ -295,7 +306,8 @@ TEST_F(
 }
 
 TEST_F(SubsetterTest,
-       addGroupsRequiringTemporalSubsetting_ATL10_spatial_only_include_group) {
+       addGroupsRequiringTemporalSubsetting_ATL10_spatial_only_include_group)
+{
     // Checks that `Subsetter::groupsRequiringTemporalSubsetting` is empty for
     // subsets of a collection that doesn't have any groups containing only
     // temporal coordinates, even for subsets with only spatial constraints
@@ -323,8 +335,8 @@ TEST_F(SubsetterTest,
     EXPECT_EQ(actual_groups, expected_groups);
 }
 
-TEST_F(SubsetterTest,
-       test_isMatchingDataFound_outfilename_getNumObj_equal_zero) {
+TEST_F(SubsetterTest, test_isMatchingDataFound_outfilename_getNumObj_equal_zero)
+{
     // Test isMatchingDataFound() using an outfilename that contains no data.
     // The method checks if outfilename.getNumObjs() == 0 and returns false
     H5::H5File infilename =
@@ -345,7 +357,8 @@ TEST_F(SubsetterTest,
 }
 
 TEST_F(SubsetterTest,
-       test_isMatchingDataFound_outfilename_getNumObj_greater_zero) {
+       test_isMatchingDataFound_outfilename_getNumObj_greater_zero)
+{
     // Test isMatchingDataFound() with an outfilename that contains data, using
     // the same .h5 file as the infilename. The method evaluates
     // outfilename.getNumObjs() > 0 and returns true since the

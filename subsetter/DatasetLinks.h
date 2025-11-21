@@ -10,14 +10,17 @@
 /**
  * class to track the link information within a group
  */
-class DatasetLinks {
+class DatasetLinks
+{
   public:
-    DatasetLinks() {
+    DatasetLinks()
+    {
         links = new std::map<haddr_t, std::string>();
         hardlinks = new std::map<std::string, std::string>();
     }
 
-    ~DatasetLinks() {
+    ~DatasetLinks()
+    {
         delete links;
         delete hardlinks;
     }
@@ -32,7 +35,8 @@ class DatasetLinks {
     static herr_t linkCallback(hid_t groupId,
                                const char *name,
                                const H5L_info_t *linfo,
-                               void *opdata) {
+                               void *opdata)
+    {
         DatasetLinks *datasetlinks = (DatasetLinks *)opdata;
         std::map<haddr_t, std::string> *links = datasetlinks->links;
         std::map<std::string, std::string> *hardlinks = datasetlinks->hardlinks;
@@ -42,10 +46,12 @@ class DatasetLinks {
         {
             haddr_t address = linfo->u.address;
             // if the address not already in the map, save it
-            if (links->find(address) == links->end()) {
+            if (links->find(address) == links->end())
+            {
                 links->insert(std::pair<haddr_t, std::string>(address, name));
-            } else // the address has a dataset, the current dataset can then
-                   // point to that dataset
+            }
+            else // the address has a dataset, the current dataset can then
+                 // point to that dataset
             {
                 std::string sourceDataset = links->find(address)->second;
                 LOG_DEBUG("DatasetLinks::linkCallback() LINK found: type="
@@ -62,7 +68,8 @@ class DatasetLinks {
      * track link information within a group
      * @param group group to visit
      */
-    void trackDatasetLinks(const H5::Group &group) {
+    void trackDatasetLinks(const H5::Group &group)
+    {
         LOG_DEBUG("DatasetLinks::trackDatasetLinks(): ENTER");
 
         H5Literate(group.getLocId(),
@@ -78,7 +85,8 @@ class DatasetLinks {
      * @param objname
      * @return true if the object is a hard link
      */
-    bool isHardLink(const std::string &objname) {
+    bool isHardLink(const std::string &objname)
+    {
         std::map<std::string, std::string>::iterator it =
             hardlinks->find(objname);
         return (it != hardlinks->end());
@@ -89,7 +97,8 @@ class DatasetLinks {
      * @param objname
      * @return
      */
-    std::string getHardLinkSource(const std::string &objname) {
+    std::string getHardLinkSource(const std::string &objname)
+    {
         std::map<std::string, std::string>::iterator it =
             hardlinks->find(objname);
         return (it != hardlinks->end()) ? it->second : std::string();

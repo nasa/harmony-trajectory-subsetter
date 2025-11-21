@@ -12,14 +12,16 @@
 #include "H5Cpp.h"
 
 // GEDI specific implementation
-class SuperGroupSubsetter : public Subsetter {
+class SuperGroupSubsetter : public Subsetter
+{
   public:
     SuperGroupSubsetter(SubsetDataLayers *subsetDataLayers,
                         std::vector<geobox> *geoboxes,
                         Temporal *temporal,
                         GeoPolygon *geoPolygon,
                         Configuration *config)
-        : Subsetter(subsetDataLayers, geoboxes, temporal, geoPolygon, config) {
+        : Subsetter(subsetDataLayers, geoboxes, temporal, geoPolygon, config)
+    {
         LOG_DEBUG("SuperGroupSubsetter::SuperGroupSubsetter(): constructor");
     }
 
@@ -36,7 +38,8 @@ class SuperGroupSubsetter : public Subsetter {
                               const H5::DataSet &indataset,
                               H5::Group &outgroup,
                               const std::string &groupname,
-                              IndexSelection *indexes) {
+                              IndexSelection *indexes)
+    {
         LOG_DEBUG("SuperGroupSubsetter::writeDataset(): ENTER groupname: "
                   << groupname);
 
@@ -45,18 +48,21 @@ class SuperGroupSubsetter : public Subsetter {
             indexes->size() != 0 &&
             config->isSegmentGroup(this->getShortName(), groupname) &&
             config->getIndexBeginDatasetName(
-                this->getShortName(), groupname, objname) == objname) {
+                this->getShortName(), groupname, objname) == objname)
+        {
             // need to make sure count dataset exists
             std::string countName = config->getCountDatasetName(
                 this->getShortName(), groupname, objname);
             // if the count dataset is not in the output file, create it
             if (H5Lexists(
-                    outgroup.getLocId(), countName.c_str(), H5P_DEFAULT) <= 0) {
+                    outgroup.getLocId(), countName.c_str(), H5P_DEFAULT) <= 0)
+            {
                 // if the input file doesn't have the count dataset, write index
                 // begin as normal dataset
                 if (H5Lexists(infile.getLocId(),
                               (groupname + countName).c_str(),
-                              H5P_DEFAULT) <= 0) {
+                              H5P_DEFAULT) <= 0)
+                {
                     Subsetter::writeDataset(
                         objname, indataset, outgroup, groupname, indexes);
                     return;
@@ -87,7 +93,9 @@ class SuperGroupSubsetter : public Subsetter {
             // copy attributes
             H5::DataSet outdataset(outgroup.openDataSet(objname));
             copyAttributes(indataset, outdataset, groupname);
-        } else {
+        }
+        else
+        {
             Subsetter::writeDataset(
                 objname, indataset, outgroup, groupname, indexes);
         }
@@ -102,7 +110,8 @@ class SuperGroupSubsetter : public Subsetter {
                                       Temporal *temporal,
                                       GeoPolygon *geoPolygon,
                                       Configuration *config,
-                                      bool repair = false) {
+                                      bool repair = false)
+    {
         LOG_DEBUG("SuperGroupSubsetter::getCoordinate(): ENTER groupname: "
                   << groupname);
 
@@ -110,7 +119,8 @@ class SuperGroupSubsetter : public Subsetter {
             config->hasPhotonSegmentGroups(this->getShortName());
         bool isPhotonDataset =
             config->isPhotonDataset(this->getShortName(), groupname);
-        if (hasPhotonSegmentDataset && isPhotonDataset) {
+        if (hasPhotonSegmentDataset && isPhotonDataset)
+        {
             return ForwardReferenceCoordinates::getCoordinate(
                 root,
                 ingroup,
@@ -121,7 +131,9 @@ class SuperGroupSubsetter : public Subsetter {
                 temporal,
                 geoPolygon,
                 config);
-        } else if (groupname != "/") {
+        }
+        else if (groupname != "/")
+        {
             return SuperGroupCoordinate::getCoordinate(root,
                                                        ingroup,
                                                        this->getShortName(),
@@ -131,7 +143,9 @@ class SuperGroupSubsetter : public Subsetter {
                                                        temporal,
                                                        geoPolygon,
                                                        config);
-        } else {
+        }
+        else
+        {
             return Subsetter::getCoordinate(root,
                                             ingroup,
                                             groupname,

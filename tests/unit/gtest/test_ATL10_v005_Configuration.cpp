@@ -16,11 +16,14 @@
 #include <regex>
 #include <string>
 
-namespace {
+namespace
+{
 //
-class test_ATL10_v005_Configuration : public testing::Test {
+class test_ATL10_v005_Configuration : public testing::Test
+{
   protected:
-    void SetUp() {
+    void SetUp()
+    {
         std::string configFile;
         std::string currentDir =
             testing::internal::FilePath::GetCurrentDir().c_str();
@@ -44,7 +47,8 @@ class test_ATL10_v005_Configuration : public testing::Test {
 // Start ATL10 v005 Configuration::getReferencedGroupname()
 //
 TEST_F(test_ATL10_v005_Configuration,
-       ATL10_getReferencedGroupname_isFreeboardBeamSegmentGroup) {
+       ATL10_getReferencedGroupname_isFreeboardBeamSegmentGroup)
+{
     std::string expectGroupname = "";
 
     // Test /gt1l/freeboard_beam_segment/beam_freeboard/
@@ -61,7 +65,8 @@ TEST_F(test_ATL10_v005_Configuration,
 
 // Negative test misspell dataset name
 TEST_F(test_ATL10_v005_Configuration,
-       ATL10_getReferencedGroupname_isFreeboardBeamSegmentGroup_Negative) {
+       ATL10_getReferencedGroupname_isFreeboardBeamSegmentGroup_Negative)
+{
     std::string expectGroupname = "";
 
     // Test abcdefg does not exist, expect groupname return empty string
@@ -82,7 +87,8 @@ TEST_F(test_ATL10_v005_Configuration,
 }
 
 TEST_F(test_ATL10_v005_Configuration,
-       ATL10_getReferencedGroupname_isHeightSegmentRateGroup) {
+       ATL10_getReferencedGroupname_isHeightSegmentRateGroup)
+{
     std::string expectGroupname = "/gt1l/freeboard_beam_segment/";
 
     // Test /gt1l/freeboard_beam_segment/beam_freeboard/beam_fb_height
@@ -120,7 +126,8 @@ TEST_F(test_ATL10_v005_Configuration,
 
 // Negative test misspell dataset name
 TEST_F(test_ATL10_v005_Configuration,
-       ATL10_getReferencedGroupname_isHeightSegmentRateGroup_Negative) {
+       ATL10_getReferencedGroupname_isHeightSegmentRateGroup_Negative)
+{
     std::string expectGroupname = "";
 
     // Test abcdefg does not exist, expect groupname return empty string
@@ -140,8 +147,8 @@ TEST_F(test_ATL10_v005_Configuration,
     ASSERT_EQ(expectGroupname, groupname);
 }
 
-TEST_F(test_ATL10_v005_Configuration,
-       ATL10_getReferencedGroupname_isLeadsGroup) {
+TEST_F(test_ATL10_v005_Configuration, ATL10_getReferencedGroupname_isLeadsGroup)
+{
     std::string expectGroupname = "/gt1l/freeboard_beam_segment/";
 
     configuration->addShortNameGroupDatasetFromGranuleFile(
@@ -167,7 +174,8 @@ TEST_F(test_ATL10_v005_Configuration,
 
 // Negative test misspell dataset name
 TEST_F(test_ATL10_v005_Configuration,
-       ATL10_getReferencedGroupname_isLeadsGroup_Negative) {
+       ATL10_getReferencedGroupname_isLeadsGroup_Negative)
+{
     std::string expectGroupname = "";
 
     // Test abcdefg does not exist, expect groupname return empty string
@@ -189,7 +197,8 @@ TEST_F(test_ATL10_v005_Configuration,
 // Start ATL10 v005 Configuration::getTargetGroupname()
 //
 TEST_F(test_ATL10_v005_Configuration,
-       ATL10_getTargetGroupname_isFreeboardBeamSegmentGroup) {
+       ATL10_getTargetGroupname_isFreeboardBeamSegmentGroup)
+{
     std::string expectGroupname = "";
 
     // Test /gt1l/freeboard_beam_segment/
@@ -200,7 +209,8 @@ TEST_F(test_ATL10_v005_Configuration,
 }
 
 TEST_F(test_ATL10_v005_Configuration,
-       ATL10_getTargetGroupname_isFreeboardBeamSegmentGroup_isBeamIndex) {
+       ATL10_getTargetGroupname_isFreeboardBeamSegmentGroup_isBeamIndex)
+{
     std::string expectGroupname = "/gt1l/leads/";
 
     // Test /gt1l/freeboard_beam_segment/ with datasetName option
@@ -211,9 +221,9 @@ TEST_F(test_ATL10_v005_Configuration,
     EXPECT_EQ(expectGroupname, groupname);
 }
 
-TEST_F(
-    test_ATL10_v005_Configuration,
-    ATL10_getTargetGroupname_isFreeboardBeamSegmentGroup_isSwathHeightIndex) {
+TEST_F(test_ATL10_v005_Configuration,
+       ATL10_getTargetGroupname_isFreeboardBeamSegmentGroup_isSwathHeightIndex)
+{
     std::string expectGroupname = "/freeboard_swath_segment/";
 
     // Test /gt1l/freeboard_beam_segment/fbswath_ndx/
@@ -235,7 +245,8 @@ TEST_F(
 
 // Negative test misspell dataset name
 TEST_F(test_ATL10_v005_Configuration,
-       ATL10_getTargetGroupname_isFreeboardBeamSegmentGroup_Negative) {
+       ATL10_getTargetGroupname_isFreeboardBeamSegmentGroup_Negative)
+{
     std::string expectGroupname = "";
 
     // Test abcdefg does not exist, expect groupname return empty string
@@ -254,7 +265,8 @@ TEST_F(test_ATL10_v005_Configuration,
     ASSERT_EQ(expectGroupname, groupname);
 }
 
-TEST_F(test_ATL10_v005_Configuration, ATL10_getTargetGroupname_isLeadsGroup) {
+TEST_F(test_ATL10_v005_Configuration, ATL10_getTargetGroupname_isLeadsGroup)
+{
     std::string expectGroupname =
         "/gt1l/freeboard_beam_segment/height_segments/";
 
@@ -275,7 +287,8 @@ TEST_F(test_ATL10_v005_Configuration, ATL10_getTargetGroupname_isLeadsGroup) {
 
 // Negative test misspell
 TEST_F(test_ATL10_v005_Configuration,
-       ATL10_getTargetGroupname_isLeadsGroup_Negative) {
+       ATL10_getTargetGroupname_isLeadsGroup_Negative)
+{
     std::string expectGroupname = "";
 
     // Test misspell
@@ -285,7 +298,8 @@ TEST_F(test_ATL10_v005_Configuration,
 }
 
 TEST_F(test_ATL10_v005_Configuration,
-       ATL10_getTargetGroupname_isHeightSegmentRateGroup) {
+       ATL10_getTargetGroupname_isHeightSegmentRateGroup)
+{
     std::string expectGroupname = "/gt1l/freeboard_beam_segment/";
 
     // Test /gt1l/freeboard_beam_segment/beam_freeboard/beam_fb_height
@@ -322,7 +336,8 @@ TEST_F(test_ATL10_v005_Configuration,
 
 // Negative test misspell
 TEST_F(test_ATL10_v005_Configuration,
-       ATL10_getTargetGroupname_isHeightSegmentRateGroup_Negative) {
+       ATL10_getTargetGroupname_isHeightSegmentRateGroup_Negative)
+{
     std::string expectGroupname = "";
 
     // Test abcdefg does not exist, expect groupname return empty string
@@ -345,7 +360,8 @@ TEST_F(test_ATL10_v005_Configuration,
 // Start ATL10 v005 Configuration::getIndexBeginDatasetName()
 //
 TEST_F(test_ATL10_v005_Configuration,
-       ATL10_getIndexBeginDatasetName_isLeadsGroup) {
+       ATL10_getIndexBeginDatasetName_isLeadsGroup)
+{
     std::string expectGroupname = "ssh_ndx";
 
     // Add Mock data from H5 file to test leads
@@ -371,7 +387,8 @@ TEST_F(test_ATL10_v005_Configuration,
 }
 
 TEST_F(test_ATL10_v005_Configuration,
-       ATL10_getIndexBeginDatasetName_isLeadsGroup_Negative) {
+       ATL10_getIndexBeginDatasetName_isLeadsGroup_Negative)
+{
     std::string expectGroupname = "";
 
     // Test misspell gt1l/lea/
@@ -382,7 +399,8 @@ TEST_F(test_ATL10_v005_Configuration,
 }
 
 TEST_F(test_ATL10_v005_Configuration,
-       ATL10_getIndexBeginDatasetName_isBeamFreeboardGroup) {
+       ATL10_getIndexBeginDatasetName_isBeamFreeboardGroup)
+{
     std::string expectGroupname = "beam_refsurf_ndx";
 
     // Test /gt1l/freeboard_beam_segment/beam_freeboard/
@@ -398,7 +416,8 @@ TEST_F(test_ATL10_v005_Configuration,
 }
 
 TEST_F(test_ATL10_v005_Configuration,
-       ATL10_getIndexBeginDatasetName_isBeamFreeboardGroup_Negative) {
+       ATL10_getIndexBeginDatasetName_isBeamFreeboardGroup_Negative)
+{
     std::string expectGroupname = "";
 
     // Test misspell beam_free /gt1l/freeboard_beam_segment/beam_free/
@@ -417,7 +436,8 @@ TEST_F(test_ATL10_v005_Configuration,
 
 TEST_F(
     test_ATL10_v005_Configuration,
-    ATL10_getIndexBeginDatasetName_isFreeboardBeamSegmentGroup_isSwathHeightIndex) {
+    ATL10_getIndexBeginDatasetName_isFreeboardBeamSegmentGroup_isSwathHeightIndex)
+{
     std::string expectGroupname = "fbswath_ndx";
 
     // Test /gt1l/freeboard_beam_segment/
@@ -433,7 +453,8 @@ TEST_F(
 }
 
 TEST_F(test_ATL10_v005_Configuration,
-       ATL10_getIndexBeginDatasetName_isFreeboardBeamSegmentGroup_BeamIndex) {
+       ATL10_getIndexBeginDatasetName_isFreeboardBeamSegmentGroup_BeamIndex)
+{
     std::string expectGroupname = "beam_lead_ndx";
 
     // Test /gt1l/freeboard_beam_segment/
@@ -450,7 +471,8 @@ TEST_F(test_ATL10_v005_Configuration,
 }
 
 TEST_F(test_ATL10_v005_Configuration,
-       ATL10_getIndexBeginDatasetName_isFreeboardBeamSegmentGroup_Negative) {
+       ATL10_getIndexBeginDatasetName_isFreeboardBeamSegmentGroup_Negative)
+{
     std::string expectGroupname = "";
 
     // Test misspell "freeboard_beam_segm" /gt1l/freeboard_beam_segm/
@@ -466,7 +488,8 @@ TEST_F(test_ATL10_v005_Configuration,
 }
 
 TEST_F(test_ATL10_v005_Configuration,
-       ATL10_getIndexBeginDatasetName_isSwathFreeboardGroup) {
+       ATL10_getIndexBeginDatasetName_isSwathFreeboardGroup)
+{
     std::string expectGroupname = "fbswath_ndx";
 
     // Test /freeboard_swath_segment/gt1l/swath_freeboard/
@@ -482,7 +505,8 @@ TEST_F(test_ATL10_v005_Configuration,
 }
 
 TEST_F(test_ATL10_v005_Configuration,
-       ATL10_getIndexBeginDatasetName_isSwathFreeboardGroup_Negative) {
+       ATL10_getIndexBeginDatasetName_isSwathFreeboardGroup_Negative)
+{
     std::string expectGroupname = "";
 
     // Test /freeboard_swath_segment/gt1l/swath_/
@@ -500,7 +524,8 @@ TEST_F(test_ATL10_v005_Configuration,
 //
 // Start ATL10 v005 Configuration::getCountDatasetName()
 //
-TEST_F(test_ATL10_v005_Configuration, ATL10_getCountDatasetName_isLeadsGroup) {
+TEST_F(test_ATL10_v005_Configuration, ATL10_getCountDatasetName_isLeadsGroup)
+{
     std::string expectGroupname = "ssh_n";
 
     // Test /gt1l/leads/
@@ -516,7 +541,8 @@ TEST_F(test_ATL10_v005_Configuration, ATL10_getCountDatasetName_isLeadsGroup) {
 }
 
 TEST_F(test_ATL10_v005_Configuration,
-       ATL10_getCountDatasetName__isLeadsGroup_Negative) {
+       ATL10_getCountDatasetName__isLeadsGroup_Negative)
+{
     std::string expectGroupname = "";
 
     // Test misspell gt1l/lea/
@@ -527,7 +553,8 @@ TEST_F(test_ATL10_v005_Configuration,
 }
 
 TEST_F(test_ATL10_v005_Configuration,
-       ATL10_getCountDatasetName_isFreeboardBeamSegmentGroup) {
+       ATL10_getCountDatasetName_isFreeboardBeamSegmentGroup)
+{
     std::string expectGroupname = "beam_lead_n";
 
     // Test /gt1l/freeboard_beam_segment/
@@ -543,7 +570,8 @@ TEST_F(test_ATL10_v005_Configuration,
 }
 
 TEST_F(test_ATL10_v005_Configuration,
-       ATL10_getCountDatasetName_isFreeboardBeamSegmentGroup_Negative) {
+       ATL10_getCountDatasetName_isFreeboardBeamSegmentGroup_Negative)
+{
     std::string expectGroupname = "";
 
     // Test misspell "freeboard_beam_segm" /gt1l/freeboard_beam_segm/

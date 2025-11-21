@@ -12,7 +12,8 @@
  * class to write forward reference segment-begin datasets for ATL03 and ATL08
  * and recalculate after subsetting the segments of the underlying trajectory
  */
-class FwdRefBeginDataset {
+class FwdRefBeginDataset
+{
   public:
     std::string shortname;
     std::string datasetName;
@@ -23,7 +24,9 @@ class FwdRefBeginDataset {
     FwdRefBeginDataset(std::string shortname,
                        std::string objname,
                        Configuration *config)
-        : shortname(shortname), datasetName(objname), config(config) {}
+        : shortname(shortname), datasetName(objname), config(config)
+    {
+    }
 
     /**
      * Write segment begin dataset ()
@@ -37,7 +40,8 @@ class FwdRefBeginDataset {
                       const std::string &groupname,
                       const H5::DataSet &indataset,
                       IndexSelection *selectedElements,
-                      SubsetDataLayers *subsetDataLayers) {
+                      SubsetDataLayers *subsetDataLayers)
+    {
         LOG_DEBUG("ForwardReferenceDatasets::writeDataset(): ENTER groupname: "
                   << groupname);
 
@@ -62,15 +66,17 @@ class FwdRefBeginDataset {
         if (H5Tequal(segmentBegin_native_type, H5T_NATIVE_INT)) // 32-bit int
         {
             indataset.read(subsetBeginIn, indataset.getDataType());
-        } else if (H5Tequal(segmentBegin_native_type,
-                            H5T_NATIVE_USHORT)) // unsigned 16-bit int
+        }
+        else if (H5Tequal(segmentBegin_native_type,
+                          H5T_NATIVE_USHORT)) // unsigned 16-bit int
         {
             uint16_t *data = new uint16_t[inputCoordinateSize];
             indataset.read(data, indataset.getDataType());
             for (int i = 0; i < inputCoordinateSize; i++)
                 subsetBeginIn[i] = data[i];
             delete[] data;
-        } else // 64-bit int
+        }
+        else // 64-bit int
         {
             int64_t *data = new int64_t[inputCoordinateSize];
             indataset.read(data, indataset.getDataType());
@@ -116,14 +122,16 @@ class FwdRefBeginDataset {
         std::map<long, long> allSegments = selectedElements->getSegments();
         for (std::map<long, long>::iterator it = allSegments.begin();
              it != allSegments.end();
-             it++) {
+             it++)
+        {
 
             long segmentBeginIn = it->first;
             long segmentCountIn = it->second;
 
             // Prepare for offset update, stepping over fill values.
             while (nextSegmentBeginIn <= 0 and
-                   lstSegBegIndex < segmentBeginIn + segmentCountIn) {
+                   lstSegBegIndex < segmentBeginIn + segmentCountIn)
+            {
                 lstSegBegIndex++;
                 nextSegmentBeginIn = subsetBeginIn[lstSegBegIndex];
             }
@@ -132,7 +140,8 @@ class FwdRefBeginDataset {
             int skippedFillValueCnt = 0;
             skippedFillValueEnd = subsetBeginIn[segmentBeginIn];
             while (skippedFillValueEnd <= 0 and
-                   skippedFillValueCnt < segmentCountIn - 1) {
+                   skippedFillValueCnt < segmentCountIn - 1)
+            {
                 subsetBeginOut[segmentBeginOut] = skippedFillValueEnd;
                 // 0 for ATL3, ATL8, -1 for ATL10
                 skippedFillValueCnt++;
@@ -145,17 +154,22 @@ class FwdRefBeginDataset {
             // from the previous iteration. Accumulating offset = offset +
             // skipped-values-count skipped-values-count = skipped-end-point -
             // skipped-start skipped-start      = (previous) nextSegmentBeginIn
-            if (nextSegmentBeginIn > 0 and skippedFillValueEnd > 0) {
+            if (nextSegmentBeginIn > 0 and skippedFillValueEnd > 0)
+            {
                 offset = offset + skippedFillValueEnd - nextSegmentBeginIn;
             }
 
             // Calculate segment references for output segment begin dataset.
-            for (int i = skippedFillValueCnt; i < segmentCountIn; i++) {
-                if (subsetBeginIn[segmentBeginIn] <= 0) {
+            for (int i = skippedFillValueCnt; i < segmentCountIn; i++)
+            {
+                if (subsetBeginIn[segmentBeginIn] <= 0)
+                {
                     subsetBeginOut[segmentBeginOut] =
                         subsetBeginIn[segmentBeginIn];
                     // 0 for ATL3, ATL8, -1 for ATL10
-                } else {
+                }
+                else
+                {
                     subsetBeginOut[segmentBeginOut] =
                         subsetBeginIn[segmentBeginIn] - offset;
 
@@ -187,7 +201,8 @@ class FwdRefBeginDataset {
         delete[] subsetBeginOut;
 
         // Unlink the count dataset if user doesn't ask for it.
-        if (!subsetDataLayers->is_dataset_included(groupname + countName)) {
+        if (!subsetDataLayers->is_dataset_included(groupname + countName))
+        {
             outgroup.unlink(countName);
         }
     }

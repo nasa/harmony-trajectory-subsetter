@@ -18,14 +18,17 @@
 #include "H5Cpp.h"
 
 // ICESAT2 specific implementation
-class IcesatSubsetter : public Subsetter {
+class IcesatSubsetter : public Subsetter
+{
   public:
     IcesatSubsetter(SubsetDataLayers *subsetDataLayers,
                     std::vector<geobox> *geoboxes,
                     Temporal *temporal,
                     GeoPolygon *geoPolygon,
                     Configuration *config)
-        : Subsetter(subsetDataLayers, geoboxes, temporal, geoPolygon, config) {}
+        : Subsetter(subsetDataLayers, geoboxes, temporal, geoPolygon, config)
+    {
+    }
 
   protected:
     /**
@@ -40,7 +43,8 @@ class IcesatSubsetter : public Subsetter {
                               const H5::DataSet &indataset,
                               H5::Group &outgroup,
                               const std::string &groupname,
-                              IndexSelection *indexes) {
+                              IndexSelection *indexes)
+    {
         LOG_DEBUG(
             "IcesatSubsetter::writeDataset(): ENTER groupname: " << groupname);
 
@@ -54,18 +58,21 @@ class IcesatSubsetter : public Subsetter {
             indexes->size() != 0 &&
             config->isSegmentGroup(this->getShortName(), groupname) &&
             config->getIndexBeginDatasetName(
-                this->getShortName(), groupname, objname) == objname) {
+                this->getShortName(), groupname, objname) == objname)
+        {
             // need to make sure count dataset exists
             std::string countName = config->getCountDatasetName(
                 this->getShortName(), groupname, objname);
             // if the count dataset is not in the output file, create it
             if (H5Lexists(
-                    outgroup.getLocId(), countName.c_str(), H5P_DEFAULT) <= 0) {
+                    outgroup.getLocId(), countName.c_str(), H5P_DEFAULT) <= 0)
+            {
                 // if the input file doesn't have the count dataset, write index
                 // begin as normal dataset
                 if (H5Lexists(infile.getLocId(),
                               (groupname + countName).c_str(),
-                              H5P_DEFAULT) <= 0) {
+                              H5P_DEFAULT) <= 0)
+                {
                     Subsetter::writeDataset(
                         objname, indataset, outgroup, groupname, indexes);
                     return;
@@ -120,8 +127,8 @@ class IcesatSubsetter : public Subsetter {
                   config->isFreeboardSegmentGeophysicalGroup(
                       this->getShortName(), groupname)) &&
                  config->getIndexBeginDatasetName(
-                     this->getShortName(), groupname, objname, true) ==
-                     objname) {
+                     this->getShortName(), groupname, objname, true) == objname)
+        {
             RvsRefDatasets *referenceDataset =
                 new RvsRefDatasets(this->getShortName(), objname);
 
@@ -136,7 +143,8 @@ class IcesatSubsetter : public Subsetter {
             // normal dataset
             if (H5Lexists(infile.getLocId(),
                           targetGroupname.c_str(),
-                          H5P_DEFAULT) <= 0) {
+                          H5P_DEFAULT) <= 0)
+            {
                 Subsetter::writeDataset(
                     objname, indataset, outgroup, groupname, indexes);
                 return;
@@ -175,7 +183,9 @@ class IcesatSubsetter : public Subsetter {
             // copy attributes
             H5::DataSet outdataset(outgroup.openDataSet(objname));
             copyAttributes(indataset, outdataset, groupname);
-        } else {
+        }
+        else
+        {
             Subsetter::writeDataset(
                 objname, indataset, outgroup, groupname, indexes);
         }
@@ -190,7 +200,8 @@ class IcesatSubsetter : public Subsetter {
                                       Temporal *temporal,
                                       GeoPolygon *geoPolygon,
                                       Configuration *config,
-                                      bool repair = false) {
+                                      bool repair = false)
+    {
         LOG_DEBUG(
             "IcesatSubsetter::getCoordinate(): ENTER groupname: " << groupname);
 
@@ -228,7 +239,8 @@ class IcesatSubsetter : public Subsetter {
         config->setFreeboardSwathSegment(freeboardSwathSegment);
 
         if (hasPhotonSegmentGroup && (isPhotonGroup || isLeadsGroup) &&
-            (subsetDataLayers->is_included(groupname) || repair)) {
+            (subsetDataLayers->is_included(groupname) || repair))
+        {
             LOG_DEBUG("IcesatSubsetter::getCoordinate(): Call "
                       "ForwardReferenceCoordinates::getCoordinate(): "
                       << groupname);
@@ -242,19 +254,24 @@ class IcesatSubsetter : public Subsetter {
                 temporal,
                 geoPolygon,
                 config);
-        } else if (hasPhotonSegmentGroup &&
-                       (isHeightSegmentRateGroup ||
-                        isFreeboardBeamSegmentGroup && freeboardSwathSegment) ||
-                   isFreeboardRateGroup && (isSubsetDataLayers || repair)) {
+        }
+        else if (hasPhotonSegmentGroup &&
+                     (isHeightSegmentRateGroup ||
+                      isFreeboardBeamSegmentGroup && freeboardSwathSegment) ||
+                 isFreeboardRateGroup && (isSubsetDataLayers || repair))
+        {
             std::string coorGroupname = groupname;
             H5::Group coorGroup = ingroup;
 
-            if (isHeightsGroup || isGeophysicalGroup) {
+            if (isHeightsGroup || isGeophysicalGroup)
+            {
                 coorGroupname = config->getBeamFreeboardGroup(
                     this->getShortName(), groupname);
                 coorGroup = root.openGroup(coorGroupname);
-            } else if (isFreeboardSegmentHeightsGroup ||
-                       isFreeboardSegmentGeophysicalGroup) {
+            }
+            else if (isFreeboardSegmentHeightsGroup ||
+                     isFreeboardSegmentGeophysicalGroup)
+            {
                 coorGroupname = config->getFreeboardSegmentGroup(
                     this->getShortName(), groupname);
                 coorGroup = root.openGroup(coorGroupname);
@@ -275,8 +292,9 @@ class IcesatSubsetter : public Subsetter {
                 temporal,
                 geoPolygon,
                 config);
-        } else if (config->subsetBySuperGroup(this->getShortName(),
-                                              groupname)) {
+        }
+        else if (config->subsetBySuperGroup(this->getShortName(), groupname))
+        {
             LOG_DEBUG("IcesatSubsetter::getCoordinate(): Call "
                       "SuperGroupCoordinate::getCoordinate(): groupname: "
                       << groupname);
@@ -289,7 +307,9 @@ class IcesatSubsetter : public Subsetter {
                                                        temporal,
                                                        geoPolygon,
                                                        config);
-        } else {
+        }
+        else
+        {
             LOG_DEBUG("IcesatSubsetter::getCoordinate(): Call "
                       "Subsetter::getCoordinate(): groupname: "
                       << groupname);
@@ -310,7 +330,8 @@ class IcesatSubsetter : public Subsetter {
      * @param groupname string group name
      */
     bool checkFreeboardSwathSegmentExists(H5::Group &root,
-                                          const std::string &groupname) {
+                                          const std::string &groupname)
+    {
         bool exist = true;
 
         std::string freeboardSwathSegmentName =
@@ -319,7 +340,8 @@ class IcesatSubsetter : public Subsetter {
         if (freeboardSwathSegmentName == "" ||
             H5Lexists(root.getLocId(),
                       freeboardSwathSegmentName.c_str(),
-                      H5P_DEFAULT) == 0) {
+                      H5P_DEFAULT) == 0)
+        {
             exist = false;
         }
 

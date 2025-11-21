@@ -10,14 +10,17 @@
 /**
  * class to write index begin datasets for ATL03 and ATL08
  */
-class SuperGroupCoordinate : public Coordinate {
+class SuperGroupCoordinate : public Coordinate
+{
   public:
     SuperGroupCoordinate(std::string groupname,
                          std::vector<geobox> *geoboxes,
                          Temporal *temporal,
                          GeoPolygon *geoPolygon,
                          Configuration *config)
-        : Coordinate(groupname, geoboxes, temporal, geoPolygon, config) {}
+        : Coordinate(groupname, geoboxes, temporal, geoPolygon, config)
+    {
+    }
 
     /*
      * subset dataset the "super group"
@@ -46,7 +49,8 @@ class SuperGroupCoordinate : public Coordinate {
                                      std::vector<geobox> *geoboxes,
                                      Temporal *temporal,
                                      GeoPolygon *geoPolygon,
-                                     Configuration *config) {
+                                     Configuration *config)
+    {
         LOG_DEBUG("SuperGroupCoordinate::getCoordinate(): ENTER groupname: "
                   << groupname);
 
@@ -66,7 +70,8 @@ class SuperGroupCoordinate : public Coordinate {
             shortname, groupname, superGroupnames);
         for (std::vector<std::string>::iterator it = superGroupnames.begin();
              it != superGroupnames.end();
-             it++) {
+             it++)
+        {
             H5::Group group = root.openGroup(*it);
             sgCoor->superGroups.push_back(group);
         }
@@ -74,7 +79,8 @@ class SuperGroupCoordinate : public Coordinate {
             0, superGroupnames[0].find_first_of("/\\", 1) + 1);
         // if the Coordinate group already exists, return it, else, continue
         // processing
-        if (sgCoor->lookUp(superGroupname)) {
+        if (sgCoor->lookUp(superGroupname))
+        {
             LOG_DEBUG("SuperGroupCoordinate::getCoordinate(): superGroupname: "
                       << superGroupname << " already exists in lookUpMap");
             return lookUpMap[superGroupname];
@@ -85,30 +91,35 @@ class SuperGroupCoordinate : public Coordinate {
         for (std::map<std::string, std::vector<std::string>>::iterator it =
                  datasets.begin();
              it != datasets.end();
-             it++) {
+             it++)
+        {
             superGroupnames.push_back(it->first);
-            while (!it->second.empty()) {
+            while (!it->second.empty())
+            {
                 config->getMatchingCoordinateDatasetNames(shortname,
                                                           it->second,
                                                           timeName,
                                                           latitudeName,
                                                           longitudeName,
                                                           otherName);
-                if (!latitudeName.empty()) {
+                if (!latitudeName.empty())
+                {
                     sgCoor->latitudes.push_back(latitudeName);
                     it->second.erase(std::remove(it->second.begin(),
                                                  it->second.end(),
                                                  latitudeName),
                                      it->second.end());
                 }
-                if (!longitudeName.empty()) {
+                if (!longitudeName.empty())
+                {
                     sgCoor->longitudes.push_back(longitudeName);
                     it->second.erase(std::remove(it->second.begin(),
                                                  it->second.end(),
                                                  longitudeName),
                                      it->second.end());
                 }
-                if (!timeName.empty()) {
+                if (!timeName.empty())
+                {
                     it->second.erase(std::remove(it->second.begin(),
                                                  it->second.end(),
                                                  timeName),
@@ -116,10 +127,12 @@ class SuperGroupCoordinate : public Coordinate {
                     for (std::vector<H5::Group>::iterator it =
                              sgCoor->superGroups.begin();
                          it != sgCoor->superGroups.end();
-                         it++) {
+                         it++)
+                    {
                         if (!timeName.empty() && H5Lexists(it->getLocId(),
                                                            timeName.c_str(),
-                                                           H5P_DEFAULT) > 0) {
+                                                           H5P_DEFAULT) > 0)
+                        {
                             data = new H5::DataSet(it->openDataSet(timeName));
                             sgCoor->checkCoorDatasetSize(
                                 data, inconsistentCoorDatasets);
@@ -136,14 +149,17 @@ class SuperGroupCoordinate : public Coordinate {
         sort(sgCoor->longitudes.begin(), sgCoor->longitudes.end());
 
         // get coordinate datasets from input file if they exist
-        for (int i = 0; i < sgCoor->latitudes.size(); i++) {
+        for (int i = 0; i < sgCoor->latitudes.size(); i++)
+        {
             for (std::vector<H5::Group>::iterator it =
                      sgCoor->superGroups.begin();
                  it != sgCoor->superGroups.end();
-                 it++) {
+                 it++)
+            {
                 if (H5Lexists(it->getLocId(),
                               sgCoor->latitudes[i].c_str(),
-                              H5P_DEFAULT) > 0) {
+                              H5P_DEFAULT) > 0)
+                {
                     data =
                         new H5::DataSet(it->openDataSet(sgCoor->latitudes[i]));
                     sgCoor->checkCoorDatasetSize(data,
@@ -156,10 +172,12 @@ class SuperGroupCoordinate : public Coordinate {
             for (std::vector<H5::Group>::iterator it =
                      sgCoor->superGroups.begin();
                  it != sgCoor->superGroups.end();
-                 it++) {
+                 it++)
+            {
                 if (H5Lexists(it->getLocId(),
                               sgCoor->longitudes[i].c_str(),
-                              H5P_DEFAULT) > 0) {
+                              H5P_DEFAULT) > 0)
+                {
                     data =
                         new H5::DataSet(it->openDataSet(sgCoor->longitudes[i]));
                     sgCoor->checkCoorDatasetSize(data,
@@ -175,7 +193,8 @@ class SuperGroupCoordinate : public Coordinate {
         // datasets don't agree, or their dataset sizes are not the same, return
         // Index Selection with retstriction, start=0, length=0
         if ((sgCoor->latitudes.size() != sgCoor->longitudes.size()) ||
-            inconsistentCoorDatasets) {
+            inconsistentCoorDatasets)
+        {
             sgCoor->indexes = new IndexSelection(sgCoor->coordinateSize);
             sgCoor->indexes->addRestriction(0, 0);
             sgCoor->indexesProcessed = true;
@@ -187,7 +206,8 @@ class SuperGroupCoordinate : public Coordinate {
         return sgCoor;
     }
 
-    virtual IndexSelection *getIndexSelection() {
+    virtual IndexSelection *getIndexSelection()
+    {
         LOG_DEBUG("SuperGroupCoordinate::getIndexSelection(): ENTER");
 
         H5::DataSet *timeSet = NULL;
@@ -204,19 +224,23 @@ class SuperGroupCoordinate : public Coordinate {
 
         // find index ranges
         //  limit the index by temporal constraint
-        if (temporal != NULL && timeSet != NULL) {
+        if (temporal != NULL && timeSet != NULL)
+        {
             updateEpochTime(timeSet);
             timeSet->read(time, timeSet->getDataType());
             temporalSubset(time);
-        } else
+        }
+        else
             LOG_DEBUG(
                 "SuperGroupCoordinate::getIndexSelection(): "
                 << "temporal constraint or temporal coordinate not found");
 
         // read lat/lon datasets if spatial(bbox/polygon) constraints exist
         if ((geoboxes != NULL || geoPolygon != NULL) &&
-            this->coorDatasets.size() != 0) {
-            for (int i = 0; i < this->latitudes.size(); i++) {
+            this->coorDatasets.size() != 0)
+        {
+            for (int i = 0; i < this->latitudes.size(); i++)
+            {
                 double *lat = new double[coordinateSize];
                 double *lon = new double[coordinateSize];
                 readLatLonDatasets(
@@ -259,7 +283,8 @@ class SuperGroupCoordinate : public Coordinate {
     std::map<std::string, double *> coors;
 
     // limit the index range by spatial constraints
-    void spatialBboxSubset() {
+    void spatialBboxSubset()
+    {
         LOG_DEBUG("SuperGroupCoordinate::spatialBboxSubset(): ENTER");
 
         bool contains = false;
@@ -267,18 +292,24 @@ class SuperGroupCoordinate : public Coordinate {
         long indexBegin = indexes->minIndexStart,
              indexEnd = indexes->maxIndexEnd - 1;
         long start = 0, length = 0;
-        for (int i = indexBegin; i <= indexEnd; i++) {
+        for (int i = indexBegin; i <= indexEnd; i++)
+        {
             std::vector<geobox>::iterator geobox_it = geoboxes->begin();
-            for (; geobox_it != geoboxes->end(); geobox_it++) {
-                for (int j = 0; j < latitudes.size(); j++) {
+            for (; geobox_it != geoboxes->end(); geobox_it++)
+            {
+                for (int j = 0; j < latitudes.size(); j++)
+                {
                     if (geobox_it->contains(coors[latitudes[j]][i],
-                                            coors[longitudes[j]][i])) {
+                                            coors[longitudes[j]][i]))
+                    {
                         contains = true;
                         break;
-                    } else
+                    }
+                    else
                         contains = false;
                 }
-                if (contains) {
+                if (contains)
+                {
                     if (length == 0)
                         start = i;
                     length++;
@@ -286,8 +317,10 @@ class SuperGroupCoordinate : public Coordinate {
                 }
             }
             // not covered by the bbox
-            if (geobox_it == geoboxes->end()) {
-                if (length != 0) {
+            if (geobox_it == geoboxes->end())
+            {
+                if (length != 0)
+                {
                     indexes->addSegment(start, length);
                     length = 0;
                 }
@@ -303,7 +336,8 @@ class SuperGroupCoordinate : public Coordinate {
     }
 
     // limit the index range by polygon
-    void spatialPolygonSubset() {
+    void spatialPolygonSubset()
+    {
         LOG_DEBUG("SuperGroupCoordinate::spatialPolygonSubset(): ENTER");
 
         IndexSelection *newIndexes = new IndexSelection(coordinateSize);
@@ -330,29 +364,39 @@ class SuperGroupCoordinate : public Coordinate {
 
         for (std::map<long, long>::iterator it = indexes->segments.begin();
              it != indexes->segments.end();
-             it++) {
-            for (int i = it->first; i != it->second + it->first; i++) {
+             it++)
+        {
+            for (int i = it->first; i != it->second + it->first; i++)
+            {
                 // count in the points with fill values
-                for (int j = 0; j < latitudes.size(); j++) {
+                for (int j = 0; j < latitudes.size(); j++)
+                {
                     if (geoPolygon->contains(coors[latitudes[j]][i],
-                                             coors[longitudes[j]][i])) {
+                                             coors[longitudes[j]][i]))
+                    {
                         contains = true;
                         break;
-                    } else
+                    }
+                    else
                         contains = false;
                 }
-                if (contains) {
+                if (contains)
+                {
                     if (length == 0)
                         start = i;
                     length++;
-                } else {
-                    if (length != 0) {
+                }
+                else
+                {
+                    if (length != 0)
+                    {
                         newIndexes->addSegment(start, length);
                         length = 0;
                     }
                 }
             }
-            if (length != 0) {
+            if (length != 0)
+            {
                 newIndexes->addSegment(start, length);
                 length = 0;
             }

@@ -11,13 +11,16 @@
 /**
  * class to write index datasets for ATL10
  */
-class RvsRefDatasets {
+class RvsRefDatasets
+{
   public:
     std::string shortname;
     std::string datasetName;
 
     RvsRefDatasets(std::string shortname, std::string objname)
-        : shortname(shortname), datasetName(objname) {}
+        : shortname(shortname), datasetName(objname)
+    {
+    }
 
     /**
      * compute new index values and write it
@@ -37,7 +40,8 @@ class RvsRefDatasets {
                          const H5::DataSet &indataset,
                          IndexSelection *indexes,
                          IndexSelection *targetIndexes,
-                         SubsetDataLayers *subsetDataLayers) {
+                         SubsetDataLayers *subsetDataLayers)
+    {
         LOG_DEBUG("RvsRefDatasets::mapWriteDataset(): ENTER groupname: "
                   << groupname);
 
@@ -57,17 +61,22 @@ class RvsRefDatasets {
         indataset.read(inData, indataset.getDataType());
         int index = 0;
         // copy index from the input file according to indexes
-        if (indexes->segments.empty()) {
-            for (int i = indexes->minIndexStart; i < indexes->maxIndexEnd;
-                 i++) {
+        if (indexes->segments.empty())
+        {
+            for (int i = indexes->minIndexStart; i < indexes->maxIndexEnd; i++)
+            {
                 indexRef[index] = inData[i];
                 index++;
             }
-        } else {
+        }
+        else
+        {
             for (std::map<long, long>::iterator it = indexes->segments.begin();
                  it != indexes->segments.end();
-                 it++) {
-                for (int i = it->first; i < (it->first + it->second); i++) {
+                 it++)
+            {
+                for (int i = it->first; i < (it->first + it->second); i++)
+                {
                     indexRef[index] = inData[i];
                     index++;
                 }
@@ -85,7 +94,8 @@ class RvsRefDatasets {
         long start = 0, length = 0, end = 0, prevLength = 0;
 
         // if only temporal constraint is specified
-        if (targetIndexes->segments.empty()) {
+        if (targetIndexes->segments.empty())
+        {
             start = (targetIndexes->minIndexStart) + 1;
             end = targetIndexes->maxIndexEnd;
             length = end - start;
@@ -95,21 +105,27 @@ class RvsRefDatasets {
             targetIndexes->segments.begin();
 
         // walk through the subsetted index and targetIndexes
-        for (int i = 0; i < subsettedSize; i++) {
+        for (int i = 0; i < subsettedSize; i++)
+        {
             // if indexRef is 0 or -1, copy over
-            if (indexRef[i] == 0 || indexRef[i] == -1) {
+            if (indexRef[i] == 0 || indexRef[i] == -1)
+            {
                 newIndexRef[i] = indexRef[i];
                 continue;
             }
 
             // if spatial constraint is specified
-            if (!targetIndexes->segments.empty()) {
+            if (!targetIndexes->segments.empty())
+            {
                 for (std::map<long, long>::iterator it = startIter;
                      it != targetIndexes->segments.end();
-                     it++) {
+                     it++)
+                {
                     if (indexRef[i] > it->first &&
-                        indexRef[i] <= (it->first + it->second + 1)) {
-                        if (start != (it->first) + 1) {
+                        indexRef[i] <= (it->first + it->second + 1))
+                    {
+                        if (start != (it->first) + 1)
+                        {
                             startIter = it;
                             start = (it->first) + 1;
                             length = it->second;
@@ -124,7 +140,8 @@ class RvsRefDatasets {
                             it--;
                             prevLength = it->second;
                             diffIndex = true;
-                        } else
+                        }
+                        else
                             diffIndex = false;
                         break;
                     }
@@ -135,7 +152,8 @@ class RvsRefDatasets {
             // calculate offset if first index does not equal to start of the
             // (start, length) pair in targetIndexes
             if (prevOldLocation == 0 &&
-                startIter == targetIndexes->segments.begin()) {
+                startIter == targetIndexes->segments.begin())
+            {
                 location = indexRef[i] - (start - 1);
                 if (indexRef[i] != start)
                     offset = indexRef[i] - start;
@@ -143,12 +161,14 @@ class RvsRefDatasets {
             // anything other than first index
             // offset = index - previous index
             // new index = previous new index + offset
-            else {
+            else
+            {
                 offset = indexRef[i] - prevOldLocation;
                 location = prevLocation + offset;
                 // diffIndex - index is in a different (start, length) pair than
                 // the previous index reference
-                if (diffIndex) {
+                if (diffIndex)
+                {
                     offset = indexRef[i] - start;
                     location = prevLocation + (prevLength - count) + offset;
                     count = 0;
