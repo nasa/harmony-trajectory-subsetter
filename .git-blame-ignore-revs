@@ -3,3 +3,7 @@
 
 # Applying pre-commit white space clean-up to whole repository.
 0eacb38e8ff01d997fb0c2a50a0cde58e5483ca6
+
+# Applying ruff and clang format to pre-commit for reformating both
+# Python and C++ code.
+bea80736d32e68d2ec8f296dd4d3b880e675c8d4
