@@ -6,6 +6,7 @@
 name: trajectory-subsetter-local-dev
 channels:
   - conda-forge
+  - nodefaults
 dependencies:
   - compilers
   - hdf5==1.14.2
