@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Updated internal python dependencies to mitigate urllib3 vulnerabilities CVE-2025-66471 and CVE-2025-66418.
+- Updates internal python dependencies to mitigate urllib3 vulnerabilities CVE-2025-66471 and CVE-2025-66418.
 
 
 ## [v1.0.2] - 2025-11-20
