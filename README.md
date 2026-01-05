@@ -8,6 +8,11 @@ Harmony Segmented Trajectory Subsetter.
 This repository contains a number of subdirectories:
 ( See https://wiki.earthdata.nasa.gov/x/CwdoDQ )
 
+* .snyk - A file used by the Snyk webhook to ensure the correct version of
+  Python is used when installing the full dependency tree for the project. This
+  file is duplicated in each directory that contains a requirements
+  file. (`./docs`, `./tests`, `./harmony_service`) **This file, and all copies, must be updated when
+  the version of Python is updated in the service Docker image.**
 * `bin` - A directory containing scripts used to build docker images and tests.
 * `subsetter` - A directory containing  C++ code to build subset binary file (DAS-1252).
 * `docker` - A directory containing Dockerfiles for creation images for Harmony service and test.
