@@ -94,12 +94,6 @@ class Subsetter
             this->shortName = collShortName;
             LOG_INFO("Subsetter::subset(): shortname: " << collShortName);
         }
-        else if (this->shortName.empty() && collShortName.empty())
-        {
-            LOG_DEBUG(
-                "Subsetter::subset(): ERROR: The short name could not be retrieved \
-                        from the collection or was not defined in the command line arguments");
-        }
 
         // Update epoch time if it's configured for this product,
         // otherwise return an empty string.

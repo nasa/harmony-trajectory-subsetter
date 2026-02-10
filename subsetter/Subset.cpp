@@ -123,8 +123,10 @@ int main(int argc, char *argv[])
         else if (shortname.empty() && collShortName.empty())
         {
             LOG_ERROR(
-                "Subset::main(): ERROR: The short name could not be retrieved \
-                        from the collection or was not defined in the command line arguments");
+                "Subset::main(): ERROR: The short name could not be retrieved "
+                "from the collection or was not defined in the command line "
+                "arguments.");
+            throw std::runtime_error("Short name not found.");
         }
 
         std::string mission = config->getMissionFromShortName(shortname);
@@ -200,8 +202,8 @@ int main(int argc, char *argv[])
     }
     catch (std::exception &e)
     {
-        LOG_ERROR("\nSubset::main(): ERROR: caught std::exception "
-                  << e.what());
+        LOG_ERROR(
+            "\nSubset::main(): ERROR: caught std::exception: " << e.what());
         return -1;
     }
     catch (...)
