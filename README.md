@@ -202,7 +202,7 @@ To enable these checks:
 
 ```bash
 # Install pre-commit Python package:
-pip install -r pre-commit
+pip install pre-commit
 
 # Install the git hook scripts:
 pre-commit install
