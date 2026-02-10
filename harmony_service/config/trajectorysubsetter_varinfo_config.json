@@ -8,6 +8,7 @@
     "/METADATA/DatasetIdentification/shortName",
     "/Metadata/SeriesIdentification/shortName",
     "/METADATA/SeriesIdentification/shortName",
+    "/metadata/DatasetIdentification/shortName",
     "/HDF5_GLOBAL/id",
     "/NC_GLOBAL/id",
     "short_name",
