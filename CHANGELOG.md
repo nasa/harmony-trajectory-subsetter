@@ -5,10 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [unreleased] -
+## [v1.0.4] - 2026-02-10
 
 ### Changed
 
+- Adds new short name path to `trajectorysubsetter_varinfo_config.json` from
+  the latest version of ATL24.
+- Throws an exception when no short name can be found.
 - Copies .snyk alongside each of the tested requirements files.
 
 ## [v1.0.3] - 2025-12-15
