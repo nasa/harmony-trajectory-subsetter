@@ -1,9 +1,14 @@
 {
     "ShortNamePath": [
-        "/short_name/",
+        "/Metadata/DatasetIdentification/shortName/",
         "/METADATA/DatasetIdentification/shortName/",
         "/METADATA/DatasetIdentification/shortName",
-        "/Metadata/DatasetIdentification/shortName/"
+        "/Metadata/SeriesIdentification/shortName",
+        "/METADATA/SeriesIdentification/shortName",
+        "/metadata/DatasetIdentification/shortName",
+        "/metadata/DatasetIdentification/shortName/",
+        "/short_name/",
+        "/ShortName/"
     ],
     "Missions": {
         "ATL[\\d]{2}": "ICESAT",
