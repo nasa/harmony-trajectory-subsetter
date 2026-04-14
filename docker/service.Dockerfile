@@ -69,7 +69,7 @@ RUN conda create -y --name trajectorysubsetter python=3.11 -q \
 # Copy additional Pip dependencies into the container
 COPY harmony_service/pip_requirements.txt harmony_service/pip_requirements.txt
 # Install additional Pip dependencies
-RUN conda run --name trajectorysubsetter pip install --no-input -r harmony_service/pip_requirements.txt
+RUN conda run --name trajectorysubsetter pip install --no-input --no-cache-dir -r harmony_service/pip_requirements.txt
 # Bundle app source
 COPY ./harmony_service harmony_service
 # Set conda environment to trajectorysubsetter, as conda run will not stream logging.

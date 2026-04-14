@@ -1,0 +1,9 @@
+# Exclude everything not needed by service.Dockerfile
+*
+
+# Builder stage
+!subsetter/
+
+# Runtime stage
+!harmony_service/
+!docker/service_version.txt
