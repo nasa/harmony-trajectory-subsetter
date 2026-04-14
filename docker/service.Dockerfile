@@ -9,7 +9,7 @@
 # into the Docker image, before environment variables are set to activate the
 # created conda environment.
 #
-FROM rockylinux:8
+FROM rockylinux:8 AS builder
 
 WORKDIR /home
 # Add needed libraries
@@ -21,10 +21,8 @@ RUN dnf -y upgrade && \
         netcdf-devel libaec-devel autogen boost-static mc which && \
     dnf clean all
 
-# Build HDF5-1.8.22 and MINICONDA
+# Build HDF5-1.8.22
 ENV HDF5_URL="https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8/hdf5-1.8.22/src/hdf5-1.8.22.tar.gz"
-ENV MINICONDA="https://repo.anaconda.com/miniconda/Miniconda3-py311_24.4.0-0-Linux-x86_64.sh"
-
 
 RUN set -e && \
   curl -sfSL ${HDF5_URL} > hdf5.tar.gz && \
@@ -32,11 +30,7 @@ RUN set -e && \
   cd hdf5 && ./configure  "--prefix=/home" --disable-shared --enable-cxx --enable-static-exec || { echo "ERROR: Configure failed"; exit 1; } && \
   make || { echo "ERROR: Make failed"; exit 1; } && \
   make install || { echo "ERROR: Install failed"; exit 1; } && cd .. && \
-  rm -f hdf5.tar.gz
-
-RUN set -e && \
-  curl -sfSL ${MINICONDA} > miniconda.sh && \
-  bash miniconda.sh -b -p /opt/conda
+  rm -rf hdf5.tar.gz hdf5
 
 COPY subsetter subsetter
 
@@ -44,10 +38,27 @@ WORKDIR /home/subsetter
 # Build binary file "subset" in home directory
 RUN ./makeit_harmony
 
+FROM rockylinux:8
+
 WORKDIR /home
-RUN rm -rf ./subsetter ./hdf5
+# Install runtime shared-library dependencies of the subset binary
+RUN dnf -y upgrade && \
+    dnf -y install epel-release && \
+    dnf config-manager --set-enabled powertools && \
+    dnf -y install libgeotiff libjpeg-turbo proj && \
+    dnf clean all
+
+# Copy compiled binary from the builder stage
+COPY --from=builder /home/subset /home/subset
 
 COPY docker/service_version.txt docker/service_version.txt
+
+# Install MINICONDA
+ENV MINICONDA="https://repo.anaconda.com/miniconda/Miniconda3-py311_24.4.0-0-Linux-x86_64.sh"
+
+RUN set -e && \
+  curl -sfSL ${MINICONDA} > miniconda.sh && \
+  bash miniconda.sh -b -p /opt/conda
 
 # Create Conda environment
 ENV PATH="/opt/conda/bin:$PATH"
