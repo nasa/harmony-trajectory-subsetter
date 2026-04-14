@@ -27,7 +27,7 @@ environment, itself within a Docker container. To recreate the same conda
 environment in a local terminal, use the following commands:
 
 ```bash
-conda create --name trajectory python=3.11 --channel conda-forge \
+conda create --name trajectory python=3.13 --channel conda-forge \
     --channel nodefaults --override-channels -y
 conda activate trajectory
 pip install -r ./harmony_service/pip_requirements.txt
