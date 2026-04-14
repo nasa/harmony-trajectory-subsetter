@@ -1,5 +1,5 @@
 #
-# Service image for sds/trajectory-subsetter, a Harmony backend service subsets
+# Service image for sds/trajectory-subsetter, a Harmony backend service that subsets
 # L2 segmented trajectory data, including variable, bounding box spatial, polygon
 # spatial and temporal subsetting.
 #
@@ -16,9 +16,8 @@ WORKDIR /home
 RUN dnf -y upgrade && \
     dnf -y install epel-release && \
     dnf config-manager --set-enabled powertools && \
-    dnf -y install --skip-broken gcc-c++ make libjpeg-turbo hdf-devel libtool libxslt-devel \
-        file gcc-gfortran redhat-rpm-config libgeotiff-devel java-1.8.0-openjdk-devel  proj-devel \
-        netcdf-devel libaec-devel autogen boost-static mc which && \
+    dnf -y install gcc-c++ make libjpeg-turbo libgeotiff-devel proj-devel \
+        libaec-devel boost-static && \
     dnf clean all
 
 # Build HDF5-1.8.22
