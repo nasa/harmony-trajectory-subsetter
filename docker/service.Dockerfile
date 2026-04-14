@@ -17,19 +17,8 @@ RUN dnf -y upgrade && \
     dnf -y install epel-release && \
     dnf config-manager --set-enabled powertools && \
     dnf -y install gcc-c++ make libjpeg-turbo libgeotiff-devel proj-devel \
-        libaec-devel boost-static && \
+        libaec-devel boost-static hdf5-devel redhat-rpm-config && \
     dnf clean all
-
-# Build HDF5-1.8.22
-ENV HDF5_URL="https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8/hdf5-1.8.22/src/hdf5-1.8.22.tar.gz"
-
-RUN set -e && \
-  curl -sfSL ${HDF5_URL} > hdf5.tar.gz && \
-  mkdir hdf5 && tar xzvf hdf5.tar.gz -C hdf5 --strip-components 1 && \
-  cd hdf5 && ./configure  "--prefix=/home" --disable-shared --enable-cxx --enable-static-exec || { echo "ERROR: Configure failed"; exit 1; } && \
-  make || { echo "ERROR: Make failed"; exit 1; } && \
-  make install || { echo "ERROR: Install failed"; exit 1; } && cd .. && \
-  rm -rf hdf5.tar.gz hdf5
 
 COPY subsetter subsetter
 
@@ -44,7 +33,7 @@ WORKDIR /home
 RUN dnf -y upgrade && \
     dnf -y install epel-release && \
     dnf config-manager --set-enabled powertools && \
-    dnf -y install libgeotiff libjpeg-turbo proj && \
+    dnf -y install libgeotiff libjpeg-turbo proj hdf5 && \
     dnf clean all
 
 # Copy compiled binary from the builder stage
