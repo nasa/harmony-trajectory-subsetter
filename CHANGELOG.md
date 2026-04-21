@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.0.5] - 2026-04-21
+
+### Changed
+
+- Adds a default start or end time for temporal requests that don't specify
+  both start and end bounds. This previously threw an exception.
+
 ## [v1.0.4] - 2026-02-10
 
 ### Changed
@@ -66,6 +73,7 @@ see `legacy-CHANGELOG.md`.
 - On-premises scripts and artefacts for the SDPS system have been removed from
   the repository.
 
+[v1.0.5]: https://github.com/nasa/harmony-trajectory-subsetter/releases/tag/1.0.5
 [v1.0.4]: https://github.com/nasa/harmony-trajectory-subsetter/releases/tag/1.0.4
 [v1.0.3]: https://github.com/nasa/harmony-trajectory-subsetter/releases/tag/1.0.3
 [v1.0.2]: https://github.com/nasa/harmony-trajectory-subsetter/releases/tag/1.0.2
