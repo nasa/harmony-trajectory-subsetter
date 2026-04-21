@@ -118,8 +118,6 @@ Build the source code:
 ./makeit_local_conda
 ```
 
- * Note: If the error "_fatal: destination path 'hdfeos5' already exists..._" is returned, it's likely the library was not fully built. Remove the library altogether and re-build.
-
 A debug environment for both Intel and ARM64 architectures can be
 configured in Visual Studio Code by:
 1. Installing the `CodeLLDB` VS Code

@@ -103,11 +103,7 @@ class GeoPolygon
      */
     bool isEmpty()
     {
-#ifdef SDPS
-        return (boost::geometry::is_empty(polygons)) ? true : false;
-#elif defined HARMONY
         return polygons.empty();
-#endif
     }
 
   private:
