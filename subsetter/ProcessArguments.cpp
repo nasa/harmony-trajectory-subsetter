@@ -273,7 +273,6 @@ int ProcessArguments::setStartEndTemporalParameters(
     boost::match_results<std::string::const_iterator> regex_results;
 
     // Access start and end temporal parameters, if specified.
-    // Either both or none of the parameteres are expected when included.
     if (variables_map.count("start") && variables_map.count("end"))
     {
         startString = variables_map["start"].as<std::string>();
@@ -290,13 +289,6 @@ int ProcessArguments::setStartEndTemporalParameters(
                       "parameter ");
             return ERROR;
         }
-    }
-    else if (variables_map.count("start") || variables_map.count("end"))
-    {
-        LOG_ERROR("Subset::process_args(): ERROR: Invalid temporal parameters, "
-                  "must pass in "
-                  << "both --start and --end parameters");
-        return ERROR;
     }
 
     return PASS;
