@@ -4,6 +4,7 @@ allows finer-grained unit testing of each function.
 
 """
 
+from datetime import datetime
 import json
 from logging import Logger
 from mimetypes import guess_type as guess_mime_type
@@ -11,6 +12,7 @@ from os.path import abspath, dirname, join, splitext
 from subprocess import PIPE, Popen
 from typing import List, Optional
 
+from dateutil import tz
 from dateutil.parser import parse as parse_datetime
 from harmony_service_lib.message import Message
 from harmony_service_lib.message import Variable as HarmonyVariable
@@ -171,7 +173,9 @@ def convert_harmony_datetime(harmony_datetime_str: str) -> str:
     the subsetter binary regular expression does not currently handle.
 
     """
-    return parse_datetime(harmony_datetime_str).strftime("%Y-%m-%dT%H:%M:%S")
+    parsed_datetime = parse_datetime(harmony_datetime_str)
+
+    return parsed_datetime.replace(tzinfo=None).isoformat()
 
 
 def include_support_variables(
@@ -216,3 +220,13 @@ def write_source_variables_to_file(
     ) as variables_file:
         json.dump(data, variables_file)
     return variables_file.name
+
+
+def default_time_start() -> str:
+    """Returns the oldest UTC time to be used as a default starting time."""
+    return datetime.min.isoformat()
+
+
+def default_time_end() -> str:
+    """Returns the current UTC time to be used as a default ending time."""
+    return datetime.now(tz=tz.UTC).strftime("%Y-%m-%dT%H:%M:%S")

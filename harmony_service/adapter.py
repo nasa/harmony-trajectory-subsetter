@@ -44,6 +44,8 @@ from harmony_service.exceptions import NoMatchingData
 from harmony_service.history import update_history_metadata
 from harmony_service.utilities import (
     convert_harmony_datetime,
+    default_time_end,
+    default_time_start,
     execute_command,
     get_file_mimetype,
     include_support_variables,
@@ -174,13 +176,6 @@ class HarmonyAdapter(BaseHarmonyAdapter):
         if self.message.isSynchronous and len(self.message.granules) > 1:
             raise HarmonyException("Synchronous requests accept only one granule.")
 
-        if is_temporal_subset(self.message) and (
-            self.message.temporal.start is None or self.message.temporal.end is None
-        ):
-            raise HarmonyException(
-                "Invalid temporal range, both start and end required."
-            )
-
         if (
             is_polygon_spatial_subset(self.message)
             and self.message.subset.shape.type != "application/geo+json"
@@ -217,8 +212,7 @@ class HarmonyAdapter(BaseHarmonyAdapter):
         * `--start` - The start time of a temporal range, in ISO-8601
           format. This can be a date or a datetime.
         * `--end` - The end time of a temporal range, in ISO-8601 format.
-          This can be a date or a datetime. `--start` and `--end` must
-          either both be provided, or both be omitted from a request.
+          This can be a date or a datetime.
         * `--bbox` - A bounding box of format "[W,S,E,N]".
         * `--boundingshape` - A local file path for a shape file to be used
           for polygon spatial subsetting.
@@ -261,10 +255,10 @@ class HarmonyAdapter(BaseHarmonyAdapter):
 
         if is_temporal_subset(self.message):
             binary_parameters["--start"] = convert_harmony_datetime(
-                self.message.temporal.start
+                self.message.temporal.start or default_time_start()
             )
             binary_parameters["--end"] = convert_harmony_datetime(
-                self.message.temporal.end
+                self.message.temporal.end or default_time_end()
             )
 
         if is_bbox_spatial_subset(self.message):
