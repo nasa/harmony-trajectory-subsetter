@@ -3,11 +3,11 @@
 # L2 segmented trajectory data, including variable, bounding box spatial, polygon
 # spatial and temporal subsetting.
 #
-# This image builds binary file "subset" from C++ code situated in the subsetter
-# directory, instantiates a conda environment, with required packages, before
-# installing additional dependencies via Pip. The service code is then copied
-# into the Docker image, before environment variables are set to activate the
-# created conda environment.
+# This is a multi-stage build (https://docs.docker.com/build/building/multi-stage/).
+# The "builder" stage compiles the C++ subset binary along with its heavy build-time
+# dependencies (HDF5 source, compiler toolchain). The final stage starts from a
+# clean base image and copies only the compiled binary and runtime libraries from
+# the builder, keeping the shipped image lean.
 #
 FROM rockylinux:9 AS builder
 
