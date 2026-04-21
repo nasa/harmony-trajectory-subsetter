@@ -101,10 +101,7 @@ class GeoPolygon
     /**
      * return true if "polygons" is empty
      */
-    bool isEmpty()
-    {
-        return polygons.empty();
-    }
+    bool isEmpty() { return polygons.empty(); }
 
   private:
     /* stores polygon/multi-polygon vertices
