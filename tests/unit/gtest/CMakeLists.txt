@@ -30,6 +30,10 @@ enable_testing()
 # Define some CMake variables for use later in the project
 #-----------------------------------------------------------------------------
 set (SUBSETTER_DIR            ${CMAKE_SOURCE_DIR}/../../../subsetter)
+# CONDA_PREFIX points to the active local-dev conda environment
+# (trajectory-subsetter-local-dev), which is where HDF5 headers and
+# libraries are installed when building tests locally. These tests are
+# not run inside Docker; Docker uses system-installed HDF5 instead.
 set (HDF5_INCLUDE             $ENV{CONDA_PREFIX}/include)
 set (HDF5_LIB                 $ENV{CONDA_PREFIX}/lib)
 
