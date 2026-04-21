@@ -85,7 +85,6 @@ RUN python3.13 -m pip install --no-input --no-cache-dir -r harmony_service/pip_r
 COPY ./harmony_service harmony_service
 
 ENV PYTHONPATH="/home"
-ENV HDF5_USE_FILE_LOCKING=FALSE
 
 # Configure a container to be executable via the `docker run` command.
 ENTRYPOINT ["python", "harmony_service/adapter.py"]
