@@ -3,6 +3,8 @@ from tempfile import TemporaryDirectory
 from unittest import TestCase
 from unittest.mock import Mock, patch
 
+from freezegun import freeze_time
+
 from harmony_service_lib.message import Message
 
 from harmony_service.exceptions import (
@@ -15,6 +17,8 @@ from harmony_service.exceptions import (
 from harmony_service.utilities import (
     VarInfoFromNetCDF4,
     convert_harmony_datetime,
+    default_time_end,
+    default_time_start,
     execute_command,
     get_binary_exception,
     get_file_mimetype,
@@ -267,6 +271,7 @@ class TestUtilities(TestCase):
             message = Message(self.base_message_content)
             self.assertFalse(is_harmony_subset(message, no_variables))
 
+    @freeze_time("2026-05-01 17:15:00 UTC")
     def test_convert_harmony_datetime(self):
         """Ensure a datetime string, as included in a Harmony message, can be
         correctly converted to a format that is compatible with the
@@ -274,15 +279,47 @@ class TestUtilities(TestCase):
         from the content of the Harmony message.
 
         """
-        start_time = "2021-02-03T04:05:06"
-        end_time = "2021-03-04T05:06:07"
-        message_content = self.base_message_content.copy()
-        message_content["temporal"] = {"start": start_time, "end": end_time}
-        message = Message(message_content)
 
-        self.assertEqual(convert_harmony_datetime(message.temporal.start), start_time)
+        def create_message(start_time, end_time):
+            message_content = self.base_message_content.copy()
+            message_content["temporal"] = {"start": start_time, "end": end_time}
+            return Message(message_content)
 
-        self.assertEqual(convert_harmony_datetime(message.temporal.end), end_time)
+        with self.subTest("Both start and end time specified"):
+            start_time = "2021-02-03T04:05:06"
+            end_time = "2021-03-04T05:06:07"
+            message = create_message(start_time, end_time)
+
+            self.assertEqual(
+                convert_harmony_datetime(message.temporal.start), start_time
+            )
+            self.assertEqual(convert_harmony_datetime(message.temporal.end), end_time)
+
+        with self.subTest("No start time specified"):
+            start_time = None
+            end_time = "2021-03-04T05:06:07"
+            message = create_message(start_time, end_time)
+
+            self.assertEqual(
+                convert_harmony_datetime(
+                    message.temporal.start or default_time_start()
+                ),
+                default_time_start(),
+            )
+            self.assertEqual(convert_harmony_datetime(message.temporal.end), end_time)
+
+        with self.subTest("No end time specified"):
+            start_time = "2021-02-03T04:05:06"
+            end_time = None
+            message = create_message(start_time, end_time)
+
+            self.assertEqual(
+                convert_harmony_datetime(message.temporal.start), start_time
+            )
+            self.assertEqual(
+                convert_harmony_datetime(message.temporal.end or default_time_end()),
+                default_time_end(),
+            )
 
 
 class TestIncludeSupportVariables(TestCase):
