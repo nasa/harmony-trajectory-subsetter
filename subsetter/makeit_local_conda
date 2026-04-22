@@ -4,7 +4,6 @@ CURDIR=$(pwd)
 
 ${CONDA_PREFIX}/bin/h5c++ -v -std=c++20 -g \
 -Wno-vla-extension \
--DSDPS \
 -DH5_USE_18_API \
 -Og \
 -lgeotiff \

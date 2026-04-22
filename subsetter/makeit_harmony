@@ -1,5 +1,6 @@
-/home/bin/h5c++ -v -std=c++14 -g \
+/usr/local/bin/h5c++ -v -std=c++14 -g \
 -DHARMONY \
+-DH5_USE_18_API \
 -Wno-vla-extension \
 -L/usr/lib64 \
 -I/usr/include \

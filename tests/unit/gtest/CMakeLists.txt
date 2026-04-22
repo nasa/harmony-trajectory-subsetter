@@ -8,7 +8,7 @@
 # Google tests define variables
 #-----------------------------------------------------------------------------
 cmake_minimum_required(VERSION 3.14)
-project(my_project)
+project(harmony_trajectory_subsetter)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -30,17 +30,19 @@ enable_testing()
 # Define some CMake variables for use later in the project
 #-----------------------------------------------------------------------------
 set (SUBSETTER_DIR            ${CMAKE_SOURCE_DIR}/../../../subsetter)
-set (HDFEOS5_INCLUDE          ${SUBSETTER_DIR}/hdfeos5/include)
-set (HDFEOS5_LIB              ${SUBSETTER_DIR}/hdfeos5/lib)
-set (HDF5_INCLUDE             ${CONDA_PREFIX}/include)
-set (HDF5_LIB                 ${CONDA_PREFIX}/lib)
+# CONDA_PREFIX points to the active local-dev conda environment
+# (trajectory-subsetter-local-dev), which is where HDF5 headers and
+# libraries are installed when building tests locally. These tests are
+# not run inside Docker; Docker uses system-installed HDF5 instead.
+set (HDF5_INCLUDE             $ENV{CONDA_PREFIX}/include)
+set (HDF5_LIB                 $ENV{CONDA_PREFIX}/lib)
 
 #-----------------------------------------------------------------------------
 # Define compile options, include, and libraries to link in the project
 #-----------------------------------------------------------------------------
-add_compile_options(-v -DSDPS -DH5_USE_18_API -Og -Wno-vla-extension)
-include_directories(${HDFEOS5_INCLUDE} ${HDF5_INCLUDE})
-link_directories(${HDFEOS5_LIB} ${HDF5_LIB})
+add_compile_options(-DH5_USE_18_API -Og -Wno-vla-extension)
+include_directories(${HDF5_INCLUDE})
+link_directories(${HDF5_LIB})
 
 include(GoogleTest)
 

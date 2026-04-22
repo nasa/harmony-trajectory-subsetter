@@ -101,14 +101,7 @@ class GeoPolygon
     /**
      * return true if "polygons" is empty
      */
-    bool isEmpty()
-    {
-#ifdef SDPS
-        return (boost::geometry::is_empty(polygons)) ? true : false;
-#elif defined HARMONY
-        return polygons.empty();
-#endif
-    }
+    bool isEmpty() { return polygons.empty(); }
 
   private:
     /* stores polygon/multi-polygon vertices

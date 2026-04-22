@@ -1,84 +1,90 @@
 #
-# Service image for sds/trajectory-subsetter, a Harmony backend service subsets
+# Service image for sds/trajectory-subsetter, a Harmony backend service that subsets
 # L2 segmented trajectory data, including variable, bounding box spatial, polygon
 # spatial and temporal subsetting.
 #
-# This image builds binary file "subset" from C++ code situated in the subsetter
-# directory, instantiates a conda environment, with required packages, before
-# installing additional dependencies via Pip. The service code is then copied
-# into the Docker image, before environment variables are set to activate the
-# created conda environment.
+# This is a multi-stage build (https://docs.docker.com/build/building/multi-stage/).
+# The "builder" stage compiles the C++ subset binary along with its heavy build-time
+# dependencies (HDF5 source, compiler toolchain). The final stage starts from a
+# clean base image and copies only the compiled binary and runtime libraries from
+# the builder, keeping the shipped image lean.
 #
-FROM rockylinux:8
+FROM rockylinux:9 AS builder
 
-WORKDIR /home
+WORKDIR /tmp/build
 # Add needed libraries
 RUN dnf -y upgrade && \
     dnf -y install epel-release && \
-    dnf config-manager --set-enabled powertools && \
-    dnf -y install --skip-broken gcc-c++ make libjpeg-turbo hdf-devel libtool libxslt-devel \
-        file gcc-gfortran redhat-rpm-config libgeotiff-devel java-1.8.0-openjdk-devel  proj-devel \
-        netcdf-devel libaec-devel autogen boost-static mc which && \
+    dnf config-manager --set-enabled crb && \
+    dnf -y install gcc-c++ make libjpeg-turbo libgeotiff-devel proj-devel \
+        libaec-devel boost-static redhat-rpm-config wget zlib-devel && \
     dnf clean all
 
-# Build HDF5-1.8.22 and MINICONDA
-ENV HDF5_URL="https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8/hdf5-1.8.22/src/hdf5-1.8.22.tar.gz"
-ENV MINICONDA="https://repo.anaconda.com/miniconda/Miniconda3-py311_24.4.0-0-Linux-x86_64.sh"
+# Build HDF5 from source.
+# 1.14.6 is the latest 1.14.x patch release; it is >= 1.14.4-2 (satisfying the
+# vulnerability-fix requirement) and avoids the UTF-8 filename regression that
+# shipped in 1.14.4 and 1.14.5.
+# --prefix=/usr/local so the install lands in a standard Unix location that
+# Rocky's default ld.so.conf already searches.
+# --disable-sharedlib-rpath stops h5c++ from embedding an RPATH of
+# /usr/local/lib into the compiled binary; we rely on ldconfig at runtime.
+ARG HDF5_VERSION=1.14.6
+RUN wget "https://github.com/HDFGroup/hdf5/releases/download/hdf5_${HDF5_VERSION}/hdf5-${HDF5_VERSION}.tar.gz" && \
+    tar xzf "hdf5-${HDF5_VERSION}.tar.gz" && \
+    cd "hdf5-${HDF5_VERSION}" && \
+    ./configure \
+        --prefix=/usr/local \
+        --enable-shared \
+        --enable-cxx \
+        --enable-hl \
+        --disable-sharedlib-rpath \
+        --disable-tests \
+        --disable-tools && \
+    make -j"$(nproc)" && \
+    make install && \
+    cd / && \
+    rm -rf /tmp/build
 
-
-RUN set -e && \
-  curl -sfSL ${HDF5_URL} > hdf5.tar.gz && \
-  mkdir hdf5 && tar xzvf hdf5.tar.gz -C hdf5 --strip-components 1 && \
-  cd hdf5 && ./configure  "--prefix=/home" --disable-shared --enable-cxx --enable-static-exec || { echo "ERROR: Configure failed"; exit 1; } && \
-  make || { echo "ERROR: Make failed"; exit 1; } && \
-  make install || { echo "ERROR: Install failed"; exit 1; } && cd .. && \
-  rm -f hdf5.tar.gz
-
-RUN set -e && \
-  curl -sfSL ${MINICONDA} > miniconda.sh && \
-  bash miniconda.sh -b -p /opt/conda
-
-COPY subsetter subsetter
+COPY subsetter /home/subsetter
 
 WORKDIR /home/subsetter
 # Build binary file "subset" in home directory
 RUN ./makeit_harmony
 
+FROM rockylinux:9
+
 WORKDIR /home
-RUN rm -rf ./subsetter ./hdf5
+# Install runtime shared-library dependencies of the subset binary.
+# libaec provides libsz.so.2, which HDF5 links against when built with
+# libaec-devel present in the builder stage.
+RUN dnf -y upgrade && \
+    dnf -y install epel-release && \
+    dnf config-manager --set-enabled crb && \
+    dnf -y install libgeotiff libjpeg-turbo proj libaec python3.13 && \
+    dnf clean all && \
+    python3.13 -m ensurepip --upgrade && \
+    ln -s /usr/bin/python3.13 /usr/bin/python && \
+    ln -s /usr/local/bin/pip3.13 /usr/bin/pip
+
+# Copy the HDF5 install tree from the builder. Using /usr/local/lib (not a
+# glob) preserves soname symlinks and keeps the runtime paths identical to
+# the build-time paths, so no RPATH or LD_LIBRARY_PATH tricks are needed.
+COPY --from=builder /usr/local/lib/ /usr/local/lib/
+RUN ldconfig
+
+# Copy compiled binary from the builder stage
+COPY --from=builder /home/subset /home/subset
 
 COPY docker/service_version.txt docker/service_version.txt
-
-# Create Conda environment
-ENV PATH="/opt/conda/bin:$PATH"
-
-RUN conda config --remove channels defaults
-RUN conda create -y --name trajectorysubsetter python=3.11 -q \
-    --channel conda-forge --channel nodefaults
 
 # Copy additional Pip dependencies into the container
 COPY harmony_service/pip_requirements.txt harmony_service/pip_requirements.txt
 # Install additional Pip dependencies
-RUN conda run --name trajectorysubsetter pip install --no-input -r harmony_service/pip_requirements.txt
+RUN python3.13 -m pip install --no-input --no-cache-dir -r harmony_service/pip_requirements.txt
 # Bundle app source
 COPY ./harmony_service harmony_service
-# Set conda environment to trajectorysubsetter, as conda run will not stream logging.
-# Setting these environment variables is the equivalent of `conda activate`.
-# The PYTHONPATH environment variable is also included to ensure the correct
-# import paths are available to the service when invoking via the command line.
-ENV _CE_CONDA='' \
-    _CE_M='' \
-    CONDA_DEFAULT_ENV=trajectorysubsetter \
-    CONDA_EXE=/opt/conda/bin/conda \
-    CONDA_PREFIX=/opt/conda/envs/trajectorysubsetter \
-    CONDA_PREFIX_1=/opt/conda \
-    CONDA_PROMPT_MODIFIER=(trajectorysubsetter) \
-    CONDA_PYTHON_EXE=/opt/conda/bin/python \
-    CONDA_ROOT=/opt/conda \
-    CONDA_SHLVL=2 \
-    PATH="/opt/conda/envs/trajectorysubsetter/bin:${PATH}" \
-    SHLVL=1 \
-    PYTHONPATH="/home"
+
+ENV PYTHONPATH="/home"
 
 # Configure a container to be executable via the `docker run` command.
-ENTRYPOINT service: ["python", "harmony_service/adapter.py"]
+ENTRYPOINT ["python", "harmony_service/adapter.py"]
