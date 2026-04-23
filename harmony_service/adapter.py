@@ -210,9 +210,11 @@ class HarmonyAdapter(BaseHarmonyAdapter):
           request specifies a subset of variables to include in the output.
           Otherwise, all variables will be returned.
         * `--start` - The start time of a temporal range, in ISO-8601
-          format. This can be a date or a datetime.
+          format. This can be a date or a datetime. If a temporal request
+          doesn't include a start time, a default start time is used.
         * `--end` - The end time of a temporal range, in ISO-8601 format.
-          This can be a date or a datetime.
+          This can be a date or a datetime. If a temporal request
+          doesn't include an end time, a default end time is used.
         * `--bbox` - A bounding box of format "[W,S,E,N]".
         * `--boundingshape` - A local file path for a shape file to be used
           for polygon spatial subsetting.

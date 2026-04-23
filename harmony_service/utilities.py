@@ -4,7 +4,7 @@ allows finer-grained unit testing of each function.
 
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 import json
 from logging import Logger
 from mimetypes import guess_type as guess_mime_type
@@ -12,7 +12,6 @@ from os.path import abspath, dirname, join, splitext
 from subprocess import PIPE, Popen
 from typing import List, Optional
 
-from dateutil import tz
 from dateutil.parser import parse as parse_datetime
 from harmony_service_lib.message import Message
 from harmony_service_lib.message import Variable as HarmonyVariable
@@ -229,4 +228,4 @@ def default_time_start() -> str:
 
 def default_time_end() -> str:
     """Returns the current UTC time to be used as a default ending time."""
-    return datetime.now(tz=tz.UTC).strftime("%Y-%m-%dT%H:%M:%S")
+    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S")
