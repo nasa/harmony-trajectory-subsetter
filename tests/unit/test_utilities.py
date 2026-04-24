@@ -18,7 +18,7 @@ from harmony_service.utilities import (
     VarInfoFromNetCDF4,
     convert_harmony_datetime,
     default_time_end,
-    default_time_start,
+    DEFAULT_TIME_START,
     execute_command,
     get_binary_exception,
     get_file_mimetype,
@@ -301,10 +301,8 @@ class TestUtilities(TestCase):
             message = create_message(start_time, end_time)
 
             self.assertEqual(
-                convert_harmony_datetime(
-                    message.temporal.start or default_time_start()
-                ),
-                default_time_start(),
+                convert_harmony_datetime(message.temporal.start or DEFAULT_TIME_START),
+                DEFAULT_TIME_START,
             )
             self.assertEqual(convert_harmony_datetime(message.temporal.end), end_time)
 

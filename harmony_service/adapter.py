@@ -45,7 +45,7 @@ from harmony_service.history import update_history_metadata
 from harmony_service.utilities import (
     convert_harmony_datetime,
     default_time_end,
-    default_time_start,
+    DEFAULT_TIME_START,
     execute_command,
     get_file_mimetype,
     include_support_variables,
@@ -257,7 +257,7 @@ class HarmonyAdapter(BaseHarmonyAdapter):
 
         if is_temporal_subset(self.message):
             binary_parameters["--start"] = convert_harmony_datetime(
-                self.message.temporal.start or default_time_start()
+                self.message.temporal.start or DEFAULT_TIME_START
             )
             binary_parameters["--end"] = convert_harmony_datetime(
                 self.message.temporal.end or default_time_end()

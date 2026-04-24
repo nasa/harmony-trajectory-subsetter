@@ -47,6 +47,10 @@ TRAJECTORY_SUBSETTER_VARINFO_CONFIG = join(
     dirname(abspath(__file__)), "config", "trajectorysubsetter_varinfo_config.json"
 )
 
+# The binary uses Boost to process input start and end times,
+# and Boost doesn't support dates before the year 1400.
+DEFAULT_TIME_START = "1400-01-01T00:00:00"
+
 
 def get_file_mimetype(file_name: str) -> Optional[str]:
     """This function tries to infer the MIME type of a file string. If the
@@ -219,11 +223,6 @@ def write_source_variables_to_file(
     ) as variables_file:
         json.dump(data, variables_file)
     return variables_file.name
-
-
-def default_time_start() -> str:
-    """Returns the oldest UTC time to be used as a default starting time."""
-    return datetime.min.isoformat()
 
 
 def default_time_end() -> str:
