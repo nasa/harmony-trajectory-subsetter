@@ -50,7 +50,7 @@ TEST_F(ForwardReferenceCoordinatesTest, DefineOneSegment_start_nonFV_end_nonFV)
 {
     // Segment data generated from bounding box {-60,24,-55,26}.
     long selectedStartIdx = 5538;
-    long selectedCount = 1;
+    long selectedCount = 2;
     long maxIndexBegIdx = 149697;
     long maxTrajIndex = 3219960;
 
@@ -100,7 +100,7 @@ TEST_F(ForwardReferenceCoordinatesTest, DefineOneSegment_start_nonFV_end_FVall)
 {
     // Segment data generated from bounding box {-62,-2,60,25}.
     long selectedStartIdx = 11092;
-    long selectedCount = 1;
+    long selectedCount = 2;
     long maxIndexBegIdx = 149697;
     long maxTrajIndex = 3219960;
 

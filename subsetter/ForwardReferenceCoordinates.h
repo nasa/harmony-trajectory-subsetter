@@ -227,7 +227,7 @@ class ForwardReferenceCoordinates : public Coordinate
                         int64_t indexBegDataset[])
     {
         // skip over segment-begin (start) fill values
-        for (long i = segStartIdx; i <= segEndIdx; i++)
+        for (long i = segStartIdx; i < segEndIdx; i++)
         {
             if (indexBegDataset[i] > 0)
             {
@@ -372,6 +372,16 @@ class ForwardReferenceCoordinates : public Coordinate
         long lastCount =
             nextTrajIndex - lastTrajIndex; // Doesn't include next index
         trajSegLength = allExceptLastCount + lastCount;
+
+        // Set the length of the trajectory segment to last non-fill indexBeg index
+        // if trajSegLength is negative
+        if(trajSegLength < 0)
+        {
+            LOG_DEBUG("ForwardReferenceCoordinates::defineOneSegment(): trajSegLength:"
+                << trajSegLength << " < 0, setting to last non-fill indexBeg:"
+                << lastBegIdx);
+            trajSegLength = lastBegIdx;
+        }
     }
 
   private:
