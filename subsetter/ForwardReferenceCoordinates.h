@@ -373,13 +373,15 @@ class ForwardReferenceCoordinates : public Coordinate
             nextTrajIndex - lastTrajIndex; // Doesn't include next index
         trajSegLength = allExceptLastCount + lastCount;
 
-        // Set the length of the trajectory segment to last non-fill indexBeg index
-        // if trajSegLength is negative
-        if(trajSegLength < 0)
+        // Set the length of the trajectory segment to last non-fill indexBeg
+        // index if trajSegLength is negative
+        if (trajSegLength < 0)
         {
-            LOG_DEBUG("ForwardReferenceCoordinates::defineOneSegment(): trajSegLength:"
-                << trajSegLength << " < 0, setting to last non-fill indexBeg:"
-                << lastBegIdx);
+            LOG_DEBUG("ForwardReferenceCoordinates::defineOneSegment(): "
+                      "trajSegLength:"
+                      << trajSegLength
+                      << " < 0, setting to last non-fill indexBeg:"
+                      << lastBegIdx);
             trajSegLength = lastBegIdx;
         }
     }
