@@ -139,3 +139,10 @@ swotrepr.iml
 
 # Cloned and built library for hdfeos5 for local conda build.
 **hdfeos5/
+
+subsetter/*.h5
+subsetter/*.nc*
+subsetter/*.csv
+subsetter/subset
+subsetter/utfile
+.vscode/*
