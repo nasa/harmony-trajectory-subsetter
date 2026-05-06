@@ -363,11 +363,13 @@ class ForwardReferenceCoordinates : public Coordinate
                        nextBegIdx,
                        indexBegDataset);
 
-        // If nextTrajIndex is 0, there are no more valid segments ahead. 
-        // This means we cap the segment at the trajectory index of the last valid segment.
+        // If nextTrajIndex is 0, there are no more valid segments ahead.
+        // This means we cap the segment at the trajectory index of the last
+        // valid segment.
         if (nextTrajIndex == 0)
         {
-            // Set the trajectory length directly to the last non-fill trajectory value
+            // Set the trajectory length directly to the last non-fill
+            // trajectory value
             trajSegLength = lastTrajIndex;
             LOG_DEBUG("ForwardReferenceCoordinates::defineOneSegment(): "
                       "nextTrajIndex == 0, setting to last non-fill value:"
@@ -375,12 +377,12 @@ class ForwardReferenceCoordinates : public Coordinate
         }
         else
         {
-            // We need to calculate the length of the last segment in the selection
-            // since we can't use the count dataset.
-            // We don't subtract 1 from either count calculation because
-            // neither include the greater value.
-            long allExceptLastCount = lastTrajIndex - firstTrajIndex; 
-            long lastCount = nextTrajIndex - lastTrajIndex; 
+            // We need to calculate the length of the last segment in the
+            // selection since we can't use the count dataset. We don't subtract
+            // 1 from either count calculation because neither include the
+            // greater value.
+            long allExceptLastCount = lastTrajIndex - firstTrajIndex;
+            long lastCount = nextTrajIndex - lastTrajIndex;
             trajSegLength = allExceptLastCount + lastCount;
         }
     }
