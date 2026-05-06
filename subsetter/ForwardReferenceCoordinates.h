@@ -363,26 +363,25 @@ class ForwardReferenceCoordinates : public Coordinate
                        nextBegIdx,
                        indexBegDataset);
 
-        // We need to calculate the length of the last segment in the selection
-        // since we can't use the count dataset.
-        // We don't subtract 1 from either count calculation because
-        // neither include the greater value.
-        long allExceptLastCount =
-            lastTrajIndex - firstTrajIndex; // Doesn't include last index
-        long lastCount =
-            nextTrajIndex - lastTrajIndex; // Doesn't include next index
-        trajSegLength = allExceptLastCount + lastCount;
-
-        // Set the length of the trajectory segment to last non-fill indexBeg
-        // index if trajSegLength is negative
-        if (trajSegLength < 0)
+        // If nextTrajIndex is 0, there are no more valid segments ahead. 
+        // This means we cap the segment at the trajectory index of the last valid segment.
+        if (nextTrajIndex == 0)
         {
+            // Set the trajectory length directly to the last non-fill trajectory value
+            trajSegLength = lastTrajIndex;
             LOG_DEBUG("ForwardReferenceCoordinates::defineOneSegment(): "
-                      "trajSegLength:"
-                      << trajSegLength
-                      << " < 0, setting to last non-fill indexBeg:"
-                      << lastBegIdx);
-            trajSegLength = lastBegIdx;
+                      "nextTrajIndex == 0, setting to last non-fill value:"
+                      << lastTrajIndex);
+        }
+        else
+        {
+            // We need to calculate the length of the last segment in the selection
+            // since we can't use the count dataset.
+            // We don't subtract 1 from either count calculation because
+            // neither include the greater value.
+            long allExceptLastCount = lastTrajIndex - firstTrajIndex; 
+            long lastCount = nextTrajIndex - lastTrajIndex; 
+            trajSegLength = allExceptLastCount + lastCount;
         }
     }
 
