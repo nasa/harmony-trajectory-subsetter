@@ -146,12 +146,13 @@ TEST_F(ForwardReferenceCoordinatesTest, DefineOneSegment_start_FVall_end_nonFV)
     EXPECT_EQ(trajSegLength_expected, trajSegLength_result);
 }
 
-TEST_F(ForwardReferenceCoordinatesTest, DefineOneSegment_TrailingFillValues_HitsMaxTraj)
+TEST_F(ForwardReferenceCoordinatesTest,
+       DefineOneSegment_TrailingFillValues_HitsMaxTraj)
 {
     // Simulate a dataset with trailing fill values (-1)
     // Indexes:            0   1    2    3    4    5   6
     int64_t mock_data[] = {10, 50, 100, 150, 200, -1, -1};
-    
+
     long selectedStartIdx = 3;
     long selectedCount = 2;
 
@@ -162,10 +163,10 @@ TEST_F(ForwardReferenceCoordinatesTest, DefineOneSegment_TrailingFillValues_Hits
     // Expected: The first trajectory index is at mock_data[3]
     long firstTrajIndex_expected = 150;
     long firstTrajIndex_result = 0; // Returned-by-reference
-    
+
     // Expected length: Since nextTrajIndex will be 0, the new logic executes:
-    long trajSegLength_expected = maxTrajIndex;    
-    long trajSegLength_result = 0;  // Returned-by-reference
+    long trajSegLength_expected = maxTrajIndex;
+    long trajSegLength_result = 0; // Returned-by-reference
 
     coordinate_object->defineOneSegment(selectedStartIdx,
                                         selectedCount,
