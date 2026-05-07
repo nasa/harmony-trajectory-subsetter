@@ -54,7 +54,7 @@ class IcesatSubsetter : public Subsetter
         // segment_ph_cnt
 
         H5::H5File infile = getInputFile();
-        if (indexes != NULL && indexes->getMaxSize() != indexes->size() &&
+        if (indexes != NULL &&
             indexes->size() != 0 &&
             config->isSegmentGroup(this->getShortName(), groupname) &&
             config->getIndexBeginDatasetName(
@@ -106,8 +106,6 @@ class IcesatSubsetter : public Subsetter
         }
         // write index begin for ATL10 if it has been subsetted
         else if (indexes != NULL &&
-                 (indexes->getMaxSize() != indexes->size() ||
-                  indexes->size() == 1) &&
                  indexes->size() != 0 &&
                  (config->isLeadsGroup(this->getShortName(), groupname) ||
                   config->isFreeboardSwathSegmentGroup(this->getShortName(),
