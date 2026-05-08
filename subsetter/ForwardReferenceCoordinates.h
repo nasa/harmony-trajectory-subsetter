@@ -407,8 +407,8 @@ class ForwardReferenceCoordinates : public Coordinate
             // index.
             trajSegLength = maxTrajIndex;
             LOG_DEBUG("ForwardReferenceCoordinates::defineOneSegment(): "
-                      "nextTrajIndex == 0, setting to last non-fill value:"
-                      << lastTrajIndex);
+                      "nextTrajIndex == 0, setting to maximum trajectory index:"
+                      << maxTrajIndex);
         }
         else
         {
