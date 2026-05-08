@@ -9,11 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Handled the edge case of a negative trajSegLength by falling back to the
-  last non-fill index (lastBegIdx).
-- Updated the loop condition to i < segEndIdx (instead of <= segEndIdx) to
-  prevent an out-of-bounds buffer bad access error that occurs when attempting
-  to read the value at the very last index.
+- Fixed an edge case where trailing fill values (-1) at the end of the dataset caused
+  negative segment lengths due to the absence of further valid segments.
 
 ## [v1.0.6] - 2026-04-21
 
