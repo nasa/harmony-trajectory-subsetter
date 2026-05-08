@@ -215,8 +215,6 @@ class ForwardReferenceCoordinates : public Coordinate
      *
      * @param segStartIdx     The start index of the input segment.
      * @param segEndIdx       The end index of the input segment.
-     * @param maxIndexBegIdx   The final index of the entire indexBeg
-     *                         dataset.
      * @param firstTrajIndex  The trajectory index with the first non-fill
      *                        indexBeg value.
      * @param firstNonFillIdx The first non-fill indexBeg index.
@@ -224,7 +222,6 @@ class ForwardReferenceCoordinates : public Coordinate
      */
     void scanFwdNonFill(long segStartIdx,
                         long segEndIdx,
-                        long maxIndexBegIdx,
                         long &firstTrajIndex,
                         long &firstNonFillIdx,
                         int64_t indexBegDataset[])
@@ -232,9 +229,6 @@ class ForwardReferenceCoordinates : public Coordinate
         // skip over segment-begin (start) fill values
         for (long i = segStartIdx; i <= segEndIdx; i++)
         {
-            if (i == maxIndexBegIdx)
-                break;
-
             if (indexBegDataset[i] > 0)
             {
                 firstNonFillIdx = i;
@@ -355,7 +349,6 @@ class ForwardReferenceCoordinates : public Coordinate
         // Step forwards to find first non-fill index begin segment.
         scanFwdNonFill(selectedStartIdx,
                        lastSelectedIdx,
-                       maxIndexBegIdx,
                        firstTrajIndex,
                        firstIdxNonFill,
                        indexBegDataset);
@@ -402,7 +395,6 @@ class ForwardReferenceCoordinates : public Coordinate
                                 // selected segment.
 
         scanFwdNonFill(lastBegIdx + 1,
-                       maxIndexBegIdx,
                        maxIndexBegIdx - 1,
                        nextTrajIndex,
                        nextBegIdx,
