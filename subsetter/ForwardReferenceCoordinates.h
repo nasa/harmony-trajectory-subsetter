@@ -298,44 +298,44 @@ class ForwardReferenceCoordinates : public Coordinate
                           long maxTrajIndex,
                           int64_t indexBegDataset[])
 
-/**
-* Methodology (defineOneSegment)
-* Parameters:
-* In:  (1) selected start in index-begin dataset (first_selected_index_begin)
-* In:  (2) Selected count of index-begin dataset (selected_index_begin_count)
-* Out: (3) target index (segment)
-* Out: (4) target Segment length
-* In:  (5) max index of index-begin dataset
-* In:  (6) max index of trajectory dataset
-* In:  (7) the index-begin dataset
-* 
-* Step 1: Define (1a) first non-fill index-begin:
-*    1a: Scan-fwd-non-fill from (1), in index-begin dataset
-*        Returns index reference within index-begin dataset, and value (target index)
-* 
-* Step 2: Define (1b) last index-begin, non-fill:
-*    2a: Scan-back-non-fill
-*        Using last subset-selected index-begin value as upper bound
-*        last_selected_index_begin = (1) + (2) -1
-* 
-* Step 3: Two checks at this point:
-*    3a: If no non-fill begin-index found
-*             return 0 index reference and count
-*    3b: If "last segment of target data"
-*          compute target segment length on this basis
-* 
-* Step 4: Compute length (of target segment, without using count dataset)
-*   Look beyond subset-selected index-begin values, to the next index-begin reference
-*   
-*.   4a: next_index_begin = last_selected_index_begin + 1
-*    4b: scan-fwd-non-fill to skip any index-begin fill values
-* 
-*    Use this "next-index-begin" - 1 to represent the end of the target segment
-*    We know the start of the last piece of the target segment
-*    include length to start of last segment-part plus the length of the last segment
-* 
-*    4c: trajSegLength = allExceptLastCount + lastCount
-*/
+    /**
+     * Methodology (defineOneSegment)
+     * Parameters:
+     * In:  (1) selected start in index-begin dataset
+     * (first_selected_index_begin) In:  (2) Selected count of index-begin
+     * dataset (selected_index_begin_count) Out: (3) target index (segment) Out:
+     * (4) target Segment length In:  (5) max index of index-begin dataset In:
+     * (6) max index of trajectory dataset In:  (7) the index-begin dataset
+     *
+     * Step 1: Define (1a) first non-fill index-begin:
+     *    1a: Scan-fwd-non-fill from (1), in index-begin dataset
+     *        Returns index reference within index-begin dataset, and value
+     * (target index)
+     *
+     * Step 2: Define (1b) last index-begin, non-fill:
+     *    2a: Scan-back-non-fill
+     *        Using last subset-selected index-begin value as upper bound
+     *        last_selected_index_begin = (1) + (2) -1
+     *
+     * Step 3: Two checks at this point:
+     *    3a: If no non-fill begin-index found
+     *             return 0 index reference and count
+     *    3b: If "last segment of target data"
+     *          compute target segment length on this basis
+     *
+     * Step 4: Compute length (of target segment, without using count dataset)
+     *   Look beyond subset-selected index-begin values, to the next index-begin
+     * reference
+     *
+     *.   4a: next_index_begin = last_selected_index_begin + 1
+     *    4b: scan-fwd-non-fill to skip any index-begin fill values
+     *
+     *    Use this "next-index-begin" - 1 to represent the end of the target
+     * segment We know the start of the last piece of the target segment include
+     * length to start of last segment-part plus the length of the last segment
+     *
+     *    4c: trajSegLength = allExceptLastCount + lastCount
+     */
     {
         LOG_DEBUG(" ForwardReferenceCoordinates::defineOneSegment(): ENTER");
 
