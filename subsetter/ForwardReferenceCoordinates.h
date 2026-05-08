@@ -297,15 +297,18 @@ class ForwardReferenceCoordinates : public Coordinate
                           long maxIndexBegIdx,
                           long maxTrajIndex,
                           int64_t indexBegDataset[])
-
     /**
      * Methodology (defineOneSegment)
      * Parameters:
-     * In:  (1) selected start in index-begin dataset
-     * (first_selected_index_begin) In:  (2) Selected count of index-begin
-     * dataset (selected_index_begin_count) Out: (3) target index (segment) Out:
-     * (4) target Segment length In:  (5) max index of index-begin dataset In:
-     * (6) max index of trajectory dataset In:  (7) the index-begin dataset
+     * @param In:  (1) selected start in index-begin dataset
+     * (first_selected_index_begin)
+     * @param In:  (2) Selected count of index-begin dataset
+     * (selected_index_begin_count)
+     * @param Out: (3) target index (segment)
+     * @param Out: (4) target Segment length
+     * @param In:  (5) max index of index-begin dataset
+     * @param In:  (6) max index of trajectory dataset
+     * @param In:  (7) the index-begin dataset
      *
      * Step 1: Define (1a) first non-fill index-begin:
      *    1a: Scan-fwd-non-fill from (1), in index-begin dataset
@@ -327,12 +330,13 @@ class ForwardReferenceCoordinates : public Coordinate
      *   Look beyond subset-selected index-begin values, to the next index-begin
      * reference
      *
-     *.   4a: next_index_begin = last_selected_index_begin + 1
+     *    4a: next_index_begin = last_selected_index_begin + 1
      *    4b: scan-fwd-non-fill to skip any index-begin fill values
      *
      *    Use this "next-index-begin" - 1 to represent the end of the target
-     * segment We know the start of the last piece of the target segment include
-     * length to start of last segment-part plus the length of the last segment
+     *    segment We know the start of the last piece of the target segment
+     *    include length to start of last segment-part plus the length of the
+     *    last segment
      *
      *    4c: trajSegLength = allExceptLastCount + lastCount
      */
