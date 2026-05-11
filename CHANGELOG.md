@@ -9,8 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Fixed an edge case where trailing fill values (-1) at the end of the dataset caused
-  negative segment lengths due to the absence of further valid segments.
+- Fixes two bugs in Segmented-Trajectory Subsetting (L2 Data IceSAT-2, GEDI).
+  1) When a forward-reference segment definition (e.g. Beam-Leads.ssh_idx)
+  is itself not subsetted, but the target dataset (Freeboard-Segment group) is,
+  the forward index references would be left unchanged, and therefore incorrectly
+  referenced the target items.
+  2) When a subset of a forward-reference dataset included the tail-end of
+  the dataset (e.g. Reference_Surface.Beam_Lead-Ndx), errors could introduce
+  additional and/or missing elements in the target dataset (e.g., Beam-Leads group).
 
 ## [v1.0.6] - 2026-04-21
 
