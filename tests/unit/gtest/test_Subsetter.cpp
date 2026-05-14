@@ -388,6 +388,7 @@ TEST_F(SubsetterTest, test_openCreateHdf5File_SuperblockTest)
     // is created with HDF5 1.8 compatibility bounds. The method evaluates
     // the creation properties of the input file and configures the output
     // file access property list to generate a version 2 superblock.
+    H5F_info2_t fileInfo;
     H5::H5File h5Outfile;
 
     H5::H5File h5Infile =
@@ -403,22 +404,12 @@ TEST_F(SubsetterTest, test_openCreateHdf5File_SuperblockTest)
         h5Infile.getFileName(), outFileName, h5Infile, h5Outfile);
 
     hid_t fileId = H5Fopen(outFileName.c_str(), H5F_ACC_RDONLY, H5P_DEFAULT);
-    hid_t activeFcplId = H5Fget_create_plist(fileId);
+    herr_t status = H5Fget_info2(fileId, &fileInfo);
 
-    unsigned superVersion = 999;
-    unsigned freelistVersion = 0;
-    unsigned stabVersion = 0;
-    unsigned shhdrVersion = 0;
-
-    herr_t status = H5Pget_version(activeFcplId,
-                                   &superVersion,
-                                   &freelistVersion,
-                                   &stabVersion,
-                                   &shhdrVersion);
+    unsigned superVersion = fileInfo.super.version;
 
     EXPECT_EQ(superVersion, 2);
 
-    H5Pclose(activeFcplId);
     H5Fclose(fileId);
 
     h5Outfile.close();
