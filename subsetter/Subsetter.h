@@ -69,24 +69,8 @@ class Subsetter
 
         int returnCode = 0;
 
-        // Open the input HDF5 file.
-        LOG_DEBUG("Subsetter::subset(): Opening " << infilename);
-        this->infile = H5::H5File(infilename, H5F_ACC_RDONLY);
-
-        // Create (or overwrite the existing) output file with
-        // the creation properties of the input file and with
-        // the default access property list of the latest HDF5
-        // library release version.
-        LOG_DEBUG("Subsetter::subset(): Opening " << outfilename);
-        hid_t fileAccessPropList = H5Pcreate(H5P_FILE_ACCESS);
-        H5Pset_libver_bounds(
-            fileAccessPropList, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST);
-        H5::FileAccPropList fileAccessPropListObj(fileAccessPropList);
-        this->outfile = H5::H5File(outfilename,
-                                   H5F_ACC_TRUNC,
-                                   infile.getCreatePlist(),
-                                   fileAccessPropListObj);
-        H5Pclose(fileAccessPropList);
+        openCreateHdf5File(
+            infilename, outfilename, this->infile, this->outfile);
 
         this->shortName = retrieveShortName(infile);
         if (this->shortName.empty() && !collShortName.empty())
@@ -163,6 +147,43 @@ class Subsetter
         }
 
         return returnCode;
+    }
+
+    /**
+     * @brief Opens the input HDF5 file and creates the output HDF5 file with
+     * HDF5 1.8 compatibility bounds.
+     *
+     * @param infilename The input granule file path.
+     * @param outfilename The output granule file path.
+     * @param h5Infile Reference to the instantiated input HDF5 file object.
+     * @param h5Outfile Reference to the instantiated output HDF5 file object.
+     */
+    void openCreateHdf5File(const std::string &infilename,
+                            const std::string &outfilename,
+                            H5::H5File &h5Infile,
+                            H5::H5File &h5Outfile)
+    {
+        // Open the input HDF5 file.
+        LOG_DEBUG("Subsetter::openCreateHdf5File(): Opening input file"
+                  << infilename);
+        h5Infile = H5::H5File(infilename, H5F_ACC_RDONLY);
+
+        // Create (or overwrite the existing) output file with
+        // the creation properties of the input file and with
+        // the access property list bounded between the HDF5 1.8
+        // release version and the latest library release version.
+        LOG_DEBUG("Subsetter::openCreateHdf5File(): Opening output file: "
+                  << outfilename);
+        hid_t fileAccessPropList = H5Pcreate(H5P_FILE_ACCESS);
+        H5Pset_libver_bounds(
+            fileAccessPropList, H5F_LIBVER_V18, H5F_LIBVER_LATEST);
+        H5::FileAccPropList fileAccessPropListObj(fileAccessPropList);
+        h5Outfile = H5::H5File(outfilename,
+                               H5F_ACC_TRUNC,
+                               h5Infile.getCreatePlist(),
+                               fileAccessPropListObj);
+
+        H5Pclose(fileAccessPropList);
     }
 
     /**
