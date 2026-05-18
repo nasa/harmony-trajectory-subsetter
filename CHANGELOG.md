@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.0.8] - 2026-05-18
+
+### Changed
+
+- Configure H5::H5File output property H5Pset_libver_bounds to lower bouund
+  H5F_LIBVER_V18. This maintains backward compatibility with the HDF5 1.8.x library,
+  producing a version 2 or 3 superblock for Panolpy support.
+
 ## [v1.0.7] - 2026-05-04
 
 ### Changed
@@ -17,9 +25,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   2) When a subset of a forward-reference dataset included the tail-end of
   the dataset (e.g. Reference_Surface.Beam_Lead-Ndx), errors could introduce
   additional and/or missing elements in the target dataset (e.g., Beam-Leads group).
-  3) Configure H5::H5File output property H5Pset_libver_bounds to lower bouund
-  H5F_LIBVER_V18. This maintains backward compatibility with the HDF5 1.8.x library,
-  producing a version 2 or 3 superblock for Panolpy support.
 
 ## [v1.0.6] - 2026-04-21
 
@@ -96,6 +101,7 @@ see `legacy-CHANGELOG.md`.
 - On-premises scripts and artefacts for the SDPS system have been removed from
   the repository.
 
+[v1.0.8]: https://github.com/nasa/harmony-trajectory-subsetter/releases/tag/1.0.8
 [v1.0.7]: https://github.com/nasa/harmony-trajectory-subsetter/releases/tag/1.0.7
 [v1.0.6]: https://github.com/nasa/harmony-trajectory-subsetter/releases/tag/1.0.6
 [v1.0.5]: https://github.com/nasa/harmony-trajectory-subsetter/releases/tag/1.0.5
