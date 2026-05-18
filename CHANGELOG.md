@@ -19,7 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   additional and/or missing elements in the target dataset (e.g., Beam-Leads group).
   3) Configure H5::H5File output property H5Pset_libver_bounds to lower bouund
   H5F_LIBVER_V18. This maintains backward compatibility with the HDF5 1.8.x library,
-  producing a version 2 or 3 superblock for Panolpy to open.
+  producing a version 2 or 3 superblock for Panolpy support.
 
 ## [v1.0.6] - 2026-04-21
 
