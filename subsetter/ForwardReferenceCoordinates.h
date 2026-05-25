@@ -27,6 +27,8 @@ class ForwardReferenceCoordinates : public Coordinate
     IndexSelection *segIndexes = nullptr;
     // Selected Segments - computed in SegmentedTrajectorySubset method
 
+    static constexpr int INDEX_1 = 1;
+
     ForwardReferenceCoordinates // main constructor for class
         (std::string groupname,
          std::vector<geobox> *geoboxes,
@@ -227,12 +229,16 @@ class ForwardReferenceCoordinates : public Coordinate
                         int64_t indexBegDataset[])
     {
         // skip over segment-begin (start) fill values
+        LOG_INFO("Vu ForwardReferenceCoordinates::scanFwdNonFill(): segStartIdx: ["<< segStartIdx << "]");
+        LOG_INFO("Vu ForwardReferenceCoordinates::scanFwdNonFill(): segEndIdx: ["<< segEndIdx << "]");
         for (long i = segStartIdx; i <= segEndIdx; i++)
         {
             if (indexBegDataset[i] > 0)
             {
                 firstNonFillIdx = i;
                 firstTrajIndex = indexBegDataset[firstNonFillIdx];
+                LOG_INFO("Vu ForwardReferenceCoordinates::scanFwdNonFill(): firstNonFillIdx: ["<< firstNonFillIdx << "]");
+                LOG_INFO("Vu ForwardReferenceCoordinates::scanFwdNonFill(): firstTrajIndex: ["<< firstTrajIndex << "]");
                 break;
             }
         }
@@ -255,12 +261,17 @@ class ForwardReferenceCoordinates : public Coordinate
                          int64_t indexBegDataset[])
     {
         // skip over segment-begin (start) fill values
+        LOG_INFO("Vu ForwardReferenceCoordinates::scanBackNonFill(): segStartIdx: ["<< segStartIdx << "]");
+        LOG_INFO("Vu ForwardReferenceCoordinates::scanBackNonFill(): segEndIdx: ["<< segEndIdx << "]");
+
         for (long i = segEndIdx; i >= segStartIdx; i--)
         {
             if (indexBegDataset[i] > 0)
             {
                 lastNonFillIdx = i;
                 lastTrajIndex = indexBegDataset[lastNonFillIdx];
+                LOG_INFO("Vu ForwardReferenceCoordinates::scanBackNonFill(): lastNonFillIdx: ["<< lastNonFillIdx << "]");
+                LOG_INFO("Vu ForwardReferenceCoordinates::scanBackNonFill(): lastTrajIndex value: "<< lastTrajIndex);
                 break;
             }
         }
@@ -380,7 +391,7 @@ class ForwardReferenceCoordinates : public Coordinate
         // trajectory value.
         if (lastSelectedIdx + 1 == maxIndexBegIdx)
         {
-            trajSegLength = maxTrajIndex - indexBegDataset[firstIdxNonFill] + 1;
+            trajSegLength = maxTrajIndex - firstTrajIndex;
             return;
         }
 
@@ -408,21 +419,22 @@ class ForwardReferenceCoordinates : public Coordinate
         {
             // Set the trajectory segment length to the maximum trajectory
             // index.
-            trajSegLength = maxTrajIndex;
+            nextTrajIndex = maxTrajIndex + INDEX_1;
             LOG_DEBUG("ForwardReferenceCoordinates::defineOneSegment(): "
-                      "nextTrajIndex == 0, setting to maximum trajectory index:"
-                      << maxTrajIndex);
+                      "nextTrajIndex == 0, setting beyond maximum Target index:"
+                      << nextTrajIndex);
         }
-        else
-        {
-            // We need to calculate the length of the last segment in the
-            // selection since we can't use the count dataset. We don't subtract
-            // 1 from either count calculation because neither include the
-            // greater value.
-            long allExceptLastCount = lastTrajIndex - firstTrajIndex;
-            long lastCount = nextTrajIndex - lastTrajIndex;
-            trajSegLength = allExceptLastCount + lastCount;
-        }
+        // We need to calculate the length of the last segment in the
+        // selection since we can't use the count dataset. nextTrajIndex
+        // is the start of the next segment, thus the end of current segment.
+        trajSegLength = nextTrajIndex - firstTrajIndex;
+
+        LOG_INFO("Vu  ForwardReferenceCoordinates::defineOneSegment(): lastBegIdx: [" << lastBegIdx << "]");
+        LOG_INFO("Vu  ForwardReferenceCoordinates::defineOneSegment(): firstTrajIndex: [" << firstTrajIndex << "]");
+        LOG_INFO("Vu  ForwardReferenceCoordinates::defineOneSegment(): lastTrajIndex value: " << lastTrajIndex);
+        LOG_INFO("Vu  ForwardReferenceCoordinates::defineOneSegment(): nextTrajIndex: value: " << nextTrajIndex);
+        LOG_INFO("Vu  ForwardReferenceCoordinates::defineOneSegment(): trajSegLength: value: " << trajSegLength);
+
     }
 
   private:
@@ -464,6 +476,7 @@ class ForwardReferenceCoordinates : public Coordinate
             indexBegSet->read(data, indexBegSet->getDataType());
             for (int i = 0; i < idxBegSize; i++)
             {
+                LOG_INFO("Vu ForwardReferenceCoordinates::segmentedTrajectorySubset(): data["<< i << "]= " << data[i]);
                 indexBeg[i] = data[i];
             }
             delete[] data;
@@ -520,7 +533,7 @@ class ForwardReferenceCoordinates : public Coordinate
             long start = 0, length = 0;
 
             long selectedStart = segIndexes->minIndexStart;
-            long selectedCount = segIndexes->maxIndexEnd - selectedStart - 1;
+            long selectedCount = segIndexes->maxIndexEnd - selectedStart;
 
             defineOneSegment(selectedStart,
                              selectedCount,
