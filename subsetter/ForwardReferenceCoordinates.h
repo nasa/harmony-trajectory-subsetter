@@ -11,10 +11,10 @@
 
 /*
  * Subclass of Coordinate for forward-reference segment-begin + count
- * coordinates These coordinates are associated with a target dataset (segmented
- * trajectory), but refer to segment-control datasets (begin, count) typically
- * in a separate segment group. This class Includes getIndexSelection and
- * Segmented Trajectory Subset operations.
+ * coordinates These coordinates are associated with a target dataset 
+ * (segmented target), but refer to segment-control datasets (begin, count)
+ * typically in a separate segment group. This class Includes 
+ * getIndexSelection and SegmentedDatsetSubset operations.
  *
  * The count dataset is not used in the forward-reference calculation,
  * due to the existence of data collections whose count dataset is not
@@ -25,7 +25,7 @@ class ForwardReferenceCoordinates : public Coordinate
 {
   public:
     IndexSelection *segIndexes = nullptr;
-    // Selected Segments - computed in SegmentedTrajectorySubset method
+    // Selected Segments - computed in SegmentedDatsetSubset method
 
     ForwardReferenceCoordinates // main constructor for class
         (std::string groupname,
@@ -82,7 +82,7 @@ class ForwardReferenceCoordinates : public Coordinate
         forCoor->coordinateSize = 0;
         forCoor->shortname = shortName;
 
-        // get the size of the target (segmented trajectory) dataset for this
+        // get the size of the target (segmented target) dataset for this
         // group
         if (config->isPhotonDataset(shortName, groupname))
         {
@@ -174,14 +174,14 @@ class ForwardReferenceCoordinates : public Coordinate
         H5::DataSet *indexBegSet = nullptr;
 
         indexes = new IndexSelection(coordinateSize);
-        // self.coordinateSize = target segmented trajectory size
+        // self.coordinateSize = segmented target size
 
         std::string indexBegName, countName;
         // The count name is required for accessing dataset names.
 
         // Get dataset names for the datasets that provides the
         // starting index. (indexBeg) in the target (segmented
-        // trajectory, photon) group and the number of elements
+        // target, photon) group and the number of elements
         // (photons, segmentPnCnt) in the segment that follow in
         // sequence from this start index.
         config->getDatasetNames(shortname, groupname, indexBegName, countName);
@@ -202,7 +202,7 @@ class ForwardReferenceCoordinates : public Coordinate
 
         // Compute the index-selection object for this coordinates - do the
         // subset
-        segmentedTrajectorySubset(indexBegSet);
+        segmentedDatasetSubset(indexBegSet);
 
         indexesProcessed = true;
 
@@ -213,16 +213,16 @@ class ForwardReferenceCoordinates : public Coordinate
      * Scan forwards, from segStart to segEnd in indexBeg array
      * for a non-fill value.
      *
-     * @param segStartIdx     The start index of the input segment.
-     * @param segEndIdx       The end index of the input segment.
-     * @param firstTrajIndex  The trajectory index with the first non-fill
-     *                        indexBeg value.
-     * @param firstNonFillIdx The first non-fill indexBeg index.
-     * @param indexBegDatset  The input indexBeg dataset array.
+     * @param segStartIdx      The start index of the input segment.
+     * @param segEndIdx        The end index of the input segment.
+     * @param firstTargetIndex The target index with the first non-fill
+     *                         indexBeg value.
+     * @param firstNonFillIdx  The first non-fill indexBeg index.
+     * @param indexBegDatset   The input indexBeg dataset array.
      */
     void scanFwdNonFill(long segStartIdx,
                         long segEndIdx,
-                        long &firstTrajIndex,
+                        long &firstTargetIndex,
                         long &firstNonFillIdx,
                         int64_t indexBegDataset[])
     {
@@ -232,7 +232,7 @@ class ForwardReferenceCoordinates : public Coordinate
             if (indexBegDataset[i] > 0)
             {
                 firstNonFillIdx = i;
-                firstTrajIndex = indexBegDataset[firstNonFillIdx];
+                firstTargetIndex = indexBegDataset[firstNonFillIdx];
                 break;
             }
         }
@@ -243,14 +243,14 @@ class ForwardReferenceCoordinates : public Coordinate
      *
      * @param segEndIdx       The end index of input segment.
      * @param segStartIdx     The start index of the input segment.
-     * @param lastTrajIndex   The trajectory index with the last non-fill
+     * @param lastTargetIndex The target index with the last non-fill
      *                        indexBeg value.
      * @param lastNonFillIdx  The last non-fill indexBeg index.
      * @param indexBegDatset  The input indexBeg dataset array.
      */
     void scanBackNonFill(long segEndIdx,
                          long segStartIdx,
-                         long &lastTrajIndex,
+                         long &lastTargetIndex,
                          long &lastNonFillIdx,
                          int64_t indexBegDataset[])
     {
@@ -260,85 +260,74 @@ class ForwardReferenceCoordinates : public Coordinate
             if (indexBegDataset[i] > 0)
             {
                 lastNonFillIdx = i;
-                lastTrajIndex = indexBegDataset[lastNonFillIdx];
+                lastTargetIndex = indexBegDataset[lastNonFillIdx];
                 break;
             }
         }
     }
 
     /**
-     * @brief Return the target segment's first trajectory index and its length,
+     * @brief Return the target segment's first target index and its length,
      *        given the index-begin dataset, the subsset-selected first
      *        entry and the count of index-begin segments to consider. This
      * method skips over fill-values in the index-begin references dataset.
      *
      * Note: This removes the count dataset dependency to calculate
-     *       trajectory segment lengths. This was done because there exist
+     *       target segment lengths. This was done because there exist
      *       collections (such as GEDI) where the target segment has fill-values
      *       that need to be preserved, not accounted for in the count dataset.
      *
-     * @param selectedStartIdx The start index of the subset selection in the
+     * @param selectedStartIdx (In) The start index of the subset selection in the
      *                         index begin dataset.
-     * @param selectedCount    The number of index-begin entries in the
-     * subset-selection.
-     * @param firstTrajIndex   The output trajectory index associated with the
-     * first non-fill indexBeg value.
-     * @param trajSegLength    The output length of the trajectory segment.
-     * @param maxIndexBegIdx   The final index of the entire indexBeg
+     * @param selectedCount    (In) The number of index-begin entries in the
+     *                         subset-selection.
+     * @param firstTargetIndex (Out, ref) The output target index associated 
+     *                         with the first non-fill indexBeg value.
+     * @param targetSegLength  (Out, ref) The output length of the target segment.
+     * @param maxIndexBegIdx   (In) The final index of the entire indexBeg
      *                         dataset.
-     * @param maxTrajIndex     The final index of the entire trajectory
+     * @param maxTargetIndex   (In) The final index of the entire target
      *                         dataset.
-     * @param indexBegDataset  The input indexBeg dataset array.
+     * @param indexBegDataset  (In) The input indexBeg dataset array.
      */
     void defineOneSegment(long selectedStartIdx,
                           long selectedCount,
-                          long &firstTrajIndex,
-                          long &trajSegLength,
+                          long &firstTargetIndex,
+                          long &targetSegLength,
                           long maxIndexBegIdx,
-                          long maxTrajIndex,
+                          long maxTargetIndex,
                           int64_t indexBegDataset[])
     /**
      * Methodology (defineOneSegment)
-     * Parameters:
-     * @param In:  (1) selected start in index-begin dataset
-     * (first_selected_index_begin)
-     * @param In:  (2) Selected count of index-begin dataset
-     * (selected_index_begin_count)
-     * @param Out: (3) target index (segment)
-     * @param Out: (4) target Segment length
-     * @param In:  (5) max index of index-begin dataset
-     * @param In:  (6) max index of trajectory dataset
-     * @param In:  (7) the index-begin dataset
-     *
      * Step 1: Define (1a) first non-fill index-begin:
-     *    1a: Scan-fwd-non-fill from (1), in index-begin dataset
-     *        Returns index reference within index-begin dataset, and value
-     * (target index)
+     *     1a: Scan-fwd-non-fill from (1), in index-begin dataset
+     *         Returns index reference within index-begin dataset, and value
+     *         (target index)
      *
      * Step 2: Define (1b) last index-begin, non-fill:
-     *    2a: Scan-back-non-fill
-     *        Using last subset-selected index-begin value as upper bound
-     *        last_selected_index_begin = (1) + (2) -1
+     *     2a: Scan-back-non-fill
+     *         Using last subset-selected index-begin value as upper bound
+     *         last_selected_index_begin = (1) + (2) -1
      *
      * Step 3: Two checks at this point:
-     *    3a: If no non-fill begin-index found
-     *             return 0 index reference and count
-     *    3b: If "last segment of target data"
-     *          compute target segment length on this basis
+     *     3a: If no non-fill begin-index found
+     *         return 0 index reference and count
+     *     3b: If "last segment of target data"
+     *         compute target segment length on this basis
      *
      * Step 4: Compute length (of target segment, without using count dataset)
-     *   Look beyond subset-selected index-begin values, to the next index-begin
-     * reference
+     *         Look beyond subset-selected index-begin values, to the next
+     *         index-begin reference
      *
-     *    4a: next_index_begin = last_selected_index_begin + 1
-     *    4b: scan-fwd-non-fill to skip any index-begin fill values
+     *     4a: next_index_begin = last_selected_index_begin + 1
+     *     4b: scan-fwd-non-fill to skip any index-begin fill values
      *
-     *    Use this "next-index-begin" - 1 to represent the end of the target
-     *    segment We know the start of the last piece of the target segment
-     *    include length to start of last segment-part plus the length of the
-     *    last segment
+     *     Use this "next-index-begin" - 1 to represent the end of the target
+     *     segment We know the start of the last piece of the target segment
+     *     include length, up to start of last segment. Add the length of the
+     *     last segment
      *
-     *    4c: trajSegLength = allExceptLastCount + lastCount
+     *     4c: targetSegLength = allExceptLastCount + lastCount
      */
     {
         LOG_DEBUG(" ForwardReferenceCoordinates::defineOneSegment(): ENTER");
@@ -352,66 +341,66 @@ class ForwardReferenceCoordinates : public Coordinate
         // Step forwards to find first non-fill index begin segment.
         scanFwdNonFill(selectedStartIdx,
                        lastSelectedIdx,
-                       firstTrajIndex,
+                       firstTargetIndex,
                        firstIdxNonFill,
                        indexBegDataset);
 
         // Step backwards to find last non-fill index begin segment.
-        long lastTrajIndex = 0; // trajectory index with the last non-fill
-                                // indexBeg value.
-        long lastBegIdx = 0;    // last non-fill indexBeg index.
+        long lastTargetIndex = 0; 
+          // target index with the last non-fill indexBeg value.
+        long lastBegIdx = 0;  // last non-fill indexBeg index.
         scanBackNonFill(lastSelectedIdx,
                         firstIdxNonFill,
-                        lastTrajIndex,
+                        lastTargetIndex,
                         lastBegIdx,
                         indexBegDataset);
 
         // if not found - skip this selected segment group
-        if (lastTrajIndex <= 0)
+        if (lastTargetIndex <= 0)
         {
-            firstTrajIndex = 0;
-            trajSegLength = 0;
+            firstTargetIndex = 0;
+            targetSegLength = 0;
             return;
         }
 
-        // If this is the last segment of the input trajectory, then the
-        // length of this trajectory segment is just the number of trajectory
+        // If this is the last segment of the target dataset, then the
+        // length of this target segment is just the number of target
         // values between the first value of this segment and the last
-        // trajectory value.
+        // target value.
         if (lastSelectedIdx + 1 == maxIndexBegIdx)
         {
-            trajSegLength = maxTrajIndex - indexBegDataset[firstIdxNonFill] + 1;
+            targetSegLength = maxTargetIndex - indexBegDataset[firstIdxNonFill] + 1;
             return;
         }
 
         // Need to find end of this segment. Unfortunately, in GEDI data, the
         // count dataset does not define the end of the full segment. It does
         // not include the padding that is present in the waveform (segmented
-        // trajectory) data.
+        // target) data.
 
         // Step forwards to find the next non-fill segment begin, using segment
         // group max index as last segment begin reference to look at.
-        long nextBegIdx = 0;    // non-fill begin index after the last
-                                // selected index begin segment
-        long nextTrajIndex = 0; // trajectory index associated with the
-                                // index begin segment after the last
-                                // selected segment.
+        long nextBegIdx = 0;      // non-fill begin index after the last
+                                  // selected index begin segment
+        long nextTargetIndex = 0; // target index associated with the
+                                  // index begin segment after the last
+                                  // selected segment.
 
         scanFwdNonFill(lastBegIdx + 1,
                        maxIndexBegIdx - 1,
-                       nextTrajIndex,
+                       nextTargetIndex,
                        nextBegIdx,
                        indexBegDataset);
 
-        // If nextTrajIndex is 0, there are no more valid segments ahead.
-        if (nextTrajIndex == 0)
+        // If nextTargetIndex is 0, there are no more valid segments ahead.
+        if (nextTargetIndex == 0)
         {
             // Set the trajectory segment length to the maximum trajectory
             // index.
-            trajSegLength = maxTrajIndex;
+            targetSegLength = maxTargetIndex;
             LOG_DEBUG("ForwardReferenceCoordinates::defineOneSegment(): "
-                      "nextTrajIndex == 0, setting to maximum trajectory index:"
-                      << maxTrajIndex);
+                      "nextTargetIndex == 0, setting to maximum target index:"
+                      << maxTargetIndex);
         }
         else
         {
@@ -419,9 +408,9 @@ class ForwardReferenceCoordinates : public Coordinate
             // selection since we can't use the count dataset. We don't subtract
             // 1 from either count calculation because neither include the
             // greater value.
-            long allExceptLastCount = lastTrajIndex - firstTrajIndex;
-            long lastCount = nextTrajIndex - lastTrajIndex;
-            trajSegLength = allExceptLastCount + lastCount;
+            long allExceptLastCount = lastTargetIndex - firstTargetIndex;
+            long lastCount = nextTargetIndex - lastTargetIndex;
+            targetSegLength = allExceptLastCount + lastCount;
         }
     }
 
@@ -438,10 +427,10 @@ class ForwardReferenceCoordinates : public Coordinate
      *
      * @param indexBegSet: index begin dataset
      */
-    void segmentedTrajectorySubset(H5::DataSet *indexBegSet)
+    void segmentedDatasetSubset(H5::DataSet *indexBegSet)
     {
         LOG_DEBUG(
-            "ForwardReferenceCoordinates::segmentedTrajectorySubset(): ENTER");
+            "ForwardReferenceCoordinates::segmentedDatasetSubset(): ENTER");
 
         size_t idxBegSize = indexBegSet->getSpace().getSimpleExtentNpoints();
 
@@ -545,8 +534,8 @@ class ForwardReferenceCoordinates : public Coordinate
         {
             indexes->addRestriction(0, 0);
             LOG_DEBUG(
-                "ForwardReferenceCoordinates::segmentedTrajectorySubset(): "
-                << "No data found in trajectory subset that matched the "
+                "ForwardReferenceCoordinates::segmentedDatasetSubset(): "
+                << "No data found in traject dataset that matched the "
                    "spatial/temporal constraints.");
         }
 
