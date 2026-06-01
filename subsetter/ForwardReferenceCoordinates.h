@@ -268,9 +268,9 @@ class ForwardReferenceCoordinates : public Coordinate
 
     /**
      * @brief Return the target segment's first target index and its length,
-     *        given the index-begin dataset, the subsset-selected first
+     *        given the index-begin dataset, the subset-selected first
      *        entry and the count of index-begin segments to consider. This
-     * method skips over fill-values in the index-begin references dataset.
+     *        method skips over fill-values in the index-begin references dataset.
      *
      * Note: This removes the count dataset dependency to calculate
      *       target segment lengths. This was done because there exist
@@ -363,13 +363,13 @@ class ForwardReferenceCoordinates : public Coordinate
             return;
         }
 
-        // If this is the last segment of the target dataset, then the
-        // length of this target segment is just the number of target
-        // values between the first value of this segment and the last
-        // target value.
-        if (lastSelectedIdx + 1 == maxIndexBegIdx)
+        // If the last selected segment is the last segment of the segment
+        // group, then cannot scan for the next segment to find the length of
+        // this segment. The length of this segment, then, is all values
+        // between the first value and the end of the target dataset.
+        if (lastSelectedIdx == maxIndexBegIdx)
         {
-            targetSegLength = maxTargetIndex - indexBegDataset[firstIdxNonFill] + 1;
+            targetSegLength = maxTargetIndex - firstTargetIndex + 1;
             return;
         }
 
@@ -387,31 +387,25 @@ class ForwardReferenceCoordinates : public Coordinate
                                   // selected segment.
 
         scanFwdNonFill(lastBegIdx + 1,
-                       maxIndexBegIdx - 1,
+                       maxIndexBegIdx,
                        nextTargetIndex,
                        nextBegIdx,
                        indexBegDataset);
 
-        // If nextTargetIndex is 0, there are no more valid segments ahead.
+        // If nextTargetIndex is 0, there are no following non-fill segments found.
         if (nextTargetIndex == 0)
         {
-            // Set the trajectory segment length to the maximum trajectory
-            // index.
-            targetSegLength = maxTargetIndex;
+            // Set the next target segment index to one beyond the max target index.
+            // Also + 1 for 1-based indexing
+            nextTargetIndex = maxTargetIndex + 2;
             LOG_DEBUG("ForwardReferenceCoordinates::defineOneSegment(): "
-                      "nextTargetIndex == 0, setting to maximum target index:"
-                      << maxTargetIndex);
+                      "nextTargetIndex == 0, setting beyond maximum Target index:"
+                      << nextTargetIndex);
         }
-        else
-        {
-            // We need to calculate the length of the last segment in the
-            // selection since we can't use the count dataset. We don't subtract
-            // 1 from either count calculation because neither include the
-            // greater value.
-            long allExceptLastCount = lastTargetIndex - firstTargetIndex;
-            long lastCount = nextTargetIndex - lastTargetIndex;
-            targetSegLength = allExceptLastCount + lastCount;
-        }
+        // We need to calculate the length of the last segment in the
+        // selection since we can't use the count dataset. nextTargetIndex
+        // is the start of the next segment, thus the end of current segment.
+        targetSegLength = nextTargetIndex - firstTargetIndex;
     }
 
   private:
@@ -419,7 +413,7 @@ class ForwardReferenceCoordinates : public Coordinate
     std::string shortname;
 
     /*
-     * Subset the segmented trajectory dataset - define the index
+     * Subset the segmented target dataset - define the index
      * selection sets, limiting the index range by indexBeg starting
      * value and last index of last selected segment.
      *
@@ -489,14 +483,13 @@ class ForwardReferenceCoordinates : public Coordinate
                              selectedCount,
                              start,
                              length,
-                             idxBegSize,
-                             coordinateSize,
+                             idxBegSize - 1,     // defineOneSegment takes last index
+                             coordinateSize - 1, // always one less than size
                              indexBeg);
 
             // Note: index-selection start is true to datasets,
             // zero based indexing, whereas start index pulled from
-            // indexBegin datasets is one based indexing one based
-            // indexing.
+            // indexBegin datasets is one based indexing.
             if (start > 0)
             {
                 indexes->addSegment(start - 1, length);
@@ -509,14 +502,15 @@ class ForwardReferenceCoordinates : public Coordinate
             long start = 0, length = 0;
 
             long selectedStart = segIndexes->minIndexStart;
-            long selectedCount = segIndexes->maxIndexEnd - selectedStart - 1;
+            long selectedCount = segIndexes->maxIndexEnd - selectedStart;  // + 1;
+              // testing in debugger revealed maxIndexEnd is one beyond temporal range
 
             defineOneSegment(selectedStart,
                              selectedCount,
                              start,
                              length,
-                             idxBegSize,
-                             coordinateSize,
+                             idxBegSize - 1,     // defineOneSegment takes last index
+                             coordinateSize - 1, // always one less than size
                              indexBeg);
 
             // Note: index-selection start is true to datasets, zero based
@@ -535,7 +529,7 @@ class ForwardReferenceCoordinates : public Coordinate
             indexes->addRestriction(0, 0);
             LOG_DEBUG(
                 "ForwardReferenceCoordinates::segmentedDatasetSubset(): "
-                << "No data found in traject dataset that matched the "
+                << "No data found in target dataset that matched the "
                    "spatial/temporal constraints.");
         }
 
