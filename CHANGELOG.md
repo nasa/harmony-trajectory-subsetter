@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.0.9] - 2026-06-10
+
+### Changed
+
+- Fixes ~150x output-size inflation when subsetting collections whose source
+  datasets use a contiguous storage layout (e.g. GEDI L2A). Previously these
+  datasets were rewritten as chunked using the source (full-orbit) dimensions
+  as the chunk size and with no compression, so a single source-sized chunk
+  was fully allocated to hold each small subset. They are now chunked to the
+  subset extent and gzip-compressed, matching the handling of source datasets
+  that are already chunked. Data values are unchanged.
+
 ## [v1.0.8] - 2026-05-18
 
 ### Changed
@@ -101,6 +113,7 @@ see `legacy-CHANGELOG.md`.
 - On-premises scripts and artefacts for the SDPS system have been removed from
   the repository.
 
+[v1.0.9]: https://github.com/nasa/harmony-trajectory-subsetter/releases/tag/1.0.9
 [v1.0.8]: https://github.com/nasa/harmony-trajectory-subsetter/releases/tag/1.0.8
 [v1.0.7]: https://github.com/nasa/harmony-trajectory-subsetter/releases/tag/1.0.7
 [v1.0.6]: https://github.com/nasa/harmony-trajectory-subsetter/releases/tag/1.0.6
