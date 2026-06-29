@@ -16,6 +16,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   was fully allocated to hold each small subset. They are now chunked to the
   subset extent and gzip-compressed, matching the handling of source datasets
   that are already chunked. Data values are unchanged.
+- Bumps `earthdata-varinfo` to `~= 5.1.1` and `harmony-service-lib` to
+  `~= 3.0.0` in `harmony_service/pip_requirements.txt` to mitigate a Snyk
+  vulnerability.
 
 ## [v1.0.8] - 2026-05-18
 
