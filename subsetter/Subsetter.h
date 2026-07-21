@@ -601,7 +601,13 @@ class Subsetter
             dimnum > 0)
         {
             plist.setLayout(H5D_CHUNKED);
-            plist.setChunk(dimnum, olddims);
+            // Chunk to the subset extent (newdims), not the source extent
+            // (olddims). Using olddims allocated a full source-orbit-sized
+            // chunk for every subset dataset, inflating contiguous-source
+            // output (e.g. GEDI L2A) by ~150x. Compress to match the
+            // already-chunked source datasets that skip this branch.
+            plist.setChunk(dimnum, newdims);
+            plist.setDeflate(4);
             plist.setAllocTime(H5D_ALLOC_TIME_INCR);
         }
 
