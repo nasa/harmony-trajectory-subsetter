@@ -212,6 +212,7 @@ class SuperGroupCoordinate : public Coordinate
 
         H5::DataSet *timeSet = NULL;
         double *time = new double[coordinateSize];
+        bool missingCoorDataset = false;
 
         indexes = new IndexSelection(coordinateSize);
         // if both temporal and spatial constraints don't exist,
@@ -241,29 +242,44 @@ class SuperGroupCoordinate : public Coordinate
         {
             for (int i = 0; i < this->latitudes.size(); i++)
             {
-                double *lat = new double[coordinateSize];
-                double *lon = new double[coordinateSize];
-                readLatLonDatasets(
-                    this->coorDatasets.find(this->latitudes[i])->second,
-                    this->coorDatasets.find(this->longitudes[i])->second,
-                    lat,
-                    lon);
-                this->coors.insert(
-                    std::pair<std::string, double *>(this->latitudes[i], lat));
-                this->coors.insert(
-                    std::pair<std::string, double *>(this->longitudes[i], lon));
+                auto latitudeIt =
+                    this->coorDatasets.find(this->latitudes[i])->second;
+                auto longitudeIt =
+                    this->coorDatasets.find(this->longitudes[i])->second;
+
+                if (latitudeIt != NULL && longitudeIt != NULL)
+                {
+                    double *lat = new double[coordinateSize];
+                    double *lon = new double[coordinateSize];
+                    readLatLonDatasets(latitudeIt, longitudeIt, lat, lon);
+                    this->coors.insert(std::pair<std::string, double *>(
+                        this->latitudes[i], lat));
+                    this->coors.insert(std::pair<std::string, double *>(
+                        this->longitudes[i], lon));
+                }
+                else
+                {
+                    LOG_ERROR("SuperGroupCoordinate::getIndexSelection(): "
+                              "Missing dataset for "
+                              << "latitude '" << this->latitudes[i]
+                              << "' or longitude '" << this->longitudes[i]
+                              << "' in coorDatasets.");
+                    missingCoorDataset = true;
+                }
             }
         }
 
         // limit the index by spatial constraint
-        if (geoboxes != NULL && this->coorDatasets.size() != 0)
+        if (missingCoorDataset == false && geoboxes != NULL &&
+            this->coorDatasets.size() != 0)
             spatialBboxSubset();
         else
             LOG_DEBUG(
                 "SuperGroupCoordinate::getIndexSelection(): spatial constraint "
                 "or lat/lon coordinates not found");
         // limit the index by polygon
-        if (geoPolygon != NULL && this->coorDatasets.size() != 0)
+        if (missingCoorDataset == false && geoPolygon != NULL &&
+            this->coorDatasets.size() != 0)
             spatialPolygonSubset();
         else
             LOG_DEBUG(
