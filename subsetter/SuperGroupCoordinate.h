@@ -242,16 +242,19 @@ class SuperGroupCoordinate : public Coordinate
         {
             for (int i = 0; i < this->latitudes.size(); i++)
             {
-                auto latitudeIt =
-                    this->coorDatasets.find(this->latitudes[i])->second;
-                auto longitudeIt =
-                    this->coorDatasets.find(this->longitudes[i])->second;
+                auto latitudeIt = this->coorDatasets.find(this->latitudes[i]);
+                auto longitudeIt = this->coorDatasets.find(this->longitudes[i]);
 
-                if (latitudeIt != NULL && longitudeIt != NULL)
+                if (latitudeIt != this->coorDatasets.end() &&
+                    latitudeIt->second != NULL &&
+                    longitudeIt != this->coorDatasets.end() &&
+                    longitudeIt->second != NULL)
                 {
                     double *lat = new double[coordinateSize];
                     double *lon = new double[coordinateSize];
-                    readLatLonDatasets(latitudeIt, longitudeIt, lat, lon);
+
+                    readLatLonDatasets(
+                        latitudeIt->second, longitudeIt->second, lat, lon);
                     this->coors.insert(std::pair<std::string, double *>(
                         this->latitudes[i], lat));
                     this->coors.insert(std::pair<std::string, double *>(
