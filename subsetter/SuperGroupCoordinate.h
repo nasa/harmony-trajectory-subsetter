@@ -245,6 +245,8 @@ class SuperGroupCoordinate : public Coordinate
                 auto latitudeIt = this->coorDatasets.find(this->latitudes[i]);
                 auto longitudeIt = this->coorDatasets.find(this->longitudes[i]);
 
+                // Check lat/lon dataset for NULL in case lat/lon variables
+                // are located if different groups
                 if (latitudeIt != this->coorDatasets.end() &&
                     latitudeIt->second != NULL &&
                     longitudeIt != this->coorDatasets.end() &&
