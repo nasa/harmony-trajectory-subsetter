@@ -128,7 +128,7 @@ class HarmonyAdapter(BaseHarmonyAdapter):
             raise NoDataException from exception
         except Exception as exception:
             raise HarmonyException(
-                f"Trajectory Subsetter failed with error: {exception!s}"
+                f"Trajectory Subsetter failed with error: {exception}"
             ) from exception
         finally:
             # Clean up any intermediate resources:
