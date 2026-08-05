@@ -4,13 +4,12 @@ allows finer-grained unit testing of each function.
 
 """
 
-from datetime import datetime, timezone
 import json
+from datetime import datetime, timezone
 from logging import Logger
 from mimetypes import guess_type as guess_mime_type
 from os.path import abspath, dirname, join, splitext
 from subprocess import PIPE, Popen
-from typing import List, Optional
 
 from dateutil.parser import parse as parse_datetime
 from harmony_service_lib.message import Message
@@ -52,7 +51,7 @@ TRAJECTORY_SUBSETTER_VARINFO_CONFIG = join(
 DEFAULT_TIME_START = "1400-01-01T00:00:00"
 
 
-def get_file_mimetype(file_name: str) -> Optional[str]:
+def get_file_mimetype(file_name: str) -> str | None:
     """This function tries to infer the MIME type of a file string. If the
     `mimetype.guess_type` function cannot guess the MIME type of the
     granule, a dictionary of known MIME type mappings is checked before a
@@ -143,7 +142,7 @@ def is_polygon_spatial_subset(message: Message) -> bool:
     return message.subset is not None and message.subset.shape is not None
 
 
-def is_variable_subset(variables: Optional[List[HarmonyVariable]]) -> bool:
+def is_variable_subset(variables: list[HarmonyVariable] | None) -> bool:
     """Check the content of a `harmony.message.Message` instance to determine
     if the request has asked for a variable subset.
 
@@ -152,7 +151,7 @@ def is_variable_subset(variables: Optional[List[HarmonyVariable]]) -> bool:
 
 
 def is_harmony_subset(
-    message: Message, variables: Optional[List[HarmonyVariable]]
+    message: Message, variables: list[HarmonyVariable] | None
 ) -> bool:
     """Check the content of a `harmony.message.Message` instance to determine
     if the request has asked for a subset operation. This includes a
@@ -195,10 +194,10 @@ def include_support_variables(
     var_info = VarInfoFromNetCDF4(
         filename, short_name=short_name, config_file=TRAJECTORY_SUBSETTER_VARINFO_CONFIG
     )
-    requested_vars = set(
+    requested_vars = {
         requested_var if requested_var.startswith("/") else f"/{requested_var}"
         for requested_var in variables
-    )
+    }
     updated_vars = var_info.get_required_variables(requested_vars)
     return updated_vars
 
