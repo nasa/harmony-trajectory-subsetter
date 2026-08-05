@@ -133,14 +133,9 @@
         }
     },
     "SuperGroups": {
-        "GEDI_L[24]A": {
+        "GEDI_L[24][AB]": {
             "/BEAM[\\d]+/": [
                 "/BEAM[\\d]+/"
-            ]
-        },
-        "GEDI_L2B": {
-            "/BEAM[\\d]+/": [
-                "/BEAM[\\d]+/geolocation/"
             ]
         },
         "GEDI_L1[AB]": {
@@ -163,9 +158,11 @@
             ]
         },
         "GEDI_L2B": {
-            "/BEAM[\\d]+/geolocation/": [
+            "/BEAM[\\d]+/": [
                 "lat_lowestmode",
-                "lon_lowestmode",
+                "lon_lowestmode"
+            ],
+            "/BEAM[\\d]+/geolocation/": [
                 "delta_time"
             ]
         },
