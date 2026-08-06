@@ -5,20 +5,17 @@ to maintain file provenance.
 
 import json
 import os
-from typing import Dict, List
 
 import h5py
-
 from harmony_service_lib.provenance import get_updated_history_metadata
 
 from harmony_service.utilities import get_file_mimetype
-
 
 PROGRAM = "Harmony Trajectory Subsetter"
 
 
 def update_history_metadata(
-    binary_parameters: Dict[str, str], variables: List[str]
+    binary_parameters: dict[str, str], variables: list[str]
 ) -> None:
     """Update the history global attribute of the output file.
 
@@ -64,10 +61,10 @@ def read_history_attrs(output_file: h5py.File) -> tuple[str, str | None]:
 
 def write_history_attrs(
     output_file: h5py.File,
-    binary_parameters: Dict[str, str],
+    binary_parameters: dict[str, str],
     history_attribute_name: str,
     existing_history: str,
-    variables: List[str],
+    variables: list[str],
 ) -> None:
     """Write history attribute.
 
@@ -119,7 +116,7 @@ def needs_history_metadata(output_file_name: str) -> bool:
 
 
 def get_subset_parameters(
-    binary_parameters: Dict[str, str], variables: List[str]
+    binary_parameters: dict[str, str], variables: list[str]
 ) -> str:
     """Return the subset parameters in the request.
 

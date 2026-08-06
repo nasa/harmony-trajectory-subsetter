@@ -2,7 +2,6 @@
 
 import os
 import tempfile
-from typing import Dict
 
 import h5py
 import numpy as np
@@ -30,7 +29,7 @@ def sample_hdf5_file():
 
 
 @fixture(scope="function")
-def sample_all_binary_parameters(sample_hdf5_file) -> Dict[str, str]:
+def sample_all_binary_parameters(sample_hdf5_file) -> dict[str, str]:
     """Sample binary parameters for testing."""
     return {
         "--outfile": sample_hdf5_file,

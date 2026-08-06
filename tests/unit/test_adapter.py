@@ -1,12 +1,12 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from os import makedirs
 from os.path import basename, exists, join
 from shutil import rmtree
 from unittest import TestCase
 from unittest.mock import patch
 
-from harmony_service_lib.message import Message, Source
 from harmony_service_lib.exceptions import NoDataException
+from harmony_service_lib.message import Message, Source
 from harmony_service_lib.util import HarmonyException, bbox_to_geometry, config
 from pystac import Asset, Catalog, Item
 
@@ -71,7 +71,7 @@ class TestAdapter(TestCase):
             id="input_granule",
             geometry=bbox_to_geometry([-180, -90, 180, 90]),
             bbox=[-180, -90, 180, 90],
-            datetime=datetime(2001, 1, 1),
+            datetime=datetime(2001, 1, 1, tzinfo=timezone.utc),
             properties=None,
         )
         input_item.add_asset(

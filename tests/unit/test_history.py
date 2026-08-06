@@ -3,8 +3,8 @@
 import json
 import os
 
-from freezegun import freeze_time
 import h5py
+from freezegun import freeze_time
 
 from harmony_service.history import (
     PROGRAM,
@@ -195,8 +195,10 @@ def test_get_subset_parameters_all(sample_all_binary_parameters):
     binary_parameters_list = [
         f"{sample_all_binary_parameters['--bbox']}",
         json.loads(sample_all_binary_parameters["--boundingshape"]),
-        f"{sample_all_binary_parameters['--start']}, "
-        f"{sample_all_binary_parameters['--end']}",
+        (
+            f"{sample_all_binary_parameters['--start']}, "
+            f"{sample_all_binary_parameters['--end']}"
+        ),
         f"{variables[0]},{variables[1]}",
     ]
     expected_output = json.dumps(binary_parameters_list)
