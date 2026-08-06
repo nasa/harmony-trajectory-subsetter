@@ -4,7 +4,6 @@ from unittest import TestCase
 from unittest.mock import Mock, patch
 
 from freezegun import freeze_time
-
 from harmony_service_lib.message import Message
 
 from harmony_service.exceptions import (
@@ -15,10 +14,10 @@ from harmony_service.exceptions import (
     NoPolygonFound,
 )
 from harmony_service.utilities import (
+    DEFAULT_TIME_START,
     VarInfoFromNetCDF4,
     convert_harmony_datetime,
     default_time_end,
-    DEFAULT_TIME_START,
     execute_command,
     get_binary_exception,
     get_file_mimetype,

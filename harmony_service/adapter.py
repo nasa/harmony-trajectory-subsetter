@@ -26,7 +26,7 @@ from os.path import join as join_path
 from shutil import rmtree
 from sys import argv
 from tempfile import mkdtemp
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from harmony_service_lib import BaseHarmonyAdapter, run_cli, setup_cli
 from harmony_service_lib.exceptions import NoDataException
@@ -43,9 +43,9 @@ from pystac import Asset, Item
 from harmony_service.exceptions import NoMatchingData
 from harmony_service.history import update_history_metadata
 from harmony_service.utilities import (
+    DEFAULT_TIME_START,
     convert_harmony_datetime,
     default_time_end,
-    DEFAULT_TIME_START,
     execute_command,
     get_file_mimetype,
     include_support_variables,
@@ -128,13 +128,13 @@ class HarmonyAdapter(BaseHarmonyAdapter):
             raise NoDataException from exception
         except Exception as exception:
             raise HarmonyException(
-                f"Trajectory Subsetter failed with error: {str(exception)}"
+                f"Trajectory Subsetter failed with error: {exception}"
             ) from exception
         finally:
             # Clean up any intermediate resources:
             rmtree(working_directory)
 
-    def transform(self, binary_parameters: Dict[str, str]) -> None:
+    def transform(self, binary_parameters: dict[str, str]) -> None:
         """This class method takes the parsed arguments to be sent to the
         Trajectory Subsetter binary and constructs a command to execute
         the specified transformation. This command takes the form of a
@@ -184,7 +184,7 @@ class HarmonyAdapter(BaseHarmonyAdapter):
 
     def parse_binary_parameters(
         self, working_directory: str, input_asset: Asset, source: Source
-    ) -> Dict[str, str]:
+    ) -> dict[str, str]:
         """Retrieve parameters for the Trajectory Subsetter binary from the
         Harmony message. These will be stored in a dictionary, that
         formats the key as the binary parameter flag, e.g.:
@@ -304,7 +304,7 @@ class HarmonyAdapter(BaseHarmonyAdapter):
         return binary_parameters
 
 
-def main(arguments: List[Any], config: Optional[Config] = None):
+def main(arguments: list[Any], config: Config | None = None):
     """Parse command line arguments and invoke the Harmony service. The known
     arguments are defined in `harmony-service-lib-py`, under:
     `harmony.cli.setup_cli`.
