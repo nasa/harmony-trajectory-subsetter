@@ -5,6 +5,7 @@ allows finer-grained unit testing of each function.
 """
 
 import json
+import shlex
 from datetime import datetime, timezone
 from logging import Logger
 from mimetypes import guess_type as guess_mime_type
@@ -85,12 +86,15 @@ def get_binary_exception(exit_status: int) -> CustomError:
     return binary_exception
 
 
-def execute_command(command: str, logger: Logger) -> None:
+def execute_command(command: list[str], logger: Logger) -> None:
     """This function invokes the Trajectory Subsetter binary. It
     will continue to poll the process output until there is an exit status.
     While doing so, it will retrieve any input from STDOUT and STDERR, and
     log those with the supplied `logging.Logger` instance associated with
     the main `HarmonyAdapter` class.
+
+    `command` is a list of argv strings, the binary path followed by its
+    arguments, executed directly.
 
     The on-premises invocation checks for variables that cannot be
     subsetted, if a temporal or spatial subset is requested. If there are
@@ -100,9 +104,9 @@ def execute_command(command: str, logger: Logger) -> None:
     information, so that check is omitted from this function.
 
     """
-    logger.info(f"Running command: {command}")
+    logger.info(f"Running command: {shlex.join(command)}")
 
-    with Popen(command, shell=True, stdout=PIPE, stderr=PIPE) as process:
+    with Popen(command, stdout=PIPE, stderr=PIPE) as process:
         exit_status = process.poll()
 
         while exit_status is None:

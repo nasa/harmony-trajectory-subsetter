@@ -32,11 +32,11 @@ class TestAdapter(TestCase):
         """Fixtures that only need to be instantiated once for all tests."""
         cls.access_token = "access"
         cls.bounding_shape = (
-            '\'{"type": "FeatureCollection", "features": '
+            '{"type": "FeatureCollection", "features": '
             '[{"type": "Feature", "properties": {}, '
             '"geometry": {"type": "Polygon", "coordinates": '
             "[[[20, 15], [50, 15], [50, 40], [20, 40], "
-            "[20, 15]]]}}]}'"
+            "[20, 15]]]}}]}"
         )
         cls.callback = "https://example.com"
         cls.collection = "C1234567890-TEST"
@@ -132,14 +132,19 @@ class TestAdapter(TestCase):
         )
         _, output_catalog = subsetter.invoke()
 
-        expected_command = (
-            f"{SUBSETTER_BINARY_PATH} "
-            f"--configfile {SUBSETTER_CONFIG} "
-            f"--filename {local_input_path} "
-            f"--shortname {self.shortname} "
-            f"--loglevel {self.loglevel} "
-            f"--outfile {local_input_path}"
-        )
+        expected_command = [
+            SUBSETTER_BINARY_PATH,
+            "--configfile",
+            SUBSETTER_CONFIG,
+            "--filename",
+            local_input_path,
+            "--shortname",
+            self.shortname,
+            "--loglevel",
+            self.loglevel,
+            "--outfile",
+            local_input_path,
+        ]
 
         mock_mkdtemp.assert_called_once()
         mock_execute_command.assert_called_once_with(expected_command, subsetter.logger)
@@ -426,15 +431,21 @@ class TestAdapter(TestCase):
             subsetter.invoke()
 
             expected_local_out = f"{self.temp_dir}/{self.subsetted_filename}"
-            expected_command = (
-                f"{SUBSETTER_BINARY_PATH} "
-                f"--configfile {SUBSETTER_CONFIG} "
-                f"--filename {self.granule['url']} "
-                f"--boundingshape {self.bounding_shape} "
-                f"--shortname {self.shortname} "
-                f"--loglevel {self.loglevel} "
-                f"--outfile {expected_local_out}"
-            )
+            expected_command = [
+                SUBSETTER_BINARY_PATH,
+                "--configfile",
+                SUBSETTER_CONFIG,
+                "--filename",
+                self.granule["url"],
+                "--boundingshape",
+                self.bounding_shape,
+                "--shortname",
+                self.shortname,
+                "--loglevel",
+                self.loglevel,
+                "--outfile",
+                expected_local_out,
+            ]
 
             mock_mkdtemp.assert_called_once()
             mock_execute_command.assert_called_once_with(
@@ -746,9 +757,13 @@ class TestAdapter(TestCase):
         """
         binary_parameters = {"--par_one": "val_one", "--par_two": "val_two"}
 
-        expected_command = (
-            f"{SUBSETTER_BINARY_PATH} --par_one val_one --par_two val_two"
-        )
+        expected_command = [
+            SUBSETTER_BINARY_PATH,
+            "--par_one",
+            "val_one",
+            "--par_two",
+            "val_two",
+        ]
 
         message = Message(
             {

@@ -95,14 +95,15 @@ class TestUtilities(TestCase):
 
     @patch("harmony_service.utilities.get_binary_exception")
     def test_execute_command(self, mock_get_binary_exception):
-        """Ensure a shell command is invoked within a new process. It should
-        return all logging to the supplied logger and if the exit status
-        indicates failure, it should call `get_binary_exception`.
+        """Ensure a command is invoked directly as an argv list
+        within a new process. It should return all logging to the supplied
+        logger and if the exit status indicates failure, it should call
+        `get_binary_exception`.
 
         """
         echo_value = "string_value"
-        test_command = f'echo "{echo_value}"'
-        test_error_command = f'>&2 echo "{echo_value}" && exit 1'
+        test_command = ["echo", echo_value]
+        test_error_command = ["bash", "-c", f'>&2 echo "{echo_value}" && exit 1']
 
         mock_logger = Mock(spec=Logger)
         mock_get_binary_exception.return_value = InvalidParameter()
@@ -110,7 +111,7 @@ class TestUtilities(TestCase):
         with self.subTest("A process runs a successful command"):
             self.assertIsNone(execute_command(test_command, mock_logger))
             self.assertEqual(mock_logger.info.call_count, 2)
-            mock_logger.info.assert_any_call('Running command: echo "string_value"')
+            mock_logger.info.assert_any_call("Running command: echo string_value")
             mock_logger.info.assert_any_call(f"{echo_value}\n")
 
         mock_logger.reset_mock()
@@ -120,6 +121,15 @@ class TestUtilities(TestCase):
                 execute_command(test_error_command, mock_logger)
 
             mock_logger.error.assert_called_once_with(f"{echo_value}\n")
+
+        mock_logger.reset_mock()
+
+        with self.subTest("Shell metacharacters in a value are not interpreted"):
+            # With no shell involved, a value containing shell syntax is
+            # passed to the program as a single, literal argument.
+            injected_value = "; touch /tmp/should-not-exist; echo done"
+            self.assertIsNone(execute_command(["echo", injected_value], mock_logger))
+            mock_logger.info.assert_any_call(f"{injected_value}\n")
 
     def test_is_temporal_subset(self):
         """Ensure that a Harmony message will be correctly recognised as
