@@ -132,6 +132,7 @@ see `legacy-CHANGELOG.md`.
 - On-premises scripts and artefacts for the SDPS system have been removed from
   the repository.
 
+[v1.0.11]: https://github.com/nasa/harmony-trajectory-subsetter/releases/tag/1.0.11
 [v1.0.10]: https://github.com/nasa/harmony-trajectory-subsetter/releases/tag/1.0.10
 [v1.0.9]: https://github.com/nasa/harmony-trajectory-subsetter/releases/tag/1.0.9
 [v1.0.8]: https://github.com/nasa/harmony-trajectory-subsetter/releases/tag/1.0.8
