@@ -9,9 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Changes how arguments are passed to the subsetter binary. To avoid a shell
-  injection vulnerability, we have switched the passing of parameters from a
-  string to an array of values and set shell=False.
+- Addresses NASA Vulnerability Disclosure VDP-3009.  Changes how arguments are
+  passed to the subsetter binary. We have switched the passing of parameters
+  from a string to an array of values and set shell=False to avoid the shell
+  injection vulnerability.  No changes to service functionality should be seen.
 
 
 ## [v1.0.10] - 2026-07-23
