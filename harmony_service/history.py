@@ -135,9 +135,7 @@ def get_subset_parameters(
         subset_parameters.append(binary_parameters["--bbox"])
 
     if "--boundingshape" in binary_parameters:
-        subset_parameters.append(
-            json.loads(binary_parameters["--boundingshape"].strip("'"))
-        )
+        subset_parameters.append(json.loads(binary_parameters["--boundingshape"]))
 
     if "--start" in binary_parameters and "--end" in binary_parameters:
         subset_parameters.append(

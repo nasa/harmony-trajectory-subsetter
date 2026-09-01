@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.0.11] - 2026-08-28
+
+### Changed
+
+- Addresses NASA Vulnerability Disclosure VDP-3009.  Changes how arguments are
+  passed to the subsetter binary. We have switched the passing of parameters
+  from a string to an array of values and set shell=False to avoid the shell
+  injection vulnerability.  No changes to service functionality should be seen.
+
+- For local development only, switches from downloading a gtest binary to using
+  the one delivered in the conda environment.
+
+
 ## [v1.0.10] - 2026-07-23
 
 ### Changed
@@ -123,6 +136,7 @@ see `legacy-CHANGELOG.md`.
 - On-premises scripts and artefacts for the SDPS system have been removed from
   the repository.
 
+[v1.0.11]: https://github.com/nasa/harmony-trajectory-subsetter/releases/tag/1.0.11
 [v1.0.10]: https://github.com/nasa/harmony-trajectory-subsetter/releases/tag/1.0.10
 [v1.0.9]: https://github.com/nasa/harmony-trajectory-subsetter/releases/tag/1.0.9
 [v1.0.8]: https://github.com/nasa/harmony-trajectory-subsetter/releases/tag/1.0.8

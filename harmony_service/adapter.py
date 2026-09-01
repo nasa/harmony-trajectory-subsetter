@@ -138,12 +138,11 @@ class HarmonyAdapter(BaseHarmonyAdapter):
         """This class method takes the parsed arguments to be sent to the
         Trajectory Subsetter binary and constructs a command to execute
         the specified transformation. This command takes the form of a
-        string, which is a space-delimited concatenation of the list of
-        parameters:
+        list of argv strings, executed directly:
 
         ```Python
         binary_command = ['path/to/binary', '--filename', 'input.h5']
-        execute_command('path/to/binary --filename input.h5', self.logger)
+        execute_command(binary_command, self.logger)
         ```
 
         If the binary returns a non-zero exit status, this will cause a
@@ -153,7 +152,7 @@ class HarmonyAdapter(BaseHarmonyAdapter):
         """
         binary_command = [SUBSETTER_BINARY_PATH]
         binary_command.extend(chain(*(binary_parameters.items())))
-        execute_command(" ".join(binary_command), self.logger)
+        execute_command(binary_command, self.logger)
 
     def validate_message(self):
         """Check the service was triggered by a valid message. This includes
@@ -280,7 +279,7 @@ class HarmonyAdapter(BaseHarmonyAdapter):
             with open(shape_file_path, "r", encoding="utf-8") as file_handler:
                 bounding_shape = json.dumps(json.load(file_handler))
 
-            binary_parameters["--boundingshape"] = f"'{bounding_shape}'"
+            binary_parameters["--boundingshape"] = bounding_shape
 
         binary_parameters["--shortname"] = source.shortName
 

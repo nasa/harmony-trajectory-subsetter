@@ -13,15 +13,12 @@ project(harmony_trajectory_subsetter)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-include(FetchContent)
-FetchContent_Declare(
-  googletest
-  DOWNLOAD_EXTRACT_TIMESTAMP TRUE
-  URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
-)
-# For Windows: Prevent overriding the parent project's compiler/linker settings
-set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-FetchContent_MakeAvailable(googletest)
+# GoogleTest should come from the local conda environment. CONDA_PREFIX is
+# added as a search prefix so find_package locates it whether or not conda's
+# activation scripts have set CMAKE_PREFIX_PATH.
+
+list(APPEND CMAKE_PREFIX_PATH $ENV{CONDA_PREFIX})
+find_package(GTest REQUIRED)
 
 enable_testing()
 
