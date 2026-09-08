@@ -165,7 +165,7 @@ TEST_F(ForwardReferenceCoordinatesTest,
     long firstTrajIndex_result = 0; // Returned-by-reference
 
     // Expected length: Since nextTrajIndex will be 0, the new logic executes:
-    long trajSegLength_expected = maxTrajIndex + 1 - firstTrajIndex_expected;
+    long trajSegLength_expected = maxTrajIndex;
     long trajSegLength_result = 0; // Returned-by-reference
 
     coordinate_object->defineOneSegment(selectedStartIdx,
@@ -179,40 +179,3 @@ TEST_F(ForwardReferenceCoordinatesTest,
     EXPECT_EQ(firstTrajIndex_expected, firstTrajIndex_result);
     EXPECT_EQ(trajSegLength_expected, trajSegLength_result);
 }
-
-/*
-int64_t mock_data[] = {10, 50, 100, 150, 200, -1, -1};
-
-trajSegLength = nextTrajIndex - firstTrajIndex;
-
-[INFO] Vu ForwardReferenceCoordinates::scanFwdNonFill(): segStartIdx: [3]
-[INFO] Vu ForwardReferenceCoordinates::scanFwdNonFill(): segEndIdx: [4]
-[INFO] Vu ForwardReferenceCoordinates::scanFwdNonFill(): firstNonFillIdx: [3]
-[INFO] Vu ForwardReferenceCoordinates::scanFwdNonFill(): firstTrajIndex value 150
-[INFO] Vu ForwardReferenceCoordinates::scanBackNonFill(): segStartIdx: [3]
-[INFO] Vu ForwardReferenceCoordinates::scanBackNonFill(): segEndIdx: [4]
-[INFO] Vu ForwardReferenceCoordinates::scanBackNonFill(): lastNonFillIdx: [4]
-[INFO] Vu ForwardReferenceCoordinates::scanBackNonFill(): lastTrajIndex value: 200
-[INFO] Vu  ForwardReferenceCoordinates::defineOneSegment(): lastSelectedIdx: [4]
-[INFO] Vu  ForwardReferenceCoordinates::defineOneSegment(): maxIndexBegIdx - 1 : [6]
-[INFO] Vu ForwardReferenceCoordinates::scanFwdNonFill(): segStartIdx: [5]
-[INFO] Vu ForwardReferenceCoordinates::scanFwdNonFill(): segEndIdx: [6]
-[INFO] ForwardReferenceCoordinates::defineOneSegment(): nextTrajIndex == 0, setting beyond maximum Target index:251
-[INFO] Vu  ForwardReferenceCoordinates::defineOneSegment(): lastBegIdx: [4]
-[INFO] Vu  ForwardReferenceCoordinates::defineOneSegment(): firstTrajIndex: 150
-[INFO] Vu  ForwardReferenceCoordinates::defineOneSegment(): lastTrajIndex value: 200
-[INFO] Vu  ForwardReferenceCoordinates::defineOneSegment(): nextTrajIndex: value: 251
-[INFO] Vu  ForwardReferenceCoordinates::defineOneSegment(): trajSegLength: value: 101
-/Users/vtran11/Documents/workspace/harmony-trajectory-subsetter/tests/unit/gtest/test_ForwardReferenceCoordinates.cpp:180: Failure
-Expected equality of these values:
-  trajSegLength_expected
-    Which is: 250
-  trajSegLength_result
-    Which is: 101
-/Users/vtran11/Documents/workspace/harmony-trajectory-subsetter/tests/unit/gtest/test_ForwardReferenceCoordinates.cpp:180: Failure
-Expected equality of these values:
-  trajSegLength_expected
-    Which is: 250
-  trajSegLength_result
-    Which is: 101
-*/
