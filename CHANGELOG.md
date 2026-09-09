@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v1.0.12][v1.0.12] - 2026-09-09
+## [v1.0.12] - 2026-09-09
 
 ### Changed
 
@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
      `reference_surface_section/beam_lead_n`should equal the number of values
      in the`leads/ssh_n`datasets
 
-## [v1.0.11][v1.0.11] - 2026-08-28
+## [v1.0.11] - 2026-08-28
 
 ### Changed
 
@@ -28,14 +28,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - For local development only, switches from downloading a gtest binary to using
   the one delivered in the conda environment.
 
-## [v1.0.10][v1.0.10] - 2026-07-23
+## [v1.0.10] - 2026-07-23
 
 ### Changed
 
 - Update subsetter_config.json to exclusively support `GEDI_L2B` v003 dataset
   structures and deprecated support for `GEDI_L2B` v002.
 
-## [v1.0.9][v1.0.9] - 2026-06-10
+## [v1.0.9] - 2026-06-10
 
 ### Changed
 
@@ -50,7 +50,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `~= 3.0.0` in `harmony_service/pip_requirements.txt` to mitigate a Snyk
   vulnerability.
 
-## [v1.0.8][v1.0.8] - 2026-05-18
+## [v1.0.8] - 2026-05-18
 
 ### Changed
 
@@ -58,7 +58,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   H5F_LIBVER_V18. This maintains backward compatibility with the HDF5 1.8.x library,
   producing a version 2 or 3 superblock for Panolpy support.
 
-## [v1.0.7][v1.0.7] - 2026-05-04
+## [v1.0.7] - 2026-05-04
 
 ### Changed
 
@@ -71,21 +71,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
      the dataset (e.g. Reference_Surface.Beam_Lead-Ndx), errors could introduce
      additional and/or missing elements in the target dataset (e.g., Beam-Leads group).
 
-## [v1.0.6][v1.0.6] - 2026-04-21
+## [v1.0.6] - 2026-04-21
 
 ### Changed
 
 - Adds a default start or end time for temporal requests that don't specify
   both start and end bounds. This previously threw an exception.
 
-## [v1.0.5][v1.0.5] - 2026-04-17
+## [v1.0.5] - 2026-04-17
 
 ### Changed
 
 - Updates and improves docker build process. No user facing changes, but a
   static hdf library is used instead of a build in docker version.
 
-## [v1.0.4][v1.0.4] - 2026-02-10
+## [v1.0.4] - 2026-02-10
 
 ### Changed
 
@@ -95,13 +95,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   development (not a functional change).
 - Copies .snyk alongside each of the tested requirements files.
 
-## [v1.0.3][v1.0.3] - 2025-12-15
+## [v1.0.3] - 2025-12-15
 
 ### Changed
 
 - Updates internal python dependencies to mitigate urllib3 vulnerabilities CVE-2025-66471 and CVE-2025-66418.
 
-## [v1.0.2][v1.0.2] - 2025-11-20
+## [v1.0.2] - 2025-11-20
 
 ### Changed
 
@@ -110,7 +110,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Apply the new pre-commit formatting across the entire repository, having
   no functional change to any affected files.
 
-## [v1.0.1][v1.0.1] - 2025-10-29
+## [v1.0.1] - 2025-10-29
 
 ### Changed
 
@@ -118,7 +118,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   This primarily white space fixing, and has no functional change to any
   affected files.
 
-## [v1.0.0][v1.0.0] - 2025-10-29
+## [v1.0.0] - 2025-10-29
 
 This version of the Harmony Trajectory Subsetter service contains all
 functionality previously released internally to EOSDIS as
