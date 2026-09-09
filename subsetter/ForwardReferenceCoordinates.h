@@ -255,7 +255,6 @@ class ForwardReferenceCoordinates : public Coordinate
                          int64_t indexBegDataset[])
     {
         // skip over segment-begin (start) fill values
-
         for (long i = segEndIdx; i >= segStartIdx; i--)
         {
             if (indexBegDataset[i] > 0)
