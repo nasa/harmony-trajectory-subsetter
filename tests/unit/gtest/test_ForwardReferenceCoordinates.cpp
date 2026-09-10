@@ -179,3 +179,88 @@ TEST_F(ForwardReferenceCoordinatesTest,
     EXPECT_EQ(firstTrajIndex_expected, firstTrajIndex_result);
     EXPECT_EQ(trajSegLength_expected, trajSegLength_result);
 }
+
+TEST_F(ForwardReferenceCoordinatesTest,
+       DefineOneSegment_LastSegment_MatchesMaxIndexBegIdx)
+{
+    // Simulate an index dataset where the selected slice reaches the end of the
+    // array. Indexes:     0   1   2    3    4    5    6
+    int64_t mock_data[] = {5, 20, 50, 100, 150, 200, 230};
+
+    // Select the last 3 elements of the array (indexes 4, 5, 6)
+    long selectedStartIdx = 4;
+    long selectedCount = 3;
+
+    // The selection end index matches the size of the dataset (4 + 3 == 7)
+    long maxIndexBegIdx = 7;
+
+    // Total number of elements in the target/trajectory dataset
+    long maxTrajIndex = 250;
+
+    // Expected: First trajectory index is at mock_data[4] -> 150
+    long firstTrajIndex_expected = 150;
+    long firstTrajIndex_result = 0;
+
+    // Expected length: Since this is the last segment
+    // (lastSelectedIdx + 1 == maxIndexBegIdx),
+    long trajSegLength_expected = 100;
+    long trajSegLength_result = 0;
+
+    coordinate_object->defineOneSegment(selectedStartIdx,
+                                        selectedCount,
+                                        firstTrajIndex_result,
+                                        trajSegLength_result,
+                                        maxIndexBegIdx,
+                                        maxTrajIndex,
+                                        mock_data);
+
+    EXPECT_EQ(firstTrajIndex_expected, firstTrajIndex_result);
+    EXPECT_EQ(trajSegLength_expected, trajSegLength_result);
+}
+
+TEST_F(ForwardReferenceCoordinatesTest,
+       DefineOneSegment_CalculatesLengthToNextTraj_ATL10_v6_beam_lead_ndx)
+{
+    // Simplified 10-element index dataset
+    // /gt1l/reference_surface_section/beam_lead_ndx log output:
+    //  - scanFwdNonFill: finds the first non -1 starting at
+    //    selectedStartIdx = 0 (Index[2] = 1) and ending at selectedCount = 7
+    //  - scanBackNonFill: finds the first non -1 starting backwards
+    //    at selectedCount = 7 (Index[6] = 667)
+    //  - scanFwdNonFill: finds the first non -1 starting at
+    //.   selectedCount = 7 (Index[8] = 668) and ending maxIndexBegIdx = 10
+    // - Next segment lookahead at index 8 (value 668)
+    // - trajSegLength = nextTrajIndex - firstTrajIndex = 668 - 1 = 667
+    // Indexes:             0   1  2  3    4    5    6   7    8    9
+    int64_t mock_data[] = {-1, -1, 1, 3, 100, 500, 667, -1, 668, 743};
+
+    long selectedStartIdx = 0;
+    long selectedCount = 7;
+
+    // Total elements in the index array
+    long maxIndexBegIdx = 10;
+
+    // Total elements in the trajectory/target dataset
+    long maxTrajIndex = 743;
+
+    // Expected: scanFwdNonFill finds first non-fill at mock_data[2] -> 1
+    long firstTrajIndex_expected = 1;
+    long firstTrajIndex_result = 0;
+
+    // Expected length: scanFwdNonFill looks ahead past mock_data[7]=-1 to
+    // find nextTrajIndex at mock_data[8]=668
+    // trajSegLength = nextTrajIndex - firstTrajIndex (668 - 1 = 667)
+    long trajSegLength_expected = 667;
+    long trajSegLength_result = 0;
+
+    coordinate_object->defineOneSegment(selectedStartIdx,
+                                        selectedCount,
+                                        firstTrajIndex_result,
+                                        trajSegLength_result,
+                                        maxIndexBegIdx,
+                                        maxTrajIndex,
+                                        mock_data);
+
+    EXPECT_EQ(firstTrajIndex_expected, firstTrajIndex_result);
+    EXPECT_EQ(trajSegLength_expected, trajSegLength_result);
+}
