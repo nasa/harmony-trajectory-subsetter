@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.0.12] - 2026-09-09
+
+### Changed
+
+- Fixes two bugs in Segmented-Trajectory Temporal Subsetting
+  1) Fix an issue with ATL10 v6/v7`reference_surface_section/beam_lead_ndx`
+     dataset contains indexes value that don't reference any index data
+     in the`leads/ssh_ndx`group
+  2) Fix an issue with ATL10 v6/v7 where the sum of the segment counts
+     `reference_surface_section/beam_lead_n`should equal the number of values
+     in the`leads/ssh_n`datasets
+
 ## [v1.0.11] - 2026-08-28
 
 ### Changed
@@ -13,10 +25,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   passed to the subsetter binary. We have switched the passing of parameters
   from a string to an array of values and set shell=False to avoid the shell
   injection vulnerability.  No changes to service functionality should be seen.
-
 - For local development only, switches from downloading a gtest binary to using
   the one delivered in the conda environment.
-
 
 ## [v1.0.10] - 2026-07-23
 
@@ -54,12 +64,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fixes two bugs in Segmented-Trajectory Subsetting (L2 Data IceSAT-2, GEDI).
   1) When a forward-reference segment definition (e.g. Beam-Leads.ssh_idx)
-  is itself not subsetted, but the target dataset (Freeboard-Segment group) is,
-  the forward index references would be left unchanged, and therefore incorrectly
-  referenced the target items.
+     is itself not subsetted, but the target dataset (Freeboard-Segment group) is,
+     the forward index references would be left unchanged, and therefore incorrectly
+     referenced the target items.
   2) When a subset of a forward-reference dataset included the tail-end of
-  the dataset (e.g. Reference_Surface.Beam_Lead-Ndx), errors could introduce
-  additional and/or missing elements in the target dataset (e.g., Beam-Leads group).
+     the dataset (e.g. Reference_Surface.Beam_Lead-Ndx), errors could introduce
+     additional and/or missing elements in the target dataset (e.g., Beam-Leads group).
 
 ## [v1.0.6] - 2026-04-21
 
@@ -136,6 +146,7 @@ see `legacy-CHANGELOG.md`.
 - On-premises scripts and artefacts for the SDPS system have been removed from
   the repository.
 
+[v1.0.12]: https://github.com/nasa/harmony-trajectory-subsetter/releases/tag/1.0.12
 [v1.0.11]: https://github.com/nasa/harmony-trajectory-subsetter/releases/tag/1.0.11
 [v1.0.10]: https://github.com/nasa/harmony-trajectory-subsetter/releases/tag/1.0.10
 [v1.0.9]: https://github.com/nasa/harmony-trajectory-subsetter/releases/tag/1.0.9

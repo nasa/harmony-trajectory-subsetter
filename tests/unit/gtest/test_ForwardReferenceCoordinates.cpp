@@ -179,3 +179,142 @@ TEST_F(ForwardReferenceCoordinatesTest,
     EXPECT_EQ(firstTrajIndex_expected, firstTrajIndex_result);
     EXPECT_EQ(trajSegLength_expected, trajSegLength_result);
 }
+
+TEST_F(ForwardReferenceCoordinatesTest,
+       DefineOneSegment_LastSegment_MatchesMaxIndexBegIdx)
+{
+    // Simulate an index dataset where the selected slice reaches the end of the
+    // array. Indexes:     0   1   2    3    4    5    6
+    int64_t mock_data[] = {5, 20, 50, 100, 150, 200, 230};
+
+    // Select the last 3 elements of the array (indexes 4, 5, 6)
+    long selectedStartIdx = 4;
+    long selectedCount = 3;
+
+    // The selection end index matches the size of the dataset (4 + 3 == 7)
+    long maxIndexBegIdx = 7;
+
+    // Total number of elements in the target/trajectory dataset
+    long maxTrajIndex = 250;
+
+    // Expected: First trajectory index is at mock_data[4] -> 150
+    long firstTrajIndex_expected = 150;
+    long firstTrajIndex_result = 0;
+
+    // Expected length: Since this is the last segment
+    // (lastSelectedIdx + 1 == maxIndexBegIdx), the segment runs to the end
+    // of the trajectory dataset. indexBeg values are 1-based, so trajectory
+    // values 150 through 250 inclusive is 250 - 150 + 1 = 101 values.
+    long trajSegLength_expected = 101;
+    long trajSegLength_result = 0;
+
+    coordinate_object->defineOneSegment(selectedStartIdx,
+                                        selectedCount,
+                                        firstTrajIndex_result,
+                                        trajSegLength_result,
+                                        maxIndexBegIdx,
+                                        maxTrajIndex,
+                                        mock_data);
+
+    EXPECT_EQ(firstTrajIndex_expected, firstTrajIndex_result);
+    EXPECT_EQ(trajSegLength_expected, trajSegLength_result);
+}
+
+TEST_F(ForwardReferenceCoordinatesTest,
+       DefineOneSegment_CalculatesLengthToNextTraj_ATL10_v6_beam_lead_ndx)
+{
+    // Simplified 10-element index dataset
+    // /gt1l/reference_surface_section/beam_lead_ndx log output:
+    //  - scanFwdNonFill: finds the first non -1 starting at
+    //    selectedStartIdx = 0 (Index[2] = 1) and ending at selectedCount = 7
+    //  - scanBackNonFill: finds the first non -1 starting backwards
+    //    at selectedCount = 7 (Index[6] = 667)
+    //  - scanFwdNonFill: finds the first non -1 starting at
+    //.   selectedCount = 7 (Index[8] = 668) and ending maxIndexBegIdx = 10
+    // - Next segment lookahead at index 8 (value 668)
+    // - trajSegLength = nextTrajIndex - firstTrajIndex = 668 - 1 = 667
+    // Indexes:             0   1  2  3    4    5    6   7    8    9
+    int64_t mock_data[] = {-1, -1, 1, 3, 100, 500, 667, -1, 668, 743};
+
+    long selectedStart = 0;
+    long maxIndexEnd = 7;
+
+    long selectedCount = maxIndexEnd - selectedStart;
+
+    // Total elements in the index array
+    long maxIndexBegIdx = 10;
+
+    // Total elements in the trajectory/target dataset
+    long maxTrajIndex = 743;
+
+    // Expected: scanFwdNonFill finds first non-fill at mock_data[2] -> 1
+    long firstTrajIndex_expected = 1;
+    long firstTrajIndex_result = 0;
+
+    // Expected length: scanFwdNonFill looks ahead past mock_data[7]=-1 to
+    // find nextTrajIndex at mock_data[8]=668
+    // trajSegLength = nextTrajIndex - firstTrajIndex (668 - 1 = 667)
+    long trajSegLength_expected = 667;
+    long trajSegLength_result = 0;
+
+    coordinate_object->defineOneSegment(selectedStart,
+                                        selectedCount,
+                                        firstTrajIndex_result,
+                                        trajSegLength_result,
+                                        maxIndexBegIdx,
+                                        maxTrajIndex,
+                                        mock_data);
+
+    EXPECT_EQ(firstTrajIndex_expected, firstTrajIndex_result);
+    EXPECT_EQ(trajSegLength_expected, trajSegLength_result);
+}
+
+TEST_F(ForwardReferenceCoordinatesTest,
+       DefineOneSegment_LastSegment_ATL10_RealIndexBeginValues)
+{
+    // The /gt1l/reference_surface_section/beam_lead_ndx and beam_lead_n
+    // values from tests/data/ATL10_gt1l.h5, whose /gt1l/leads datasets hold
+    // 95 values. They are inlined rather than read from the file because
+    // gtest_utilities::readDataset() reads into an int64_t buffer and these
+    // datasets are 32-bit.
+    int64_t beam_lead_ndx[] = {-1, -1, -1, -1, -1, -1, -1, -1, 1,  -1,
+                               16, -1, -1, -1, -1, 23, -1, -1, 28, 39,
+                               -1, 42, 51, 65, 89, -1, -1, -1, -1, -1,
+                               -1, -1, -1, -1, -1, -1, -1, -1, -1};
+
+    // Select entries 20 through 38. The four non-fill entries in that range
+    // claim leads 42 through 95 between them:
+    //     entry 21: beam_lead_ndx 42, beam_lead_n  9 -> leads 42..50
+    //     entry 22: beam_lead_ndx 51, beam_lead_n 14 -> leads 51..64
+    //     entry 23: beam_lead_ndx 65, beam_lead_n 24 -> leads 65..88
+    //     entry 24: beam_lead_ndx 89, beam_lead_n  7 -> leads 89..95
+    long selectedStartIdx = 20;
+    long selectedCount = 19;
+
+    // The selection reaches the final entry of the index begin dataset, so
+    // lastSelectedIdx + 1 == maxIndexBegIdx and the segment runs to the end
+    // of the trajectory (leads) datasets. Entry 24 agrees: the last lead it
+    // claims, 89 + 7 - 1, is lead 95, the last one in the file.
+    long maxIndexBegIdx = 39;
+    long maxTrajIndex = 95;
+
+    long firstTrajIndex_expected = 42;
+
+    // 9 + 14 + 24 + 7. Equally, leads 42 through 95 inclusive, as
+    // beam_lead_ndx is one based indexing.
+    long trajSegLength_expected = 54;
+
+    long firstTrajIndex_result = 0; // Returned-by-reference
+    long trajSegLength_result = 0;  // Returned-by-reference
+
+    coordinate_object->defineOneSegment(selectedStartIdx,
+                                        selectedCount,
+                                        firstTrajIndex_result,
+                                        trajSegLength_result,
+                                        maxIndexBegIdx,
+                                        maxTrajIndex,
+                                        beam_lead_ndx);
+
+    EXPECT_EQ(firstTrajIndex_expected, firstTrajIndex_result);
+    EXPECT_EQ(trajSegLength_expected, trajSegLength_result);
+}
