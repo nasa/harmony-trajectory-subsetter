@@ -338,7 +338,7 @@ class ForwardReferenceCoordinates : public Coordinate
      *    include length to start of last segment-part plus the length of the
      *    last segment
      *
-     *    4c: trajSegLength = allExceptLastCount + lastCount
+     *    4c: trajSegLength = nextTrajIndex - firstTrajIndex
      */
     {
         LOG_DEBUG(" ForwardReferenceCoordinates::defineOneSegment(): ENTER");
@@ -415,10 +415,10 @@ class ForwardReferenceCoordinates : public Coordinate
         }
         else
         {
-            // We need to calculate the length of the last segment in the
-            // selection since we can't use the count dataset. We don't subtract
-            // 1 from either count calculation because neither include the
-            // greater value.
+            // The count dataset can't be used, so this segment ends where
+            // the next one begins: it covers trajectory values
+            // firstTrajIndex through nextTrajIndex - 1. The length of that
+            // range is the difference between the two.
             trajSegLength = nextTrajIndex - firstTrajIndex;
         }
     }

@@ -282,10 +282,6 @@ TEST_F(ForwardReferenceCoordinatesTest,
                                -1, 42, 51, 65, 89, -1, -1, -1, -1, -1,
                                -1, -1, -1, -1, -1, -1, -1, -1, -1};
 
-    int64_t beam_lead_n[] = {0, 0, 0, 0, 0, 0,  0, 0, 15, 0,  7,  0, 0,
-                             0, 0, 5, 0, 0, 11, 3, 0, 9,  14, 24, 7, 0,
-                             0, 0, 0, 0, 0, 0,  0, 0, 0,  0,  0,  0, 0};
-
     // Select entries 20 through 38. The four non-fill entries in that range
     // claim leads 42 through 95 between them:
     //     entry 21: beam_lead_ndx 42, beam_lead_n  9 -> leads 42..50
