@@ -380,7 +380,7 @@ class ForwardReferenceCoordinates : public Coordinate
         // trajectory value.
         if (lastSelectedIdx + 1 == maxIndexBegIdx)
         {
-            trajSegLength = maxTrajIndex - firstTrajIndex;
+            trajSegLength = maxTrajIndex - firstTrajIndex + 1;
             return;
         }
 
