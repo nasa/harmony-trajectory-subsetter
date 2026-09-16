@@ -423,6 +423,113 @@ class ForwardReferenceCoordinates : public Coordinate
         }
     }
 
+  protected:
+    /*
+     * @brief Resolves trajectory segment indices for a given index-begin
+     * selection range and appends the resulting 0-based index range to
+     * `indexes`.
+     *
+     * Delegates segment calculation to `defineOneSegment()` to resolve the
+     * 1-based starting trajectory index and segment length. If a valid start
+     * index is found (`start > 0`), converts it to a 0-based dataset offset
+     * (`start - 1`) and appends the segment range to `indexes->addSegment()`.
+     *
+     * @param[in]  selectedStart     Starting index offset in the index-begin
+     * dataset.
+     * @param[in]  selectedCount     Number of index-begin entries to evaluate.
+     * @param[out] firstTrajIndex    Reference to store the computed first
+     * trajectory index (1-based value).
+     * @param[out] trajSegLength     Reference to store the computed target
+     * segment length.
+     * @param[in]  idxBegSize        Total element count/size of the index-begin
+     * dataset.
+     * @param[in]  coordinateSize    Total element count/size of the target
+     * trajectory dataset.
+     * @param[in]  indexBegDataset   Array containing 1-based index-begin
+     * dataset values.
+     *
+     */
+    void addSegmentIndexSelection(long selectedStart,
+                                  long selectedCount,
+                                  long &firstTrajIndex,
+                                  long &trajSegLength,
+                                  long idxBegSize,
+                                  long coordinateSize,
+                                  int64_t indexBegDataset[])
+    {
+        LOG_DEBUG(
+            "ForwardReferenceCoordinates::addSegmentIndexSelection(): ENTER");
+
+        long start = 0;
+        long length = 0;
+
+        defineOneSegment(selectedStart,
+                         selectedCount,
+                         start,
+                         length,
+                         idxBegSize,
+                         coordinateSize,
+                         indexBegDataset);
+
+        firstTrajIndex = start;
+        trajSegLength = length;
+
+        // Note: index-selection start is zero-based (dataset-relative),
+        // whereas start index pulled from indexBegin datasets uses 1-based
+        // indexing.
+        if (start > 0 && indexes != nullptr)
+        {
+            indexes->addSegment(start - 1, length);
+        }
+    }
+
+    /*
+     * @brief Resolves trajectory segment indices across full temporal bounds
+     * when no spatial subsetting is applied, and appends the resulting segment
+     * to `indexes`.
+     *
+     * Calculates the selected index-begin range using `segIndex.minIndexStart`
+     * and computes `selectedCount = segIndex.maxIndexEnd - selectedStart`.
+     * Delegates core segment resolution and 1-based to 0-based offset
+     * conversion to `addSegmentIndexSelection()`.
+     *
+     * @param[in]  segIndex          Structure containing temporal boundary
+     * indices
+     *                               (`minIndexStart` and `maxIndexEnd`).
+     * @param[out] firstTrajIndex    Reference to store the computed first
+     * trajectory index (1-based value).
+     * @param[out] trajSegLength     Reference to store the computed target
+     * segment length.
+     * @param[in]  idxBegSize        Total element count/size of the index-begin
+     * dataset.
+     * @param[in]  coordinateSize    Total element count/size of the target
+     * trajectory dataset.
+     * @param[in]  indexBegDataset   Array containing 1-based index-begin
+     * dataset values.
+     *
+     */
+    void addSegmentIndexSelectionFromTemporalBounds(IndexSelection &segIndex,
+                                                    long &firstTrajIndex,
+                                                    long &trajSegLength,
+                                                    long idxBegSize,
+                                                    long coordinateSize,
+                                                    int64_t indexBegDataset[])
+    {
+        LOG_DEBUG("ForwardReferenceCoordinates::"
+                  "addSegmentIndexSelectionFromTemporalBounds(): ENTER");
+
+        long selectedStart = segIndex.minIndexStart;
+        long selectedCount = segIndex.maxIndexEnd - selectedStart;
+
+        addSegmentIndexSelection(selectedStart,
+                                 selectedCount,
+                                 firstTrajIndex,
+                                 trajSegLength,
+                                 idxBegSize,
+                                 coordinateSize,
+                                 indexBegDataset);
+    }
+
   private:
     H5::Group segGroup;
     std::string shortname;
@@ -477,39 +584,22 @@ class ForwardReferenceCoordinates : public Coordinate
             }
             delete[] data;
         }
-        // Create Segment reference - start index and length
-        // ** avoiding selected segment references that are fill values **
-        //
-        // start = first selected non-fill indexBeg - 1
-        //    (indexBegin values are 1 based indexing,
-        //     selection start is 0 based indexing)
-        //
-        // length = last selected non-fill indexBeg - start
-        //             - 1 + size-last-selected-segment;
+
+        // For each spatial segment, compute the trajectory range and append to
+        // indexes in addSegmentIndexSelection()
         for (std::map<long, long>::iterator it = segIndexes->segments.begin();
              it != segIndexes->segments.end();
              it++)
         {
-            long selectedStart = it->first;
-            long selectedCount = it->second;
             long start = 0, length = 0;
 
-            defineOneSegment(selectedStart,
-                             selectedCount,
-                             start,
-                             length,
-                             idxBegSize,
-                             coordinateSize,
-                             indexBeg);
-
-            // Note: index-selection start is true to datasets,
-            // zero based indexing, whereas start index pulled from
-            // indexBegin datasets is one based indexing one based
-            // indexing.
-            if (start > 0)
-            {
-                indexes->addSegment(start - 1, length);
-            }
+            addSegmentIndexSelection(it->first,
+                                     it->second,
+                                     start,
+                                     length,
+                                     idxBegSize,
+                                     coordinateSize,
+                                     indexBeg);
         }
 
         // If no spatial subsetting, include all segments.
@@ -517,24 +607,12 @@ class ForwardReferenceCoordinates : public Coordinate
         {
             long start = 0, length = 0;
 
-            long selectedStart = segIndexes->minIndexStart;
-            long selectedCount = segIndexes->maxIndexEnd - selectedStart;
-
-            defineOneSegment(selectedStart,
-                             selectedCount,
-                             start,
-                             length,
-                             idxBegSize,
-                             coordinateSize,
-                             indexBeg);
-
-            // Note: index-selection start is true to datasets, zero based
-            // indexing, whereas start index pulled from indexBegin datasets is
-            // one based indexing
-            if (start > 0)
-            {
-                indexes->addSegment(start - 1, length);
-            }
+            addSegmentIndexSelectionFromTemporalBounds(*segIndexes,
+                                                       start,
+                                                       length,
+                                                       idxBegSize,
+                                                       coordinateSize,
+                                                       indexBeg);
         }
 
         // No data found matched the spatial/temporal constraints, return no

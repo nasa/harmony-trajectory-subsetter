@@ -13,6 +13,46 @@
 #include <regex>
 #include <string>
 
+class TestableForwardReferenceCoordinates : public ForwardReferenceCoordinates
+{
+  public:
+    using ForwardReferenceCoordinates::ForwardReferenceCoordinates;
+
+    // Public wrapper exposing the protected methods
+    void callAddSegmentIndexSelection(long selectedStart,
+                                      long selectedCount,
+                                      long &firstTrajIndex,
+                                      long &trajSegLength,
+                                      long idxBegSize,
+                                      long coordinateSize,
+                                      int64_t indexBegDataset[])
+    {
+        this->addSegmentIndexSelection(selectedStart,
+                                       selectedCount,
+                                       firstTrajIndex,
+                                       trajSegLength,
+                                       idxBegSize,
+                                       coordinateSize,
+                                       indexBegDataset);
+    }
+
+    void callAddSegmentIndexSelectionFromTemporalBounds(
+        IndexSelection &segIndex,
+        long &firstTrajIndex,
+        long &trajSegLength,
+        long idxBegSize,
+        long coordinateSize,
+        int64_t indexBegDataset[])
+    {
+        this->addSegmentIndexSelectionFromTemporalBounds(segIndex,
+                                                         firstTrajIndex,
+                                                         trajSegLength,
+                                                         idxBegSize,
+                                                         coordinateSize,
+                                                         indexBegDataset);
+    }
+};
+
 class ForwardReferenceCoordinatesTest : public ::testing::Test
 {
   protected:
@@ -21,8 +61,9 @@ class ForwardReferenceCoordinatesTest : public ::testing::Test
         std::string config_file_path = gtest_utilities::getFullPath(
             "harmony_service/subsetter_config.json");
         config = std::make_unique<Configuration>(config_file_path);
-        coordinate_object = std::make_unique<ForwardReferenceCoordinates>(
-            groupname, geoboxes, temporal, geopolygon, config.get());
+        coordinate_object =
+            std::make_unique<TestableForwardReferenceCoordinates>(
+                groupname, geoboxes, temporal, geopolygon, config.get());
 
         // Read in test data.
         // This index begin dataset starts and ends with fill values (0).
@@ -35,7 +76,7 @@ class ForwardReferenceCoordinatesTest : public ::testing::Test
     ~ForwardReferenceCoordinatesTest() { delete index_begin_dataset; }
 
     int64_t *index_begin_dataset = nullptr;
-    std::unique_ptr<ForwardReferenceCoordinates> coordinate_object;
+    std::unique_ptr<TestableForwardReferenceCoordinates> coordinate_object;
 
   private:
     std::string groupname = "ATL03";
@@ -220,8 +261,9 @@ TEST_F(ForwardReferenceCoordinatesTest,
     EXPECT_EQ(trajSegLength_expected, trajSegLength_result);
 }
 
-TEST_F(ForwardReferenceCoordinatesTest,
-       DefineOneSegment_CalculatesLengthToNextTraj_ATL10_v6_beam_lead_ndx)
+TEST_F(
+    ForwardReferenceCoordinatesTest,
+    AddSegmentIndexSelection_CalculatesLengthToNextTraj_ATL10_v6_beam_lead_ndx)
 {
     // Simplified 10-element index dataset
     // /gt1l/reference_surface_section/beam_lead_ndx log output:
@@ -230,7 +272,7 @@ TEST_F(ForwardReferenceCoordinatesTest,
     //  - scanBackNonFill: finds the first non -1 starting backwards
     //    at selectedCount = 7 (Index[6] = 667)
     //  - scanFwdNonFill: finds the first non -1 starting at
-    //.   selectedCount = 7 (Index[8] = 668) and ending maxIndexBegIdx = 10
+    //    selectedCount = 7 (Index[8] = 668) and ending maxIndexBegIdx = 10
     // - Next segment lookahead at index 8 (value 668)
     // - trajSegLength = nextTrajIndex - firstTrajIndex = 668 - 1 = 667
     // Indexes:             0   1  2  3    4    5    6   7    8    9
@@ -242,10 +284,10 @@ TEST_F(ForwardReferenceCoordinatesTest,
     long selectedCount = maxIndexEnd - selectedStart;
 
     // Total elements in the index array
-    long maxIndexBegIdx = 10;
+    long idxBegSize = 10;
 
     // Total elements in the trajectory/target dataset
-    long maxTrajIndex = 743;
+    long coordinateSize = 743;
 
     // Expected: scanFwdNonFill finds first non-fill at mock_data[2] -> 1
     long firstTrajIndex_expected = 1;
@@ -257,13 +299,13 @@ TEST_F(ForwardReferenceCoordinatesTest,
     long trajSegLength_expected = 667;
     long trajSegLength_result = 0;
 
-    coordinate_object->defineOneSegment(selectedStart,
-                                        selectedCount,
-                                        firstTrajIndex_result,
-                                        trajSegLength_result,
-                                        maxIndexBegIdx,
-                                        maxTrajIndex,
-                                        mock_data);
+    coordinate_object->callAddSegmentIndexSelection(selectedStart,
+                                                    selectedCount,
+                                                    firstTrajIndex_result,
+                                                    trajSegLength_result,
+                                                    idxBegSize,
+                                                    coordinateSize,
+                                                    mock_data);
 
     EXPECT_EQ(firstTrajIndex_expected, firstTrajIndex_result);
     EXPECT_EQ(trajSegLength_expected, trajSegLength_result);
@@ -319,30 +361,29 @@ TEST_F(ForwardReferenceCoordinatesTest,
     EXPECT_EQ(trajSegLength_expected, trajSegLength_result);
 }
 
-TEST_F(ForwardReferenceCoordinatesTest,
-       DefineOneSegment_DAS_2308_Negative_test_selectedCount_minus_1)
+TEST_F(
+    ForwardReferenceCoordinatesTest,
+    AddSegmentIndexSelectionFromTemporalBounds_DAS_2308_Negative_test_selectedCount_minus_1)
 {
     // Simplified 10-element index dataset mirroring log output:
     //  - scanFwdNonFill: finds the first non -1 starting at
-    //    selectedStartIdx = 0 (Index[2] = 1) and ending at selectedCount = 6
-    //  - scanBackNonFill: finds the first non -1 starting backwards
-    //    at selectedCount = 6 (Index[5] = 500)
-    //  - scanFwdNonFill: finds the first non -1 starting at
-    //    selectedCount = 6 (Index[6] = 667) and ending maxIndexBegIdx = 10
+    //    selectedStartIdx = 0 (Index[2] = 1)
+    //  - scanBackNonFill: finds the non -1 within maxIndexEnd=7 (Index[6] =
+    //  667) range
+    //  - scanFwdNonFill (lookahead): scans past mock_data[7]=-1 to find
+    //  mock_data[8]=668
     //
-    // Old calculation DAS-2308
-    //  long selectedCount = segIndexes->maxIndexEnd - selectedStart;
-    //  - trajSegLength = nextTrajIndex - firstTrajIndex = 667 - 1 = 666
-    //  (Incorrect off-by-one truncation)
+    // Old/incorrect DAS-2308 logic evaluated selectedCount = maxIndexEnd -
+    // selectedStart - 1 (6), causing scanFwdNonFill to terminate early at
+    // mock_data[6]=667 -> trajSegLength = 667 - 1 = 666.
     //
-    // The correct full temporal range calculation:
-    //  - trajSegLength should look ahead to mock_data[8] = 668 -> 668 - 1 = 667
+    // The correct addSegmentIndexSelectionFromTemporalBounds calculates:
+    //  selectedCount = segIndex.maxIndexEnd - selectedStart (7 - 0 = 7),
+    //  which properly looks ahead to mock_data[8]=668 -> trajSegLength = 668 -
+    //  1 = 667.
+    //
     // Indexes:             0   1  2  3    4    5    6   7    8    9
     int64_t mock_data[] = {-1, -1, 1, 3, 100, 500, 667, -1, 668, 743};
-
-    long selectedStart = 0;
-    long maxIndexEnd = 7;
-    long selectedCount = maxIndexEnd - selectedStart - 1;
 
     // Total elements in the index array
     long maxIndexBegIdx = 10;
@@ -350,37 +391,52 @@ TEST_F(ForwardReferenceCoordinatesTest,
     // Total elements in the trajectory/target dataset
     long maxTrajIndex = 743;
 
+    // Construct IndexSelection with minIndexStart = 0, maxIndexEnd = 7
+    IndexSelection segIndex(maxIndexBegIdx);
+    segIndex.minIndexStart = 0;
+    segIndex.maxIndexEnd = 7;
+
     // Expected: scanFwdNonFill finds first non-fill at mock_data[2] -> 1
     long firstTrajIndex_expected = 1;
     long firstTrajIndex_result = 0;
 
-    // Expected correct length:
-    // scanFwdNonFill: finds the first non -1 starting at
-    // mock_data[7]=-1 to find nextTrajIndex (mock_data[8]=668)
-    // trajSegLength = nextTrajIndex - firstTrajIndex (668 - 1 = 667)
+    // Expected correct length when evaluating full temporal bounds range
+    // (selectedCount = 7):
     long trajSegLength_expected_correct = 667;
-
-    // Expected incorrect length:
-    // scanFwdNonFill: finds the first non -1 starting at
-    // mock_data[6]=667 find nextTrajIndex (mock_data[6]=667)
-    // trajSegLength = nextTrajIndex - firstTrajIndex = 667 - 1 = 666
-    long trajSegLength_expected_incorrect = 666;
 
     long trajSegLength_result = 0;
 
-    coordinate_object->defineOneSegment(selectedStart,
-                                        selectedCount,
-                                        firstTrajIndex_result,
-                                        trajSegLength_result,
-                                        maxIndexBegIdx,
-                                        maxTrajIndex,
-                                        mock_data);
+    coordinate_object->callAddSegmentIndexSelectionFromTemporalBounds(
+        segIndex,
+        firstTrajIndex_result,
+        trajSegLength_result,
+        maxIndexBegIdx,
+        maxTrajIndex,
+        mock_data);
 
     EXPECT_EQ(firstTrajIndex_expected, firstTrajIndex_result);
+    // Verify correct trajectory segment length calculation (667)
+    EXPECT_EQ(trajSegLength_expected_correct, trajSegLength_result);
 
-    // trajSegLength_expected_correct (667) != trajSegLength_result (666)
-    EXPECT_NE(trajSegLength_expected_correct, trajSegLength_result);
+    // Negative test
+    // Old/incorrect DAS-2308 logic evaluated selectedCount = maxIndexEnd -
+    // selectedStart - 1 (6), causing scanFwdNonFill to terminate early at
+    // mock_data[6]=667 -> trajSegLength = 667 - 1 = 666. Expected incorrect
+    // length if -1 off-by-one truncation were present (selectedCount = 6):
+    segIndex.maxIndexEnd = segIndex.maxIndexEnd - segIndex.minIndexStart - 1;
 
-    // trajSegLength_expected_incorrect (666) == trajSegLength_result (666)
+    firstTrajIndex_result = 0;
+    trajSegLength_result = 0;
+
+    coordinate_object->callAddSegmentIndexSelectionFromTemporalBounds(
+        segIndex,
+        firstTrajIndex_result,
+        trajSegLength_result,
+        maxIndexBegIdx,
+        maxTrajIndex,
+        mock_data);
+
+    long trajSegLength_expected_incorrect = 666;
+
     EXPECT_EQ(trajSegLength_expected_incorrect, trajSegLength_result);
 }
