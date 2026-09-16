@@ -1,28 +1,22 @@
 #include "gtest_utilities.h"
 #include "H5Cpp.h"
 
-#include <gtest/internal/gtest-filepath.h>
-
-#include <algorithm>
-#include <regex>
+#include <iostream>
 #include <string>
 
 /**
  * @brief This function returns the full path of a given relative path.
  *
  *        All file paths are assumed to be relative to the Trajectory Subsetter
- *        root directory.
+ *        root directory, which CMakeLists.txt supplies at configure time as
+ *        TRAJECTORY_SUBSETTER_ROOT, so the tests can run from any directory.
  *
  * @param relative_path The input relative file path.
  * @return The full file path.
  */
 std::string gtest_utilities::getFullPath(std::string relative_path)
 {
-    std::string current_directory =
-        testing::internal::FilePath::GetCurrentDir().c_str();
-    std::string full_path = std::regex_replace(
-        current_directory, std::regex("tests/unit/gtest/build"), relative_path);
-    return full_path;
+    return std::string(TRAJECTORY_SUBSETTER_ROOT) + "/" + relative_path;
 }
 
 /**

@@ -2,7 +2,7 @@
 # must include an update to the `docker/service_version.txt` file. The workflow
 # can also be manually triggered by a repository maintainer. This workflow will
 # first trigger the reusable workflow in `.github/workflows/run_tests.yml`,
-# which runs the `unittest` suite. If that workflow is successful, the latest
+# which runs the Python and C++ unit test suites. If that workflow is successful, the latest
 # version of the service Docker image is pushed to ghcr.io, a tag is added to
 # the latest git commit, and a GitHub release is created with the release notes
 # from the latest version of the Harmony Metadata Annotator.

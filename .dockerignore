@@ -8,5 +8,8 @@
 !harmony_service/
 !docker/service_version.txt
 
-# Test image (tests.Dockerfile)
+# Test image (tests.Dockerfile) and GoogleTest image (gtest.Dockerfile)
 !tests/
+
+# A local CMake build directory would carry host paths into the image
+tests/unit/gtest/build/

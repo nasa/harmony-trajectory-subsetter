@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- The C++ GoogleTest suite now runs in CI (`.github/workflows/run_tests.yml`) and
+  can be built and run locally in Docker with `./bin/build-gtest` and
+  `./bin/run-gtest`, without a local compiler or conda environment. The tests
+  resolve HDF5 and GoogleTest with `find_package` instead of `CONDA_PREFIX`, run
+  from any working directory, and are no longer run as a CMake post-build step.
+  The duplicate, never-compiled `tests/unit/gtest/IndexSelection_test.cpp` was
+  removed.
+
 ## [v1.0.11] - 2026-08-28
 
 ### Changed

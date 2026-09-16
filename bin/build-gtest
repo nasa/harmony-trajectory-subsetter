@@ -1,0 +1,25 @@
+#!/bin/bash
+###############################################################################
+# Build the GoogleTest image for the C++ subsetter.
+#
+# The image extends the "builder" stage of docker/service.Dockerfile, so the
+# compiler toolchain, Boost and the source-built HDF5 are shared with the
+# service image. Building that stage again here is a Docker cache hit after
+# ./bin/build-image; only the subsetter source and the test sources are
+# recompiled when they change.
+#
+###############################################################################
+
+set -e
+
+image="ghcr.io/nasa/harmony-trajectory-subsetter"
+tag=${1:-latest}
+
+# Tag the builder stage of the service image so docker/gtest.Dockerfile can
+# use it as a base image.
+docker build --platform linux/amd64 --target builder \
+    -t ${image}-builder:latest -f docker/service.Dockerfile .
+
+# Build the GoogleTest image
+docker build --platform linux/amd64 \
+    -t ${image}-gtest:${tag} -f docker/gtest.Dockerfile .

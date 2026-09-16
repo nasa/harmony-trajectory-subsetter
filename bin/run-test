@@ -7,8 +7,8 @@
 #
 # Note: This test suite only covers the Python code for this service, which is
 # the Harmony Python infrastructure that calls the compiled Trajectory
-# Subsetter binary. There is currently no unit testing of the binary or style
-# checking for the C++ source code.
+# Subsetter binary. The C++ GoogleTest suite for the binary is run separately
+# by ./bin/build-gtest and ./bin/run-gtest.
 #
 # This script will output test coverage information to a `coverage` directory
 # and JUnit test report output to a `test-reports` directory on the host

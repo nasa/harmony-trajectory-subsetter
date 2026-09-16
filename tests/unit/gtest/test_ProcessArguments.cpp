@@ -1,4 +1,5 @@
 #include "../../../subsetter/ProcessArguments.h"
+#include "gtest_utilities.h"
 #include <filesystem>
 #include <fstream>
 #include <gtest/gtest.h>
@@ -16,10 +17,18 @@ class test_ProcessArguments : public testing::Test, public ProcessArguments
         // ProcessArguments::process_args() method
         processArgs = std::make_shared<ProcessArguments>();
 
+        config_file_path = gtest_utilities::getFullPath(
+            "harmony_service/subsetter_config.json");
+
         // Generate a fake .h5 file with unique path within the temporary
         // directory
         temp_file_path =
             std::filesystem::temp_directory_path() / "fake_file.h5";
+
+        // ProcessArguments opens the output file to check it is writable, so
+        // keep it in the temporary directory rather than the working directory.
+        out_file_path =
+            std::filesystem::temp_directory_path() / "subset_fake_file.h5";
 
         // Create a temp file
         std::ofstream temp_file(temp_file_path);
@@ -55,7 +64,9 @@ class test_ProcessArguments : public testing::Test, public ProcessArguments
     void TearDown() {}
 
   protected:
+    std::string config_file_path;
     std::filesystem::path temp_file_path;
+    std::filesystem::path out_file_path;
     std::filesystem::path geojson_temp_file_path;
     std::shared_ptr<ProcessArguments> processArgs;
 };
@@ -72,13 +83,12 @@ class test_ProcessArguments : public testing::Test, public ProcessArguments
 
 TEST_F(test_ProcessArguments, test_process_args_simple)
 {
-    std::vector<std::string> arguments = {
-        "--configfile",
-        "../../../harmony_service/subsetter_config.json",
-        "--filename",
-        temp_file_path.string(),
-        "--outfile",
-        "subset_fake_file.h5"};
+    std::vector<std::string> arguments = {"--configfile",
+                                          config_file_path,
+                                          "--filename",
+                                          temp_file_path.string(),
+                                          "--outfile",
+                                          out_file_path.string()};
 
     // Build arguments string for processArgs->process_args() input
     std::vector<char *> argv;
@@ -99,15 +109,14 @@ TEST_F(test_ProcessArguments,
         "\"Polygon\", \"coordinates\": [[[7.283062, 3.533509], [7.280999, "
         "4.517362], [6.300962, 4.514375], [6.304198, 3.531174], [7.283062, "
         "3.533509]]]}, \"properties\": {\"edscId\": \"0\"}}]}");
-    std::vector<std::string> arguments = {
-        "--configfile",
-        "../../../harmony_service/subsetter_config.json",
-        "--filename",
-        temp_file_path.string(),
-        "--outfile",
-        "subset_fake_file.h5",
-        "--boundingshape",
-        boundingshape.str()};
+    std::vector<std::string> arguments = {"--configfile",
+                                          config_file_path,
+                                          "--filename",
+                                          temp_file_path.string(),
+                                          "--outfile",
+                                          out_file_path.string(),
+                                          "--boundingshape",
+                                          boundingshape.str()};
 
     // Build arguments string for processArgs->process_args() input
     std::vector<char *> argv;
@@ -135,15 +144,14 @@ TEST_F(test_ProcessArguments,
         "[[[7.283062, 3.533509], [7.280999, 4.517362], [6.300962, 4.514375], "
         "[6.304198, 3.531174], [7.283062, 3.533509]]]}, \"properties\": "
         "{\"edscId\": \"0\"}}]}");
-    std::vector<std::string> arguments = {
-        "--configfile",
-        "../../../harmony_service/subsetter_config.json",
-        "--filename",
-        temp_file_path.string(),
-        "--outfile",
-        "subset_fake_file.h5",
-        "--boundingshape",
-        boundingshape.str()};
+    std::vector<std::string> arguments = {"--configfile",
+                                          config_file_path,
+                                          "--filename",
+                                          temp_file_path.string(),
+                                          "--outfile",
+                                          out_file_path.string(),
+                                          "--boundingshape",
+                                          boundingshape.str()};
 
     // Build arguments string for processArgs->process_args() input
     std::vector<char *> argv;
@@ -164,15 +172,14 @@ TEST_F(test_ProcessArguments,
 // Test bounding box with valid .geojson file
 TEST_F(test_ProcessArguments, test_process_args_bounding_box_valid_geojson_file)
 {
-    std::vector<std::string> arguments = {
-        "--configfile",
-        "../../../harmony_service/subsetter_config.json",
-        "--filename",
-        temp_file_path.string(),
-        "--outfile",
-        "subset_fake_file.h5",
-        "--boundingshape",
-        geojson_temp_file_path.string()};
+    std::vector<std::string> arguments = {"--configfile",
+                                          config_file_path,
+                                          "--filename",
+                                          temp_file_path.string(),
+                                          "--outfile",
+                                          out_file_path.string(),
+                                          "--boundingshape",
+                                          geojson_temp_file_path.string()};
 
     // Build arguments string for processArgs->process_args() input
     std::vector<char *> argv;
@@ -194,15 +201,14 @@ TEST_F(test_ProcessArguments, test_process_args_bounding_box_valid_geojson_file)
 TEST_F(test_ProcessArguments,
        test_process_args_bounding_box_no_geojson_file_created)
 {
-    std::vector<std::string> arguments = {
-        "--configfile",
-        "../../../harmony_service/subsetter_config.json",
-        "--filename",
-        temp_file_path.string(),
-        "--outfile",
-        "subset_fake_file.h5",
-        "--boundingshape",
-        "no_file_create.geojson"};
+    std::vector<std::string> arguments = {"--configfile",
+                                          config_file_path,
+                                          "--filename",
+                                          temp_file_path.string(),
+                                          "--outfile",
+                                          out_file_path.string(),
+                                          "--boundingshape",
+                                          "no_file_create.geojson"};
 
     // Build arguments string for processArgs->process_args() input
     std::vector<char *> argv;
@@ -216,15 +222,14 @@ TEST_F(test_ProcessArguments,
 // Test bounding box witout data
 TEST_F(test_ProcessArguments, test_process_args_bounding_box_no_data)
 {
-    std::vector<std::string> arguments = {
-        "--configfile",
-        "../../../harmony_service/subsetter_config.json",
-        "--filename",
-        temp_file_path.string(),
-        "--outfile",
-        "subset_fake_file.h5",
-        "--boundingshape",
-        ""};
+    std::vector<std::string> arguments = {"--configfile",
+                                          config_file_path,
+                                          "--filename",
+                                          temp_file_path.string(),
+                                          "--outfile",
+                                          out_file_path.string(),
+                                          "--boundingshape",
+                                          ""};
 
     // Build arguments string for processArgs->process_args() input
     std::vector<char *> argv;

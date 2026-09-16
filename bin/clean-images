@@ -19,8 +19,10 @@ remove_image_by_name() {
 
 image_base_name="ghcr.io/nasa/harmony-trajectory-subsetter"
 
-# First remove test images:
+# First remove test, GoogleTest and builder images:
 remove_image_by_name "${image_base_name}-test"
+remove_image_by_name "${image_base_name}-gtest"
+remove_image_by_name "${image_base_name}-builder"
 
 # Next remove service images:
 remove_image_by_name "${image_base_name}"

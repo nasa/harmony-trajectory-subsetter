@@ -1,0 +1,22 @@
+#!/bin/bash
+###############################################################################
+# Execute the ghcr.io/nasa/harmony-trajectory-subsetter-gtest Docker image as
+# a container. This runs the C++ GoogleTest suite for the subsetter binary via
+# ctest. Any arguments are forwarded to ctest, e.g.:
+#
+#   ./bin/run-gtest                 # run everything
+#   ./bin/run-gtest -R Temporal     # run tests whose name matches "Temporal"
+#
+# A JUnit XML report is written to reports/gtest/results.xml on the host.
+#
+###############################################################################
+
+set -ex
+
+# Make the directory into which the JUnit report will be saved
+mkdir -p reports/gtest
+
+docker run --rm \
+	--platform linux/amd64 \
+	-v $(pwd)/reports/gtest:/home/reports/gtest \
+	ghcr.io/nasa/harmony-trajectory-subsetter-gtest "$@"

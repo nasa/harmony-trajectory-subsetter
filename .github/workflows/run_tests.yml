@@ -1,9 +1,10 @@
-# This workflow will build the service and test Docker images for the Harmony
-# Trajectory Subsetter, then run the Python `unittest` suite within a test Docker
-# container, reporting test results and code coverage as artefacts. It will be
-# called by the workflow that run tests against new PRs and as a first step in
-# the workflow that publishes new Docker images.
-name: Run Python unit tests
+# This workflow will build the service, test and GoogleTest Docker images for
+# the Harmony Trajectory Subsetter, then run the Python `unittest` suite and
+# the C++ GoogleTest suite within those containers, reporting test results and
+# code coverage as artefacts. It will be called by the workflow that run tests
+# against new PRs and as a first step in the workflow that publishes new Docker
+# images.
+name: Run unit tests
 
 on:
   workflow_call
@@ -24,8 +25,14 @@ jobs:
       - name: Build test image
         run: ./bin/build-test
 
+      - name: Build GoogleTest image
+        run: ./bin/build-gtest
+
       - name: Run test image
         run: ./bin/run-test
+
+      - name: Run GoogleTest image
+        run: ./bin/run-gtest
 
       - name: Archive test results and coverage
         uses: actions/upload-artifact@v4

@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
-#include <gtest/internal/gtest-filepath.h>
+
+#include "gtest_utilities.h"
 
 #include <boost/foreach.hpp>
 #include <boost/program_options/options_description.hpp>
@@ -13,7 +14,6 @@
 #include "../../../subsetter/geobox.h"
 #include <iostream>
 
-#include <regex>
 #include <string>
 
 namespace
@@ -24,15 +24,8 @@ class test_ATL10_v006_Configuration : public testing::Test
   protected:
     void SetUp()
     {
-        std::string configFile;
-        std::string currentDir =
-            testing::internal::FilePath::GetCurrentDir().c_str();
-
-        configFile =
-            std::regex_replace(currentDir,
-                               std::regex("tests/unit/gtest/build"),
-                               "harmony_service/subsetter_config.json");
-        std::cout << "Full path: " << configFile.c_str() << std::endl;
+        std::string configFile = gtest_utilities::getFullPath(
+            "harmony_service/subsetter_config.json");
 
         configuration_a = std::make_unique<Configuration>(configFile);
 

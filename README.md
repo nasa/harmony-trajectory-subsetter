@@ -154,17 +154,33 @@ is not linked.
 
 ### GoogleTest:
 
-GoogleTest is the unit test framework used to test the C++ source code. To build and run your test:
+GoogleTest is the unit test framework used to test the C++ source code. The
+simplest way to build and run the tests is in Docker, which needs no local
+compiler, HDF5 or GoogleTest installation:
+
+```
+./bin/build-image    # service image; its builder stage supplies the toolchain
+./bin/build-gtest    # compiles the test executables on top of that stage
+./bin/run-gtest      # runs ctest; a JUnit report is written to reports/gtest/
+```
+
+`./bin/run-gtest` forwards its arguments to `ctest`, so `./bin/run-gtest -R Temporal`
+runs only the tests whose names match. After editing the C++ source or the tests,
+rerun `./bin/build-gtest` and `./bin/run-gtest`.
+
+To build and run the tests against the local conda environment instead:
 
 ```
 cd tests/unit/gtest
 cmake -S . -B build
 cmake --build build
+ctest --test-dir build --output-on-failure
 ```
 
-To rebuild and rerun your test:
+To Re-run after edits: (the `check` target
+builds whatever changed and then runs ctest):
 ```
-cmake --build build
+cmake --build build --target check
 ```
 
 ### Best Coding Practices:
