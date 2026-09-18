@@ -532,7 +532,8 @@ class ForwardReferenceCoordinates : public Coordinate
      *
      * We use (next non-fill indexBegin) to compute segment sizes.
      *
-     * @param indexBegSet: index begin dataset
+     * @param[in] indexBegSet: index begin dataset
+     * @param[in,out] targetIndexSelection Reference to the IndexSelection
      */
     void segmentedTrajectorySubset(H5::DataSet *indexBegSet,
                                    IndexSelection &targetIndexSelection)
