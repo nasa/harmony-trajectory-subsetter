@@ -202,7 +202,7 @@ class ForwardReferenceCoordinates : public Coordinate
 
         // Compute the index-selection object for this coordinates - do the
         // subset
-        segmentedTrajectorySubset(indexBegSet);
+        segmentedTrajectorySubset(indexBegSet, *indexes);
 
         indexesProcessed = true;
 
@@ -423,36 +423,33 @@ class ForwardReferenceCoordinates : public Coordinate
         }
     }
 
-  protected:
     /*
      * @brief Resolves trajectory segment indices for a given index-begin
      * selection range and appends the resulting 0-based index range to
-     * `indexes`.
+     * `targetIndexSelection`.
      *
      * Delegates segment calculation to `defineOneSegment()` to resolve the
      * 1-based starting trajectory index and segment length. If a valid start
      * index is found (`start > 0`), converts it to a 0-based dataset offset
-     * (`start - 1`) and appends the segment range to `indexes->addSegment()`.
+     * (`start - 1`) and appends the segment range via
+     * `targetIndexSelection.addSegment()`.
      *
-     * @param[in]  selectedStart     Starting index offset in the index-begin
-     * dataset.
-     * @param[in]  selectedCount     Number of index-begin entries to evaluate.
-     * @param[out] firstTrajIndex    Reference to store the computed first
-     * trajectory index (1-based value).
-     * @param[out] trajSegLength     Reference to store the computed target
-     * segment length.
-     * @param[in]  idxBegSize        Total element count/size of the index-begin
-     * dataset.
-     * @param[in]  coordinateSize    Total element count/size of the target
+     * @param[in,out] targetIndexSelection Reference to the IndexSelection
+     * object to populate.
+     * @param[in]  selectedStart         Starting index offset in the
+     * index-begin dataset.
+     * @param[in]  selectedCount         Number of index-begin entries to
+     * evaluate.
+     * @param[in]  idxBegSize            Total element count/size of the
+     * index-begin dataset.
+     * @param[in]  coordinateSize        Total element count/size of the target
      * trajectory dataset.
-     * @param[in]  indexBegDataset   Array containing 1-based index-begin
+     * @param[in]  indexBegDataset       Array containing 1-based index-begin
      * dataset values.
-     *
      */
-    void addSegmentIndexSelection(long selectedStart,
+    void addSegmentIndexSelection(IndexSelection &targetIndexSelection,
+                                  long selectedStart,
                                   long selectedCount,
-                                  long &firstTrajIndex,
-                                  long &trajSegLength,
                                   long idxBegSize,
                                   long coordinateSize,
                                   int64_t indexBegDataset[])
@@ -471,60 +468,54 @@ class ForwardReferenceCoordinates : public Coordinate
                          coordinateSize,
                          indexBegDataset);
 
-        firstTrajIndex = start;
-        trajSegLength = length;
-
         // Note: index-selection start is zero-based (dataset-relative),
         // whereas start index pulled from indexBegin datasets uses 1-based
         // indexing.
-        if (start > 0 && indexes != nullptr)
+        if (start > 0)
         {
-            indexes->addSegment(start - 1, length);
+            targetIndexSelection.addSegment(start - 1, length);
         }
     }
 
     /*
      * @brief Resolves trajectory segment indices across full temporal bounds
      * when no spatial subsetting is applied, and appends the resulting segment
-     * to `indexes`.
+     * to `targetIndexSelection`.
      *
-     * Calculates the selected index-begin range using `segIndex.minIndexStart`
-     * and computes `selectedCount = segIndex.maxIndexEnd - selectedStart`.
-     * Delegates core segment resolution and 1-based to 0-based offset
-     * conversion to `addSegmentIndexSelection()`.
+     * Calculates the selected index-begin range using
+     * `temporalBoundsSelection.minIndexStart` and computes `selectedCount =
+     * temporalBoundsSelection.maxIndexEnd - selectedStart`. Delegates core
+     * segment resolution and 1-based to 0-based offset conversion to
+     * `addSegmentIndexSelection()`.
      *
-     * @param[in]  segIndex          Structure containing temporal boundary
-     * indices
-     *                               (`minIndexStart` and `maxIndexEnd`).
-     * @param[out] firstTrajIndex    Reference to store the computed first
-     * trajectory index (1-based value).
-     * @param[out] trajSegLength     Reference to store the computed target
-     * segment length.
-     * @param[in]  idxBegSize        Total element count/size of the index-begin
-     * dataset.
-     * @param[in]  coordinateSize    Total element count/size of the target
-     * trajectory dataset.
-     * @param[in]  indexBegDataset   Array containing 1-based index-begin
-     * dataset values.
-     *
+     * @param[in]     temporalBoundsSelection Structure containing temporal
+     * boundary indices (`minIndexStart` and `maxIndexEnd`).
+     * @param[in,out] targetIndexSelection Reference to the IndexSelection
+     * object to populate.
+     * @param[in]     idxBegSize               Total element count/size of the
+     * index-begin dataset.
+     * @param[in]     coordinateSize           Total element count/size of the
+     * target trajectory dataset.
+     * @param[in]     indexBegDataset          Array containing 1-based
+     * index-begin dataset values.
      */
-    void addSegmentIndexSelectionFromTemporalBounds(IndexSelection &segIndex,
-                                                    long &firstTrajIndex,
-                                                    long &trajSegLength,
-                                                    long idxBegSize,
-                                                    long coordinateSize,
-                                                    int64_t indexBegDataset[])
+    void addSegmentIndexSelectionFromTemporalBounds(
+        IndexSelection &temporalBoundsSelection,
+        IndexSelection &targetIndexSelection,
+        long idxBegSize,
+        long coordinateSize,
+        int64_t indexBegDataset[])
     {
         LOG_DEBUG("ForwardReferenceCoordinates::"
                   "addSegmentIndexSelectionFromTemporalBounds(): ENTER");
 
-        long selectedStart = segIndex.minIndexStart;
-        long selectedCount = segIndex.maxIndexEnd - selectedStart;
+        long selectedStart = temporalBoundsSelection.minIndexStart;
+        long selectedCount =
+            temporalBoundsSelection.maxIndexEnd - selectedStart;
 
-        addSegmentIndexSelection(selectedStart,
+        addSegmentIndexSelection(targetIndexSelection,
+                                 selectedStart,
                                  selectedCount,
-                                 firstTrajIndex,
-                                 trajSegLength,
                                  idxBegSize,
                                  coordinateSize,
                                  indexBegDataset);
@@ -543,7 +534,8 @@ class ForwardReferenceCoordinates : public Coordinate
      *
      * @param indexBegSet: index begin dataset
      */
-    void segmentedTrajectorySubset(H5::DataSet *indexBegSet)
+    void segmentedTrajectorySubset(H5::DataSet *indexBegSet,
+                                   IndexSelection &targetIndexSelection)
     {
         LOG_DEBUG(
             "ForwardReferenceCoordinates::segmentedTrajectorySubset(): ENTER");
@@ -591,12 +583,9 @@ class ForwardReferenceCoordinates : public Coordinate
              it != segIndexes->segments.end();
              it++)
         {
-            long start = 0, length = 0;
-
-            addSegmentIndexSelection(it->first,
+            addSegmentIndexSelection(targetIndexSelection,
+                                     it->first,
                                      it->second,
-                                     start,
-                                     length,
                                      idxBegSize,
                                      coordinateSize,
                                      indexBeg);
@@ -605,11 +594,8 @@ class ForwardReferenceCoordinates : public Coordinate
         // If no spatial subsetting, include all segments.
         if (segIndexes->segments.empty())
         {
-            long start = 0, length = 0;
-
             addSegmentIndexSelectionFromTemporalBounds(*segIndexes,
-                                                       start,
-                                                       length,
+                                                       targetIndexSelection,
                                                        idxBegSize,
                                                        coordinateSize,
                                                        indexBeg);
@@ -617,9 +603,9 @@ class ForwardReferenceCoordinates : public Coordinate
 
         // No data found matched the spatial/temporal constraints, return no
         // data.
-        if (indexes->segments.empty())
+        if (targetIndexSelection.segments.empty())
         {
-            indexes->addRestriction(0, 0);
+            targetIndexSelection.addRestriction(0, 0);
             LOG_DEBUG(
                 "ForwardReferenceCoordinates::segmentedTrajectorySubset(): "
                 << "No data found in trajectory subset that matched the "
