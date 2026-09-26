@@ -88,10 +88,9 @@ def get_binary_exception(exit_status: int) -> CustomError:
 
 def execute_command(command: list[str], logger: Logger) -> None:
     """This function invokes the Trajectory Subsetter binary. It
-    will continue to poll the process output until there is an exit status.
-    While doing so, it will retrieve any input from STDOUT and STDERR, and
-    log those with the supplied `logging.Logger` instance associated with
-    the main `HarmonyAdapter` class.
+    drains STDOUT and STDERR together, waits for completion, then logs the
+    captured lines with the supplied `logging.Logger` instance associated
+    with the main `HarmonyAdapter` class.
 
     `command` is a list of argv strings, the binary path followed by its
     arguments, executed directly.
@@ -107,16 +106,16 @@ def execute_command(command: list[str], logger: Logger) -> None:
     logger.info(f"Running command: {shlex.join(command)}")
 
     with Popen(command, stdout=PIPE, stderr=PIPE) as process:
-        exit_status = process.poll()
+        # Drain both pipes while the child runs so a full stderr pipe cannot
+        # block the child while we wait for stdout to reach EOF.
+        stdout, stderr = process.communicate()
+        exit_status = process.returncode
 
-        while exit_status is None:
-            exit_status = process.poll()
+        for stdout_line in stdout.splitlines(keepends=True):
+            logger.info(stdout_line.decode("utf-8"))
 
-            for stdout_line in process.stdout.readlines():
-                logger.info(stdout_line.decode("utf-8"))
-
-            for stderr_line in process.stderr.readlines():
-                logger.error(stderr_line.decode("utf-8"))
+        for stderr_line in stderr.splitlines(keepends=True):
+            logger.error(stderr_line.decode("utf-8"))
 
     if exit_status != 0:
         raise get_binary_exception(exit_status)
